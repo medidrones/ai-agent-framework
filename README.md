@@ -1,27 +1,28 @@
 # Atlas Agent Framework
 
-Atlas is a reusable, provider-agnostic Python framework for defining,
-composing, executing, and evaluating AI agents.
+Atlas é um framework Python reutilizável e independente de provedor para
+definir, compor, executar e avaliar agentes de IA.
 
-This repository contains framework infrastructure rather than a business
-application. The core package defines stable contracts while optional packages
-will integrate model providers, storage systems, transports, and observability
-backends.
+Este repositório contém a infraestrutura de um framework, não uma aplicação de
+negócio. O pacote principal define contratos estáveis, enquanto pacotes
+opcionais integrarão provedores de modelos, sistemas de armazenamento,
+transportes e ferramentas de observabilidade.
 
-## Status
+## Situação atual
 
-The project is in its foundation phase. The current release establishes the
-workspace, package, quality gates, and architectural dependency rules. Agent
-runtime behavior is intentionally not implemented yet.
+O projeto está na fase de fundação. A versão atual estabelece o workspace, o
+pacote, os gates de qualidade e as regras arquiteturais de dependência. O
+comportamento de execução dos agentes ainda não foi implementado
+intencionalmente.
 
-## Requirements
+## Requisitos
 
-- Python 3.12 or newer
+- Python 3.12 ou superior
 - [uv](https://docs.astral.sh/uv/)
 
-## Development
+## Desenvolvimento
 
-Run all commands from the repository root:
+Execute todos os comandos a partir da raiz do repositório:
 
 ```bash
 uv sync
@@ -32,7 +33,7 @@ uv run pytest
 uv build --package atlas-agent-core
 ```
 
-The package uses a `src` layout and can be imported as follows:
+O pacote utiliza o layout `src` e pode ser importado da seguinte forma:
 
 ```python
 import atlas_agents
@@ -40,15 +41,17 @@ import atlas_agents
 print(atlas_agents.__version__)
 ```
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the high-level design and
+Consulte [ARCHITECTURE.md](ARCHITECTURE.md) para conhecer o desenho de alto
+nível e
 [docs/architecture/dependency-rules.md](docs/architecture/dependency-rules.md)
-for enforceable dependency constraints.
+para conferir as restrições de dependência aplicáveis.
 
-## Contributing and security
+## Contribuição e segurança
 
-Development expectations are described in [CONTRIBUTING.md](CONTRIBUTING.md).
-Report security issues using the private process in [SECURITY.md](SECURITY.md).
+As diretrizes de desenvolvimento estão descritas em
+[CONTRIBUTING.md](CONTRIBUTING.md). Relate problemas de segurança pelo processo
+privado definido em [SECURITY.md](SECURITY.md).
 
-## License
+## Licença
 
-Atlas Agent Framework is available under the [MIT License](LICENSE).
+O Atlas Agent Framework é disponibilizado sob a [Licença MIT](LICENSE).

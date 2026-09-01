@@ -1,25 +1,25 @@
-# Security Policy
+# Política de segurança
 
-## Supported versions
+## Versões compatíveis
 
-Atlas Agent Framework is pre-release software. Security fixes are applied to
-the latest revision of the default branch.
+O Atlas Agent Framework é um software em fase de pré-lançamento. Correções de
+segurança são aplicadas à revisão mais recente da branch padrão.
 
-## Reporting a vulnerability
+## Como relatar uma vulnerabilidade
 
-Do not disclose vulnerabilities in a public issue. Report them privately to
-the repository maintainers using the security reporting feature provided by
-the repository host. Include reproduction steps, affected versions, impact,
-and any suggested mitigation.
+Não divulgue vulnerabilidades em uma issue pública. Relate-as de forma privada
+aos mantenedores usando o recurso de comunicação de segurança oferecido pelo
+serviço que hospeda o repositório. Inclua os passos para reprodução, as versões
+afetadas, o impacto e qualquer mitigação sugerida.
 
-Maintainers should acknowledge a report within five business days and provide
-status updates while it is investigated.
+Os mantenedores devem confirmar o recebimento em até cinco dias úteis e fornecer
+atualizações enquanto o relato estiver sob investigação.
 
-## Security principles
+## Princípios de segurança
 
-- Secrets are injected explicitly and are never logged or serialized.
-- Core code does not read credentials directly from environment variables.
-- Tool inputs are validated before execution.
-- Retrieved and model-generated content is treated as untrusted.
-- Arbitrary code execution is not part of the core runtime.
-- Network access is introduced only through explicit adapters.
+- Segredos são injetados explicitamente e nunca registrados ou serializados.
+- O core não lê credenciais diretamente de variáveis de ambiente.
+- Os argumentos das ferramentas são validados antes da execução.
+- Conteúdo recuperado ou gerado por modelos é tratado como não confiável.
+- A execução arbitrária de código não faz parte do runtime do core.
+- O acesso à rede é introduzido somente por adapters explícitos.

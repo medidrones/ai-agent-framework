@@ -1,30 +1,31 @@
-# Architecture overview
+# Visão geral da arquitetura
 
-Atlas Agent Framework is a modular Python SDK whose stable center is a small,
-provider-neutral core. Consumers may use that core directly or add optional
-plugins and transport adapters.
+O Atlas Agent Framework é um SDK Python modular cujo centro estável é um core
+pequeno e neutro de provedor. Os consumidores podem usar esse core diretamente
+ou adicionar plugins e adapters de transporte opcionais.
 
-## Direction of dependency
+## Direção das dependências
 
 ```text
-Consumers
+Consumidores
     |
-Adapters and plugins
+Adapters e plugins
     |
-Core contracts
+Contratos do core
 ```
 
-Source dependencies point toward the core. The core does not know which model
-provider, database, broker, vector store, or transport will implement its
-contracts.
+As dependências do código-fonte apontam para o core. O core não sabe qual
+provedor de modelo, banco de dados, broker, banco vetorial ou transporte
+implementará seus contratos.
 
-## Repository organization
+## Organização do repositório
 
-- `packages/atlas-agent-core` contains the importable `atlas_agents` package.
-- Future packages will contain provider and infrastructure implementations.
-- `docs` records architectural constraints and decisions.
-- `examples` will demonstrate integration without introducing business logic
-  into the framework.
+- `packages/atlas-agent-core` contém o pacote importável `atlas_agents`.
+- Pacotes futuros conterão implementações de provedores e infraestrutura.
+- `docs` registra restrições e decisões arquiteturais.
+- `examples` demonstrará integrações sem introduzir lógica de negócio no
+  framework.
 
-The foundation intentionally contains no runtime logic. Contracts and behavior
-will be added in small, independently reviewable phases.
+A fundação intencionalmente não contém lógica de runtime. Contratos e
+comportamentos serão adicionados em fases pequenas e revisáveis de forma
+independente.

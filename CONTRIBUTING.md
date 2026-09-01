@@ -1,24 +1,25 @@
-# Contributing
+# Como contribuir
 
-Thank you for contributing to Atlas Agent Framework.
+Obrigado por contribuir com o Atlas Agent Framework.
 
-## Prerequisites
+## Pré-requisitos
 
-- Python 3.12 or newer
+- Python 3.12 ou superior
 - uv
 - Git
 
-## Setup
+## Preparação do ambiente
 
-From the repository root, install the workspace and development dependencies:
+A partir da raiz do repositório, instale o workspace e as dependências de
+desenvolvimento:
 
 ```bash
 uv sync
 ```
 
-## Quality gates
+## Gates de qualidade
 
-Run the same checks used by continuous integration:
+Execute as mesmas verificações usadas pela integração contínua:
 
 ```bash
 uv run ruff check .
@@ -28,19 +29,22 @@ uv run pytest
 uv build --package atlas-agent-core
 ```
 
-Optionally install the local pre-commit hooks:
+Opcionalmente, instale os hooks locais de pre-commit:
 
 ```bash
 uv run pre-commit install
 ```
 
-## Change guidelines
+## Diretrizes para alterações
 
-- Keep changes focused on one coherent objective.
-- Maintain dependency inversion and provider-neutral core contracts.
-- Add complete type hints and public API documentation.
-- Add unit and negative-path tests for behavior changes.
-- Do not add provider SDKs or infrastructure dependencies to the core.
-- Record significant architectural decisions before implementation.
+- Mantenha cada alteração concentrada em um objetivo coerente.
+- Preserve a inversão de dependência e os contratos do core neutros de
+  provedor.
+- Adicione tipagem completa e documentação para APIs públicas.
+- Adicione testes unitários e de fluxos negativos para mudanças de
+  comportamento.
+- Não adicione SDKs de provedores ou dependências de infraestrutura ao core.
+- Registre decisões arquiteturais relevantes antes da implementação.
 
-All code and technical documentation must be written in English.
+O código, os identificadores e as docstrings devem ser escritos em inglês. O
+README e a documentação técnica devem ser escritos em português do Brasil.
