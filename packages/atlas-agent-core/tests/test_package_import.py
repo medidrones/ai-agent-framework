@@ -33,3 +33,20 @@ def test_model_abstraction_is_intentionally_public() -> None:
     }
 
     assert expected <= set(atlas_agents.__all__)
+
+
+def test_model_error_hierarchy_is_intentionally_public() -> None:
+    expected = {
+        "AtlasAgentError",
+        "ModelAuthenticationError",
+        "ModelInvalidRequestError",
+        "ModelNotFoundError",
+        "ModelPermissionError",
+        "ModelProviderError",
+        "ModelRateLimitError",
+        "ModelResponseError",
+        "ModelTimeoutError",
+        "ModelUnavailableError",
+    }
+
+    assert expected <= set(atlas_agents.__all__)

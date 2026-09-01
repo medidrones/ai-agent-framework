@@ -5,18 +5,29 @@ from pathlib import Path
 
 FORBIDDEN_IMPORTS = frozenset(
     {
+        "aio_pika",
+        "aiohttp",
         "anthropic",
+        "asyncpg",
         "autogen",
         "azure",
+        "confluent_kafka",
         "crewai",
+        "django",
         "fastapi",
+        "flask",
         "google",
+        "httpx",
+        "kafka",
         "langchain",
         "langgraph",
         "openai",
         "opensearch",
+        "pika",
+        "psycopg",
         "qdrant",
         "redis",
+        "requests",
         "sqlalchemy",
     }
 )
@@ -42,3 +53,25 @@ def test_core_does_not_import_forbidden_dependencies() -> None:
             violations[str(path.relative_to(source_root))] = sorted(forbidden)
 
     assert violations == {}
+
+
+def test_core_runtime_dependencies_exclude_provider_sdks() -> None:
+    package_root = Path(__file__).parents[2]
+    pyproject = (package_root / "pyproject.toml").read_text(encoding="utf-8")
+    dependencies = (
+        pyproject.partition("dependencies = [")[2].partition("]")[0].casefold()
+    )
+    forbidden_fragments = (
+        "anthropic",
+        "autogen",
+        "azure",
+        "crewai",
+        "gemini",
+        "google-ai",
+        "google-genai",
+        "langchain",
+        "langgraph",
+        "openai",
+    )
+
+    assert not any(name in dependencies for name in forbidden_fragments)

@@ -35,3 +35,7 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
   de ferramentas e da rejeição terminal de saída.
 - `ExecutionLifecycle` agora sempre inicia em `CREATED`; restauração em outro
   estado fica reservada a um contrato futuro.
+- `ModelStreamEvent` agora cria timestamp UTC quando ele não é fornecido.
+- Os testes normativos da abstração de modelos passaram a comprovar de forma
+  explícita serialização, imutabilidade, streams completos e rejeição de JSON
+  textual em argumentos de ferramentas.

@@ -1,6 +1,6 @@
 """Structured provider-neutral model streaming events."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 
 from pydantic import Field, field_validator
@@ -33,7 +33,7 @@ class ModelStreamEvent(_FrozenModel):
     sequence: int = Field(ge=1)
     response_id: str | None = None
     data: dict[str, object] = Field(default_factory=dict)
-    timestamp: datetime
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     @field_validator("response_id")
     @classmethod

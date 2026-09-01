@@ -165,9 +165,12 @@ ERROR
 ```
 
 Cada `ModelStreamEvent` possui sequência maior ou igual a `1`, response ID
-opcional, dados JSON, timestamp com fuso horário e imutabilidade de modelo. O
-provider deve emitir informação suficiente para formar uma resposta final. Um
-acumulador de streaming pertence a uma tarefa futura.
+opcional, dados JSON, timestamp com fuso horário e imutabilidade de modelo. Se o
+timestamp não for informado, o contrato utiliza o instante atual em UTC. Um
+stream bem-sucedido começa com `RESPONSE_STARTED` e termina com
+`RESPONSE_COMPLETED`; o provider deve preservar a ordem lógica e emitir
+informação suficiente para formar uma resposta final. Um acumulador de
+streaming pertence a uma tarefa futura.
 
 ## Contexto e erros
 
@@ -190,6 +193,10 @@ provider, model opcional e `retryable`. A hierarquia pública contém:
 Rate limit, timeout e indisponibilidade são retryable por padrão. Autenticação,
 permissão, modelo inexistente e request inválido não são. O contrato não guarda
 chaves, headers, requests completos ou respostas raw e não implementa retry.
+
+Metadata é deliberadamente opaca e validada como JSON. O core não inspeciona
+chaves mágicas para tentar reconhecer credenciais; adapters e consumidores são
+responsáveis por nunca inserir segredos nesses mapas.
 
 ## Fora do escopo
 

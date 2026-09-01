@@ -3,6 +3,9 @@
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime
 
+import pytest
+from pydantic import ValidationError
+
 from atlas_agents import (
     FinishReason,
     MessageRole,
@@ -58,15 +61,22 @@ class FakeModelProvider(ModelProvider):
         context: ModelExecutionContext,
     ) -> AsyncIterator[ModelStreamEvent]:
         yield ModelStreamEvent(
-            type=ModelStreamEventType.TEXT_DELTA,
+            type=ModelStreamEventType.RESPONSE_STARTED,
             sequence=1,
+            response_id=context.request_id,
+            data={"model": request.model},
+            timestamp=datetime.now(UTC),
+        )
+        yield ModelStreamEvent(
+            type=ModelStreamEventType.TEXT_DELTA,
+            sequence=2,
             response_id=context.request_id,
             data={"text": request.model},
             timestamp=datetime.now(UTC),
         )
         yield ModelStreamEvent(
             type=ModelStreamEventType.RESPONSE_COMPLETED,
-            sequence=2,
+            sequence=3,
             response_id=context.request_id,
             data={"finish_reason": FinishReason.STOP.value},
             timestamp=datetime.now(UTC),
@@ -113,7 +123,8 @@ async def test_provider_lists_models_and_streams_structured_events() -> None:
     events = [event async for event in provider.stream(_request(), _context())]
 
     assert models[0].provider == provider.provider_name
-    assert [event.sequence for event in events] == [1, 2]
+    assert [event.sequence for event in events] == [1, 2, 3]
+    assert events[0].type is ModelStreamEventType.RESPONSE_STARTED
     assert events[-1].type is ModelStreamEventType.RESPONSE_COMPLETED
 
 
@@ -128,3 +139,19 @@ def test_model_execution_context_is_immutable_and_isolates_metadata() -> None:
     metadata["trace"] = "changed"
 
     assert context.metadata == {"trace": "value"}
+    assert context.model_dump(mode="json")["request_id"] == "request-1"
+    with pytest.raises(ValidationError):
+        context.request_id = "other"
+
+
+@pytest.mark.parametrize("field", ["execution_id", "agent_id", "request_id"])
+def test_model_execution_context_rejects_empty_identifiers(field: str) -> None:
+    data = {
+        "execution_id": "execution-1",
+        "agent_id": "agent-1",
+        "request_id": "request-1",
+    }
+    data[field] = " "
+
+    with pytest.raises(ValidationError):
+        ModelExecutionContext.model_validate(data)

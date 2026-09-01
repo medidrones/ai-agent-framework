@@ -34,6 +34,9 @@ def test_model_usage_accepts_zero_and_consistent_positive_counts() -> None:
     assert positive.reasoning_tokens == 2
     assert positive.estimated_cost == Decimal("0.012")
     assert positive.metadata == {"source": "reported"}
+    assert positive.model_dump(mode="json")["total_tokens"] == 15
+    with pytest.raises(ValidationError):
+        positive.total_tokens = 0
 
 
 @pytest.mark.parametrize(
@@ -93,6 +96,31 @@ def test_tool_call_response_accepts_calls_with_simultaneous_content() -> None:
     assert response.tool_calls == (call,)
     assert response.content
     assert response.model_dump(mode="json")["finish_reason"] == "tool_call"
+
+
+def test_tool_call_response_accepts_multiple_calls() -> None:
+    calls = tuple(
+        ToolCall(tool_call_id=f"call-{index}", name="tool", arguments={})
+        for index in (1, 2)
+    )
+    response = ModelResponse(
+        model="model",
+        tool_calls=calls,
+        finish_reason=FinishReason.TOOL_CALL,
+        usage=ModelUsage(),
+    )
+
+    assert response.tool_calls == calls
+
+
+def test_stop_response_may_have_no_content() -> None:
+    response = ModelResponse(
+        model="model",
+        finish_reason=FinishReason.STOP,
+        usage=ModelUsage(),
+    )
+
+    assert response.content == ()
 
 
 def test_tool_call_finish_requires_at_least_one_call() -> None:

@@ -50,6 +50,19 @@ def test_multimodal_content_keeps_opaque_references_and_isolates_metadata() -> N
         image.uri = "other"
 
 
+def test_text_and_audio_content_are_immutable() -> None:
+    text = TextContent(text="Conteúdo")
+    metadata: dict[str, object] = {"channel": 1}
+    audio = AudioContent(uri="asset:audio", metadata=metadata)
+    metadata["channel"] = 2
+
+    assert audio.metadata == {"channel": 1}
+    with pytest.raises(ValidationError):
+        text.text = "Alterado"
+    with pytest.raises(ValidationError):
+        audio.uri = "other"
+
+
 @pytest.mark.parametrize(
     "content",
     [
@@ -95,6 +108,7 @@ def test_model_message_supports_multiple_multimodal_items() -> None:
         "audio",
     )
     assert message.metadata == {"source": "test"}
+    assert message.model_dump(mode="json")["role"] == "user"
     with pytest.raises(ValidationError):
         message.role = MessageRole.ASSISTANT
 

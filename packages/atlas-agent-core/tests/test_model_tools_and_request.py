@@ -37,6 +37,8 @@ def test_tool_call_uses_structured_arguments_and_isolates_data() -> None:
     assert call.arguments == {"customer_id": "123"}
     assert call.metadata == {"provider_hint": "opaque"}
     assert call.model_dump(mode="json")["arguments"] == {"customer_id": "123"}
+    with pytest.raises(ValidationError):
+        call.name = "other"
 
 
 @pytest.mark.parametrize("field", ["tool_call_id", "name"])
@@ -50,6 +52,17 @@ def test_tool_call_rejects_empty_identifiers(field: str) -> None:
 
     with pytest.raises(ValidationError):
         ToolCall.model_validate(data)
+
+
+def test_tool_call_rejects_provider_json_string_arguments() -> None:
+    with pytest.raises(ValidationError):
+        ToolCall.model_validate(
+            {
+                "tool_call_id": "call-1",
+                "name": "find_customer",
+                "arguments": '{"customer_id":"123"}',
+            }
+        )
 
 
 def test_model_tool_and_structured_output_isolate_json_schemas() -> None:
@@ -75,9 +88,40 @@ def test_model_tool_and_structured_output_isolate_json_schemas() -> None:
     output_schema["type"] = "array"
 
     assert tool.parameters["type"] == "object"
+    assert tool.model_dump(mode="json")["parameters"]["type"] == "object"
     assert output.json_schema["type"] == "object"
     assert output.strict
     assert output.model_dump(mode="json")["strict"] is True
+    with pytest.raises(ValidationError):
+        tool.name = "other"
+    with pytest.raises(ValidationError):
+        output.strict = False
+
+
+@pytest.mark.parametrize(
+    ("contract", "field"),
+    [
+        (ModelToolDefinition, "name"),
+        (ModelToolDefinition, "description"),
+        (StructuredOutputDefinition, "name"),
+    ],
+)
+def test_model_tool_contracts_reject_empty_required_text(
+    contract: type[ModelToolDefinition] | type[StructuredOutputDefinition],
+    field: str,
+) -> None:
+    if contract is ModelToolDefinition:
+        data: dict[str, object] = {
+            "name": "tool",
+            "description": "Descrição",
+            "parameters": {},
+        }
+    else:
+        data = {"name": "output", "json_schema": {}}
+    data[field] = " "
+
+    with pytest.raises(ValidationError):
+        contract.model_validate(data)
 
 
 def test_simple_and_multimodal_model_requests_are_immutable() -> None:
@@ -123,6 +167,7 @@ def test_model_request_supports_tools_and_structured_output() -> None:
 
     assert request.tools == (tool,)
     assert request.structured_output is output
+    assert request.model_dump(mode="json")["model"] == "model"
 
 
 @pytest.mark.parametrize(

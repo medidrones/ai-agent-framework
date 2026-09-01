@@ -60,6 +60,16 @@ def test_stream_event_rejects_zero_sequence_and_naive_timestamp() -> None:
             sequence=0,
             timestamp=datetime.now(UTC),
         )
+
+
+def test_stream_event_uses_utc_timestamp_by_default() -> None:
+    event = ModelStreamEvent(
+        type=ModelStreamEventType.RESPONSE_STARTED,
+        sequence=1,
+    )
+
+    assert event.timestamp.tzinfo is UTC
+    assert event.timestamp.utcoffset() is not None
     with pytest.raises(ValidationError, match="fuso horário"):
         ModelStreamEvent(
             type=ModelStreamEventType.TEXT_DELTA,
