@@ -25,6 +25,9 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Contabilização de uso por chamada de modelo.
 - Eventos estruturados para streaming de modelos.
 - Interface `ModelProvider` e hierarquia abstrata de erros.
+- Registry explícito de providers e catálogo imutável de modelos.
+- Resolução de capabilities e restrições numéricas de modelos.
+- Seleção determinística com strategy substituível e erros especializados.
 
 ### Alterado
 
@@ -36,6 +39,8 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - `ExecutionLifecycle` agora sempre inicia em `CREATED`; restauração em outro
   estado fica reservada a um contrato futuro.
 - `ModelStreamEvent` agora cria timestamp UTC quando ele não é fornecido.
+- Identificadores de provider passam a remover somente whitespace externo,
+  preservando capitalização e demais caracteres.
 - Os testes normativos da abstração de modelos passaram a comprovar de forma
   explícita serialização, imutabilidade, streams completos e rejeição de JSON
   textual em argumentos de ferramentas.

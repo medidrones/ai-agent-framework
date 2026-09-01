@@ -4,15 +4,23 @@ import pytest
 
 from atlas_agents import (
     AtlasAgentError,
+    DuplicateModelProviderError,
+    InvalidModelDescriptorError,
     ModelAuthenticationError,
+    ModelCapabilityMismatchError,
     ModelInvalidRequestError,
+    ModelNotAvailableError,
     ModelNotFoundError,
     ModelPermissionError,
     ModelProviderError,
+    ModelProviderNotRegisteredError,
+    ModelProviderRegistryError,
     ModelRateLimitError,
     ModelResponseError,
+    ModelSelectionError,
     ModelTimeoutError,
     ModelUnavailableError,
+    NoMatchingModelError,
 )
 
 
@@ -63,3 +71,22 @@ def test_model_response_error_allows_explicit_retry_semantics() -> None:
 def test_model_error_rejects_empty_safe_context() -> None:
     with pytest.raises(ValueError, match="vazio"):
         ModelProviderError("Erro.", provider=" ")
+
+
+def test_registry_and_selection_errors_are_local_atlas_errors() -> None:
+    registry_errors = (
+        DuplicateModelProviderError,
+        InvalidModelDescriptorError,
+        ModelProviderNotRegisteredError,
+    )
+    selection_errors = (
+        ModelCapabilityMismatchError,
+        ModelNotAvailableError,
+        NoMatchingModelError,
+    )
+
+    assert all(issubclass(item, ModelProviderRegistryError) for item in registry_errors)
+    assert all(issubclass(item, ModelSelectionError) for item in selection_errors)
+    assert issubclass(ModelProviderRegistryError, AtlasAgentError)
+    assert issubclass(ModelSelectionError, AtlasAgentError)
+    assert not issubclass(ModelProviderRegistryError, ModelProviderError)

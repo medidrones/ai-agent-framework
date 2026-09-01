@@ -54,6 +54,9 @@ class ModelProvider(ABC):
 Não existe `supports()` nesta fase. `list_models()` fornece os descriptors
 necessários, e resolução de capabilities pertence ao registry futuro.
 
+O registry e o algoritmo determinístico de resolução agora estão documentados
+em [model-selection.md](model-selection.md).
+
 ## Capabilities e modelos
 
 `ModelCapability` possui valores públicos estáveis:
@@ -72,7 +75,8 @@ JSON_MODE
 
 `ModelDescriptor` contém `provider`, `model`, capabilities imutáveis, janela de
 contexto, limite de saída e metadata opaca. Os limites opcionais devem ser
-positivos. Preços não fazem parte do descriptor.
+positivos. O identificador do provider remove somente whitespace externo; o
+model ID continua opaco. Preços não fazem parte do descriptor.
 
 ## Mensagens e multimodalidade
 

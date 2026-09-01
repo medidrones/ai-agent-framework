@@ -43,6 +43,7 @@ implementará seus contratos.
 - registrar histórico e representar eventos sem acoplamento a um event bus;
 - definir requests, responses e streaming de modelos sem SDK concreto;
 - permitir providers substituíveis por uma interface async-first;
+- registrar providers explicitamente e selecionar modelos deterministicamente;
 - garantir execuções locais e no CI a partir da raiz;
 - documentar limites antes de adicionar integrações;
 - impedir dependências concretas dentro do core.

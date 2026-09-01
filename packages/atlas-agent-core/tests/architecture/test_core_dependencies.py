@@ -17,6 +17,7 @@ FORBIDDEN_IMPORTS = frozenset(
         "fastapi",
         "flask",
         "google",
+        "grpc",
         "httpx",
         "kafka",
         "langchain",

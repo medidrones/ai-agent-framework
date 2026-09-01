@@ -30,7 +30,7 @@ def test_model_capability_values_are_stable_and_serializable() -> None:
 def test_model_descriptor_preserves_immutable_capabilities_and_metadata() -> None:
     metadata: dict[str, object] = {"region": "local"}
     descriptor = ModelDescriptor(
-        provider="provider",
+        provider=" provider ",
         model="model",
         capabilities=frozenset(
             {ModelCapability.TEXT_GENERATION, ModelCapability.STREAMING}
@@ -42,6 +42,7 @@ def test_model_descriptor_preserves_immutable_capabilities_and_metadata() -> Non
     metadata["region"] = "altered"
 
     assert isinstance(descriptor.capabilities, frozenset)
+    assert descriptor.provider == "provider"
     assert descriptor.metadata == {"region": "local"}
     with pytest.raises(ValidationError):
         descriptor.model = "other"

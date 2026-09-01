@@ -4,7 +4,12 @@ from enum import StrEnum
 
 from pydantic import Field, field_validator
 
-from atlas_agents._models import _FrozenModel, _json_mapping, _non_empty
+from atlas_agents._models import (
+    _FrozenModel,
+    _json_mapping,
+    _non_empty,
+    _trimmed_non_empty,
+)
 
 
 class ModelCapability(StrEnum):
@@ -31,10 +36,16 @@ class ModelDescriptor(_FrozenModel):
     max_output_tokens: int | None = Field(default=None, gt=0)
     metadata: dict[str, object] = Field(default_factory=dict)
 
-    @field_validator("provider", "model")
+    @field_validator("provider")
     @classmethod
-    def validate_identifiers(cls, value: str) -> str:
-        """Reject empty provider and model identifiers."""
+    def validate_provider(cls, value: str) -> str:
+        """Trim external whitespace from a non-empty provider identifier."""
+        return _trimmed_non_empty(value)
+
+    @field_validator("model")
+    @classmethod
+    def validate_model(cls, value: str) -> str:
+        """Reject an empty opaque model identifier."""
         return _non_empty(value)
 
     @field_validator("metadata")

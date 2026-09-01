@@ -35,7 +35,8 @@ uso e eventos, além de implementar o contrato abstrato `Agent`. O lifecycle
 formal valida mudanças de estado, registra um histórico imutável e permite gerar
 eventos monotônicos por execução. A abstração de modelos já representa
 capabilities, mensagens multimodais, requests, responses, streaming e providers
-sem depender de SDKs concretos.
+sem depender de SDKs concretos. Providers podem ser registrados e seus modelos
+selecionados por capabilities e limites com desempate determinístico.
 
 Ainda não existe runtime nem integração concreta com modelos, ferramentas,
 memória ou bases de conhecimento. Um agente concreto pode implementar o
@@ -87,7 +88,9 @@ A referência completa está em
 também [docs/reference/execution-lifecycle.md](docs/reference/execution-lifecycle.md)
 para o mapa de estados e eventos e
 [docs/reference/model-abstraction.md](docs/reference/model-abstraction.md) para
-a fronteira provider-agnostic de modelos.
+a fronteira provider-agnostic de modelos e
+[docs/reference/model-selection.md](docs/reference/model-selection.md) para
+registro, catálogo e seleção determinística.
 
 Consulte [ARCHITECTURE.md](ARCHITECTURE.md) para conhecer o desenho de alto
 nível e

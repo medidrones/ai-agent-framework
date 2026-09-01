@@ -18,6 +18,10 @@ def _non_empty(value: str) -> str:
     return value
 
 
+def _trimmed_non_empty(value: str) -> str:
+    return _non_empty(value).strip()
+
+
 def _json_mapping(value: dict[str, object]) -> dict[str, object]:
     try:
         json.dumps(value, allow_nan=False)

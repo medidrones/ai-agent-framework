@@ -12,17 +12,24 @@ def test_package_can_be_imported() -> None:
 def test_model_abstraction_is_intentionally_public() -> None:
     expected = {
         "AudioContent",
+        "DeterministicModelSelectionStrategy",
         "FinishReason",
         "ImageContent",
         "MessageContent",
         "MessageRole",
         "ModelCapability",
+        "ModelCandidate",
+        "ModelCatalogEntry",
         "ModelDescriptor",
         "ModelExecutionContext",
         "ModelMessage",
         "ModelProvider",
+        "ModelProviderRegistry",
         "ModelRequest",
         "ModelResponse",
+        "ModelSelectionRequest",
+        "ModelSelectionResult",
+        "ModelSelectionStrategy",
         "ModelStreamEvent",
         "ModelStreamEventType",
         "ModelToolDefinition",
@@ -38,15 +45,23 @@ def test_model_abstraction_is_intentionally_public() -> None:
 def test_model_error_hierarchy_is_intentionally_public() -> None:
     expected = {
         "AtlasAgentError",
+        "DuplicateModelProviderError",
+        "InvalidModelDescriptorError",
         "ModelAuthenticationError",
+        "ModelCapabilityMismatchError",
         "ModelInvalidRequestError",
+        "ModelNotAvailableError",
         "ModelNotFoundError",
         "ModelPermissionError",
         "ModelProviderError",
+        "ModelProviderNotRegisteredError",
+        "ModelProviderRegistryError",
         "ModelRateLimitError",
         "ModelResponseError",
+        "ModelSelectionError",
         "ModelTimeoutError",
         "ModelUnavailableError",
+        "NoMatchingModelError",
     }
 
     assert expected <= set(atlas_agents.__all__)

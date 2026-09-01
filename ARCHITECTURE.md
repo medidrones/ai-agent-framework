@@ -60,6 +60,11 @@ Providers concretos dependem do core e do SDK que adaptam. O core nunca depende
 do provider. `ModelExecutionContext` limita a fronteira aos identificadores de
 correlação necessários, sem entregar todo o `AgentContext` à integração.
 
+`ModelProviderRegistry` recebe providers por injeção explícita e mantém estado
+somente em sua instância. A descoberta produz catálogo imutável, e a seleção
+separa filtros obrigatórios da strategy de ranking. O resultado contém IDs e
+descriptor, não a instância runtime do provider.
+
 ## Independência de infraestrutura
 
 O core não depende de SDKs de modelos, frameworks web, bancos de dados,
