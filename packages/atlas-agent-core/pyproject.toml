@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "atlas-agent-core"
 version = "0.1.0"
-description = "Provider-agnostic core contracts for Atlas Agent Framework"
+description = "Contratos centrais independentes de provedor para o Atlas Agent Framework"
 requires-python = ">=3.12"
 license = "MIT"
 authors = [{ name = "Jorge Medina" }]

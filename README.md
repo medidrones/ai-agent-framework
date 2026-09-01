@@ -29,10 +29,13 @@ autenticação, infraestrutura obrigatória nem regras de um domínio de negóci
 
 ## Situação atual
 
-O projeto está na fase de fundação. A versão atual estabelece o workspace, o
-pacote, os gates de qualidade e as regras arquiteturais de dependência. O
-comportamento de execução dos agentes ainda não foi implementado
-intencionalmente.
+O projeto possui a fundação do workspace e os primeiros contratos públicos do
+core. Já é possível descrever agentes, entradas, contexto, identidade, resultados,
+uso e eventos mínimos, além de implementar o contrato abstrato `Agent`.
+
+Ainda não existe runtime nem integração com modelos, ferramentas, memória ou
+bases de conhecimento. Um agente concreto pode implementar o contrato, mas sua
+execução e suas dependências continuam sob responsabilidade do consumidor.
 
 ## Requisitos
 
@@ -64,10 +67,18 @@ vazio para o projeto agregador.
 O pacote utiliza o layout `src` e pode ser importado da seguinte forma:
 
 ```python
-import atlas_agents
+from atlas_agents import AgentDefinition, AgentInput
 
-print(atlas_agents.__version__)
+definition = AgentDefinition(
+    agent_id="assistant",
+    name="Assistente",
+    instructions="Responda de forma objetiva.",
+)
+input_data = AgentInput(message="Explique o contrato do agente.")
 ```
+
+A referência completa está em
+[docs/reference/core-primitives.md](docs/reference/core-primitives.md).
 
 Consulte [ARCHITECTURE.md](ARCHITECTURE.md) para conhecer o desenho de alto
 nível e

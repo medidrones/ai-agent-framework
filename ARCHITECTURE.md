@@ -57,9 +57,18 @@ core.
 
 ## Escopo atual
 
-Atualmente, o repositório inclui apenas o workspace e a estrutura inicial do
-pacote `atlas-agent-core`. Runtime, provedores, ferramentas e armazenamento
-serão introduzidos incrementalmente depois que seus contratos forem definidos.
+Atualmente, o repositório inclui o workspace e os contratos fundamentais do
+pacote `atlas-agent-core`: definição, entrada, contexto, identidade, resultado,
+uso, erro estruturado, status, eventos mínimos e a abstração `Agent`.
+
+Esses tipos representam snapshots imutáveis nas fronteiras do framework. IDs
+são strings opacas e não impõem UUID. Metadados são explicitamente tipados,
+isolados por instância e validados como serializáveis em JSON. Eventos exigem
+timestamps com fuso horário.
+
+Runtime, lifecycle, providers, ferramentas e armazenamento serão introduzidos
+incrementalmente em tarefas posteriores. O contrato `Agent` não executa modelos
+nem fornece um loop de execução.
 
 ## Evolução prevista
 

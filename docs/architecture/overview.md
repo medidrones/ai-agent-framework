@@ -7,9 +7,9 @@ ou adicionar plugins e adapters de transporte opcionais.
 ## Propósito e escopo
 
 O framework fornece abstrações reutilizáveis para agentes de IA sem incorporar
-uma aplicação de negócio. Nesta fase, o escopo se limita à fundação do
-monorepo, ao pacote importável e aos gates de qualidade. Contratos de agentes e
-comportamento de runtime pertencem às próximas fases.
+uma aplicação de negócio. Nesta fase, o escopo inclui a fundação do monorepo,
+os gates de qualidade e os contratos fundamentais de agentes. Comportamento de
+runtime, integrações e lifecycle pertencem às próximas fases.
 
 ## Direção das dependências
 
@@ -36,6 +36,9 @@ implementará seus contratos.
 ## Responsabilidades iniciais
 
 - manter o pacote core instalável e tipado;
+- definir modelos imutáveis para dados de entrada e saída;
+- oferecer uma abstração assíncrona para agentes concretos;
+- representar eventos mínimos sem implementar uma máquina de estados;
 - garantir execuções locais e no CI a partir da raiz;
 - documentar limites antes de adicionar integrações;
 - impedir dependências concretas dentro do core.
@@ -47,6 +50,7 @@ Novos providers, stores ou transportes devem poder ser instalados e substituído
 sem alterar o modelo público do core. Dependências de infraestrutura ficam
 isoladas na distribuição que as utiliza.
 
-A fundação intencionalmente não contém lógica de runtime. Contratos e
-comportamentos serão adicionados em fases pequenas e revisáveis de forma
+O core intencionalmente não contém lógica de runtime. Os contratos atuais
+permitem implementar agentes concretos, mas não coordenam sua execução.
+Comportamentos serão adicionados em fases pequenas e revisáveis de forma
 independente.

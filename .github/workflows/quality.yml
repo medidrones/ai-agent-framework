@@ -1,4 +1,4 @@
-name: Quality
+name: Qualidade
 
 on:
   push:
@@ -12,31 +12,31 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out repository
+      - name: Baixar repositório
         uses: actions/checkout@v4
 
-      - name: Install uv
+      - name: Instalar uv
         uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
 
-      - name: Set up Python
+      - name: Configurar Python
         run: uv python install 3.12
 
-      - name: Install workspace
+      - name: Instalar workspace
         run: uv sync --locked
 
-      - name: Lint
+      - name: Verificar lint
         run: uv run ruff check .
 
-      - name: Check formatting
+      - name: Verificar formatação
         run: uv run ruff format --check .
 
-      - name: Type check
+      - name: Verificar tipos
         run: uv run mypy packages
 
-      - name: Test
+      - name: Executar testes
         run: uv run pytest --cov --cov-report=term-missing --cov-report=xml
 
-      - name: Build core package
+      - name: Construir pacote core
         run: uv build --package atlas-agent-core

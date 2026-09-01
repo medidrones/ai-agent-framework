@@ -1,7 +1,7 @@
 [project]
 name = "atlas-agent-framework-workspace"
 version = "0.1.0"
-description = "Workspace configuration for the Atlas Agent Framework"
+description = "Configuração do workspace do Atlas Agent Framework"
 requires-python = ">=3.12"
 
 [tool.uv]

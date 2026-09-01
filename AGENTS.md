@@ -15,6 +15,8 @@ negócio.
 - Português do Brasil para mensagens de commit.
 - Português do Brasil para README, documentação técnica e exemplos voltados
   ao usuário.
+- Português do Brasil para mensagens, descrições e demais textos apresentados
+  ao usuário.
 - Termos técnicos podem permanecer em inglês quando a tradução prejudicar a
   clareza.
 

@@ -79,3 +79,5 @@ inglês para preservar a convenção de commits do projeto.
 
 O código, os identificadores e as docstrings devem ser escritos em inglês. O
 README e a documentação técnica devem ser escritos em português do Brasil.
+Mensagens, descrições e outros textos apresentados ao usuário também devem ser
+escritos em português do Brasil.
