@@ -65,3 +65,15 @@ def test_model_error_hierarchy_is_intentionally_public() -> None:
     }
 
     assert expected <= set(atlas_agents.__all__)
+
+
+def test_runtime_state_contracts_are_intentionally_public() -> None:
+    expected = {
+        "ExecutionAlreadyTerminalError",
+        "ExecutionSnapshot",
+        "ExecutionState",
+        "ExecutionStateError",
+        "ExecutionStateInvariantError",
+    }
+
+    assert expected <= set(atlas_agents.__all__)

@@ -76,3 +76,25 @@ def test_core_runtime_dependencies_exclude_provider_sdks() -> None:
     )
 
     assert not any(name in dependencies for name in forbidden_fragments)
+
+
+def test_execution_state_does_not_own_infrastructure_or_execute_providers() -> None:
+    source_root = Path(__file__).parents[2] / "src" / "atlas_agents"
+    state_path = source_root / "runtime" / "state.py"
+    source = state_path.read_text(encoding="utf-8")
+    tree = ast.parse(source, filename=str(state_path))
+    forbidden_names = {
+        "ModelProvider",
+        "ModelProviderRegistry",
+        "get_service",
+        "services",
+    }
+    called_attributes = {
+        node.func.attr
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+    }
+
+    assert _import_roots(state_path) & FORBIDDEN_IMPORTS == set()
+    assert forbidden_names.isdisjoint(source.split())
+    assert {"generate", "stream", "list_models"}.isdisjoint(called_attributes)

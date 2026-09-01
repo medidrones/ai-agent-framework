@@ -65,6 +65,13 @@ from atlas_agents.models import (
     TextContent,
     ToolCall,
 )
+from atlas_agents.runtime import (
+    ExecutionAlreadyTerminalError,
+    ExecutionSnapshot,
+    ExecutionState,
+    ExecutionStateError,
+    ExecutionStateInvariantError,
+)
 
 __version__: str = _distribution_version("atlas-agent-core")
 
@@ -83,8 +90,13 @@ __all__ = [
     "AudioContent",
     "DeterministicModelSelectionStrategy",
     "DuplicateModelProviderError",
+    "ExecutionAlreadyTerminalError",
     "ExecutionIdentity",
     "ExecutionLifecycle",
+    "ExecutionSnapshot",
+    "ExecutionState",
+    "ExecutionStateError",
+    "ExecutionStateInvariantError",
     "ExecutionStatus",
     "ExecutionTransition",
     "FinishReason",

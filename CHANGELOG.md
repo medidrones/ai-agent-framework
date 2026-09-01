@@ -28,6 +28,9 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Registry explícito de providers e catálogo imutável de modelos.
 - Resolução de capabilities e restrições numéricas de modelos.
 - Seleção determinística com strategy substituível e erros especializados.
+- Estado de execução com mutações controladas e proteção após término.
+- Snapshot imutável e conversão de estados terminais em `AgentResult`.
+- Agregação de uso, contadores e journal validado de eventos por execução.
 
 ### Alterado
 
@@ -44,3 +47,5 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Os testes normativos da abstração de modelos passaram a comprovar de forma
   explícita serialização, imutabilidade, streams completos e rejeição de JSON
   textual em argumentos de ferramentas.
+- `Usage` passou a representar também tokens de cache de entrada e de
+  raciocínio, preservando valores padrão compatíveis.

@@ -46,7 +46,9 @@ implementará seus contratos.
 - registrar providers explicitamente e selecionar modelos deterministicamente;
 - garantir execuções locais e no CI a partir da raiz;
 - documentar limites antes de adicionar integrações;
-- impedir dependências concretas dentro do core.
+- impedir dependências concretas dentro do core;
+- controlar o estado local de uma execução sem executar providers ou
+  ferramentas.
 
 ## Extensibilidade e evolução
 
@@ -55,7 +57,7 @@ Novos providers, stores ou transportes devem poder ser instalados e substituído
 sem alterar o modelo público do core. Dependências de infraestrutura ficam
 isoladas na distribuição que as utiliza.
 
-O core intencionalmente não contém lógica de runtime. Os contratos atuais
-permitem implementar agentes concretos, mas não coordenam sua execução.
-Comportamentos serão adicionados em fases pequenas e revisáveis de forma
-independente.
+O core contém agora o modelo local `ExecutionState`, responsável somente por
+mutações controladas, snapshots e resultados terminais. Ele não coordena uma
+execução nem realiza I/O. O execution loop será introduzido em fase posterior e
+terá ownership único no futuro `AgentRuntime`.

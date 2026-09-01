@@ -170,6 +170,12 @@ UTC quando não são fornecidos. `from_transition` converte uma transição em
 }
 ```
 
+`ExecutionState.transition_to()` reutiliza este mesmo lifecycle e expõe seu
+histórico diretamente, sem duplicar status ou transições. O estado não gera
+eventos automaticamente: o runtime futuro deverá converter a transição pela
+factory e registrar o evento explicitamente. Consulte
+[`execution-state.md`](execution-state.md) para as invariantes de mutação.
+
 Uma factory não deve ser compartilhada entre execuções nem entre threads. Esta
 tarefa não introduz sincronização, event bus ou mecanismo de entrega.
 

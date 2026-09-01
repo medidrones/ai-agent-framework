@@ -65,6 +65,24 @@ somente em sua instância. A descoberta produz catálogo imutável, e a seleçã
 separa filtros obrigatórios da strategy de ranking. O resultado contém IDs e
 descriptor, não a instância runtime do provider.
 
+## Estado de execução
+
+`ExecutionState` é a fonte de verdade interna de uma execução e reutiliza uma
+única instância de `ExecutionLifecycle`. Ele guarda referências aos contratos
+imutáveis de definição, entrada e contexto e controla mensagens, seleção,
+contadores, uso, eventos, output, erro e timestamps. Não armazena provider,
+registry, serviços ou credenciais e não realiza I/O.
+
+As coleções não são expostas como listas mutáveis. Toda mutação operacional
+passa por métodos explícitos e é bloqueada depois de um estado terminal;
+eventos permanecem anexáveis como journal de observabilidade. `snapshot()`
+produz uma observação frozen e isolada, enquanto `to_result()` só produz um
+`AgentResult` quando o lifecycle é terminal.
+
+O futuro `AgentRuntime` será o único proprietário do execution loop.
+`Agent.run()` e `Agent.stream()` permanecem fachadas públicas e deverão delegar
+ao runtime, sem implementar um segundo loop.
+
 ## Independência de infraestrutura
 
 O core não depende de SDKs de modelos, frameworks web, bancos de dados,
@@ -87,17 +105,18 @@ core.
 ## Escopo atual
 
 Atualmente, o repositório inclui o workspace e os contratos fundamentais do
-pacote `atlas-agent-core`: agentes, lifecycle, eventos e contratos abstratos de
-modelos, incluindo multimodalidade, streaming e a interface `ModelProvider`.
+pacote `atlas-agent-core`: agentes, lifecycle, eventos, estado de execução e
+contratos abstratos de modelos, incluindo multimodalidade, streaming e a
+interface `ModelProvider`.
 
 Esses tipos representam snapshots imutáveis nas fronteiras do framework. IDs
 são strings opacas e não impõem UUID. Metadados são explicitamente tipados,
 isolados por instância e validados como serializáveis em JSON. Eventos exigem
 timestamps com fuso horário.
 
-Runtime, providers concretos, ferramentas e armazenamento serão introduzidos
-incrementalmente em tarefas posteriores. O core formaliza as fronteiras, mas
-não executa modelos nem fornece um loop de execução.
+O estado local do runtime está formalizado, mas execution loop, providers
+concretos, ferramentas e armazenamento serão introduzidos incrementalmente em
+tarefas posteriores. O core ainda não executa modelos.
 
 ## Evolução prevista
 

@@ -16,6 +16,8 @@ class Usage(_FrozenModel):
 
     input_tokens: int = Field(default=0, ge=0)
     output_tokens: int = Field(default=0, ge=0)
+    cached_input_tokens: int = Field(default=0, ge=0)
+    reasoning_tokens: int = Field(default=0, ge=0)
     estimated_cost: Decimal | None = Field(default=None, ge=Decimal(0))
 
     @property

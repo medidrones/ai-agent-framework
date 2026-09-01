@@ -37,11 +37,12 @@ eventos monotônicos por execução. A abstração de modelos já representa
 capabilities, mensagens multimodais, requests, responses, streaming e providers
 sem depender de SDKs concretos. Providers podem ser registrados e seus modelos
 selecionados por capabilities e limites com desempate determinístico.
+O estado de execução em memória já pode integrar esses contratos, acumular
+mensagens e uso, validar eventos e produzir snapshots e resultados terminais.
 
-Ainda não existe runtime nem integração concreta com modelos, ferramentas,
-memória ou bases de conhecimento. Um agente concreto pode implementar o
-contrato, mas sua execução e suas dependências continuam sob responsabilidade
-do consumidor.
+Ainda não existe execution loop nem integração concreta com modelos,
+ferramentas, memória ou bases de conhecimento. `ExecutionState` controla apenas
+dados locais; chamadas externas serão responsabilidade do futuro runtime.
 
 ## Requisitos
 
@@ -90,7 +91,9 @@ para o mapa de estados e eventos e
 [docs/reference/model-abstraction.md](docs/reference/model-abstraction.md) para
 a fronteira provider-agnostic de modelos e
 [docs/reference/model-selection.md](docs/reference/model-selection.md) para
-registro, catálogo e seleção determinística.
+registro, catálogo e seleção determinística e
+[docs/reference/execution-state.md](docs/reference/execution-state.md) para o
+estado controlado do runtime.
 
 Consulte [ARCHITECTURE.md](ARCHITECTURE.md) para conhecer o desenho de alto
 nível e
