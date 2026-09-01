@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "atlas-agent-core"
+version = "0.1.0"
+description = "Provider-agnostic core contracts for Atlas Agent Framework"
+requires-python = ">=3.12"
+license = "MIT"
+authors = [{ name = "Jorge Medina" }]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Typing :: Typed",
+]
+dependencies = [
+    "jsonschema>=4.23",
+    "pydantic>=2.10",
+    "pyyaml>=6.0",
+    "typing-extensions>=4.12",
+]
+
+[project.urls]
+Repository = "https://github.com/Medicode/ai-agent-framework"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/atlas_agents"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/atlas_agents", "tests", "pyproject.toml"]
