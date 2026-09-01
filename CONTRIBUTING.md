@@ -62,6 +62,10 @@ Um pull request deve ter escopo claro, explicar a decisão adotada, relacionar
 testes e comandos executados e registrar riscos restantes. Todos os gates de
 qualidade e o build devem passar antes da revisão final.
 
+As mensagens de commit devem ser escritas em português do Brasil. Prefixos
+padronizados, como `feat`, `fix`, `docs`, `test` e `chore`, podem permanecer em
+inglês para preservar a convenção de commits do projeto.
+
 ## Diretrizes para alterações
 
 - Mantenha cada alteração concentrada em um objetivo coerente.

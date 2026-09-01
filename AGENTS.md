@@ -12,7 +12,7 @@ negócio.
 
 - Python 3.12 ou superior.
 - Inglês para código, identificadores e docstrings.
-- Inglês para mensagens de commit.
+- Português do Brasil para mensagens de commit.
 - Português do Brasil para README, documentação técnica e exemplos voltados
   ao usuário.
 - Termos técnicos podem permanecer em inglês quando a tradução prejudicar a
