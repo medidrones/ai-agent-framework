@@ -19,6 +19,12 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Transições validadas e histórico ordenado de execução.
 - Contratos expandidos de eventos de lifecycle.
 - Factory de eventos com sequência monotônica por execução.
+- Contratos provider-agnostic para capabilities e descriptors de modelos.
+- Mensagens multimodais, requests e responses de modelos.
+- Contratos de tool calls e structured output na fronteira do modelo.
+- Contabilização de uso por chamada de modelo.
+- Eventos estruturados para streaming de modelos.
+- Interface `ModelProvider` e hierarquia abstrata de erros.
 
 ### Alterado
 

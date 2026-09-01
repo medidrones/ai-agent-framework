@@ -5,7 +5,12 @@ from typing import Self
 
 from pydantic import Field, field_validator, model_validator
 
-from atlas_agents._models import _FrozenModel, _json_mapping, _non_empty
+from atlas_agents._models import (
+    _FrozenModel,
+    _json_mapping,
+    _non_empty,
+    _timezone_aware,
+)
 from atlas_agents.agents.status import ExecutionStatus
 
 
@@ -22,10 +27,7 @@ class ExecutionTransition(_FrozenModel):
     @classmethod
     def validate_timestamp(cls, value: datetime) -> datetime:
         """Require an explicit timezone on transition timestamps."""
-        if value.tzinfo is None or value.utcoffset() is None:
-            msg = "O timestamp da transição deve possuir fuso horário"
-            raise ValueError(msg)
-        return value
+        return _timezone_aware(value, label="da transição")
 
     @field_validator("reason")
     @classmethod

@@ -1,9 +1,10 @@
 """Public exceptions raised by execution lifecycle operations."""
 
 from atlas_agents.agents.status import ExecutionStatus
+from atlas_agents.exceptions.base import AtlasAgentError
 
 
-class InvalidExecutionTransitionError(Exception):
+class InvalidExecutionTransitionError(AtlasAgentError):
     """Report a transition that is not allowed by the execution state machine."""
 
     def __init__(

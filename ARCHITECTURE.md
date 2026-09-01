@@ -49,6 +49,17 @@ transforma transições em eventos separadamente, mantendo sequência local por
 execução. Essa separação evita acoplar regras de estado ao transporte futuro de
 eventos.
 
+## Abstração de modelos
+
+`ModelProvider` é a porta async-first usada para listar modelos, gerar respostas
+completas e produzir streaming estruturado. Requests, responses, mensagens
+multimodais, tool calls, usage e erros pertencem ao vocabulário do Atlas e não
+expõem objetos de SDKs externos.
+
+Providers concretos dependem do core e do SDK que adaptam. O core nunca depende
+do provider. `ModelExecutionContext` limita a fronteira aos identificadores de
+correlação necessários, sem entregar todo o `AgentContext` à integração.
+
 ## Independência de infraestrutura
 
 O core não depende de SDKs de modelos, frameworks web, bancos de dados,
@@ -71,17 +82,17 @@ core.
 ## Escopo atual
 
 Atualmente, o repositório inclui o workspace e os contratos fundamentais do
-pacote `atlas-agent-core`: definição, entrada, contexto, identidade, resultado,
-uso, erro estruturado, lifecycle, transições, eventos e a abstração `Agent`.
+pacote `atlas-agent-core`: agentes, lifecycle, eventos e contratos abstratos de
+modelos, incluindo multimodalidade, streaming e a interface `ModelProvider`.
 
 Esses tipos representam snapshots imutáveis nas fronteiras do framework. IDs
 são strings opacas e não impõem UUID. Metadados são explicitamente tipados,
 isolados por instância e validados como serializáveis em JSON. Eventos exigem
 timestamps com fuso horário.
 
-Runtime, providers, ferramentas e armazenamento serão introduzidos
-incrementalmente em tarefas posteriores. O lifecycle atual formaliza estados,
-mas não executa modelos nem fornece um loop de execução.
+Runtime, providers concretos, ferramentas e armazenamento serão introduzidos
+incrementalmente em tarefas posteriores. O core formaliza as fronteiras, mas
+não executa modelos nem fornece um loop de execução.
 
 ## Evolução prevista
 

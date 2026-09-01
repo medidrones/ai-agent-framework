@@ -9,7 +9,8 @@ ou adicionar plugins e adapters de transporte opcionais.
 O framework fornece abstrações reutilizáveis para agentes de IA sem incorporar
 uma aplicação de negócio. Nesta fase, o escopo inclui a fundação do monorepo,
 os gates de qualidade, os contratos fundamentais de agentes e o protocolo de
-lifecycle. Comportamento de runtime e integrações pertencem às próximas fases.
+lifecycle, além da abstração provider-agnostic de modelos. Comportamento de
+runtime e integrações concretas pertencem às próximas fases.
 
 ## Direção das dependências
 
@@ -40,6 +41,8 @@ implementará seus contratos.
 - oferecer uma abstração assíncrona para agentes concretos;
 - validar transições por uma máquina de estados declarativa;
 - registrar histórico e representar eventos sem acoplamento a um event bus;
+- definir requests, responses e streaming de modelos sem SDK concreto;
+- permitir providers substituíveis por uma interface async-first;
 - garantir execuções locais e no CI a partir da raiz;
 - documentar limites antes de adicionar integrações;
 - impedir dependências concretas dentro do core.

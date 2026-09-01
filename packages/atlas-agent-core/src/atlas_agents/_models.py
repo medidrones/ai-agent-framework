@@ -2,6 +2,7 @@
 
 import json
 from copy import deepcopy
+from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
@@ -24,3 +25,10 @@ def _json_mapping(value: dict[str, object]) -> dict[str, object]:
         msg = "O valor deve conter somente dados serializáveis em JSON"
         raise ValueError(msg) from exc
     return deepcopy(value)
+
+
+def _timezone_aware(value: datetime, *, label: str) -> datetime:
+    if value.tzinfo is None or value.utcoffset() is None:
+        msg = f"O timestamp {label} deve possuir fuso horário"
+        raise ValueError(msg)
+    return value

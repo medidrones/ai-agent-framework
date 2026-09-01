@@ -4,7 +4,12 @@ from datetime import datetime
 
 from pydantic import Field, field_validator
 
-from atlas_agents._models import _FrozenModel, _json_mapping, _non_empty
+from atlas_agents._models import (
+    _FrozenModel,
+    _json_mapping,
+    _non_empty,
+    _timezone_aware,
+)
 from atlas_agents.events.types import AgentEventType
 
 
@@ -28,10 +33,7 @@ class AgentEvent(_FrozenModel):
     @classmethod
     def validate_timestamp(cls, value: datetime) -> datetime:
         """Require an explicit timezone on event timestamps."""
-        if value.tzinfo is None or value.utcoffset() is None:
-            msg = "O timestamp do evento deve possuir fuso horário"
-            raise ValueError(msg)
-        return value
+        return _timezone_aware(value, label="do evento")
 
     @field_validator("data")
     @classmethod

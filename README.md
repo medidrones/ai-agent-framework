@@ -33,11 +33,14 @@ O projeto possui a fundação do workspace e os primeiros contratos públicos do
 core. Já é possível descrever agentes, entradas, contexto, identidade, resultados,
 uso e eventos, além de implementar o contrato abstrato `Agent`. O lifecycle
 formal valida mudanças de estado, registra um histórico imutável e permite gerar
-eventos monotônicos por execução.
+eventos monotônicos por execução. A abstração de modelos já representa
+capabilities, mensagens multimodais, requests, responses, streaming e providers
+sem depender de SDKs concretos.
 
-Ainda não existe runtime nem integração com modelos, ferramentas, memória ou
-bases de conhecimento. Um agente concreto pode implementar o contrato, mas sua
-execução e suas dependências continuam sob responsabilidade do consumidor.
+Ainda não existe runtime nem integração concreta com modelos, ferramentas,
+memória ou bases de conhecimento. Um agente concreto pode implementar o
+contrato, mas sua execução e suas dependências continuam sob responsabilidade
+do consumidor.
 
 ## Requisitos
 
@@ -82,7 +85,9 @@ input_data = AgentInput(message="Explique o contrato do agente.")
 A referência completa está em
 [docs/reference/core-primitives.md](docs/reference/core-primitives.md). Consulte
 também [docs/reference/execution-lifecycle.md](docs/reference/execution-lifecycle.md)
-para o mapa de estados e eventos.
+para o mapa de estados e eventos e
+[docs/reference/model-abstraction.md](docs/reference/model-abstraction.md) para
+a fronteira provider-agnostic de modelos.
 
 Consulte [ARCHITECTURE.md](ARCHITECTURE.md) para conhecer o desenho de alto
 nível e

@@ -6,7 +6,13 @@ from pathlib import Path
 FORBIDDEN_IMPORTS = frozenset(
     {
         "anthropic",
+        "autogen",
+        "azure",
+        "crewai",
         "fastapi",
+        "google",
+        "langchain",
+        "langgraph",
         "openai",
         "opensearch",
         "qdrant",
