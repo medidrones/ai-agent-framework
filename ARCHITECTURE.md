@@ -4,6 +4,19 @@ O Atlas Agent Framework é organizado como um monorepo Python. Sua arquitetura
 se baseia em inversão de dependência: contratos estáveis do core são
 implementados por pacotes opcionais de infraestrutura.
 
+```text
+Consumidores
+    ↓
+Adapters
+    ↓
+Contratos do core
+    ↑
+Providers implementam os contratos
+```
+
+O core não importa adapters nem providers concretos. Providers e adapters
+dependem dos contratos públicos do core e permanecem substituíveis.
+
 ## Camadas
 
 1. **Core** define contratos neutros de provedor para agentes, modelos,
@@ -18,11 +31,49 @@ implementados por pacotes opcionais de infraestrutura.
 As dependências apontam para dentro. O core deve continuar utilizável sem
 plugins ou adapters e nunca deve importar esses pacotes.
 
+## Política async-first
+
+Operações que realizam I/O devem expor APIs assíncronas. Wrappers síncronos
+podem ser oferecidos como conveniência, mas não definem os contratos primários.
+
+## Independência de infraestrutura
+
+O core não depende de SDKs de modelos, frameworks web, bancos de dados,
+message brokers ou bancos vetoriais. Cada integração pertence a uma distribuição
+opcional e recebe configuração e credenciais por injeção explícita.
+
+## Política de plugins
+
+Plugins implementam contratos pequenos e neutros definidos pelo core. Uma
+integração pode depender do SDK que adapta, mas essa dependência não pode vazar
+para a instalação do pacote core nem para suas interfaces públicas.
+
+## Qualidade e segurança
+
+Todo pacote deve passar por lint, formatação, tipagem estrita, testes e build.
+Entradas externas são tratadas como não confiáveis; segredos não são globais,
+registrados ou serializados; e execução arbitrária de código permanece fora do
+core.
+
 ## Escopo atual
 
 Atualmente, o repositório inclui apenas o workspace e a estrutura inicial do
 pacote `atlas-agent-core`. Runtime, provedores, ferramentas e armazenamento
 serão introduzidos incrementalmente depois que seus contratos forem definidos.
 
+## Evolução prevista
+
+Novas distribuições serão criadas somente quando houver contratos estáveis a
+implementar. A evolução prevista inclui providers, memória, conhecimento, MCP,
+observabilidade, avaliação e adapters de transporte, sempre como pacotes
+opcionais ao redor do core.
+
 Os limites detalhados dos pacotes estão documentados em
 [`docs/architecture/dependency-rules.md`](docs/architecture/dependency-rules.md).
+
+## Empacotamento do workspace
+
+O projeto raiz coordena dependências e ferramentas, mas não é uma distribuição
+publicável. Cada pacote possui seus próprios metadados e backend PEP 517. Como o
+`uv build` usa o projeto raiz por padrão, builds executados na raiz selecionam o
+pacote explicitamente com `uv build --package atlas-agent-core`.

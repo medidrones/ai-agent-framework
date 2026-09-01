@@ -18,8 +18,21 @@ atualizações enquanto o relato estiver sob investigação.
 ## Princípios de segurança
 
 - Segredos são injetados explicitamente e nunca registrados ou serializados.
+- Credenciais, tokens, chaves privadas e arquivos `.env` não devem ser
+  versionados.
 - O core não lê credenciais diretamente de variáveis de ambiente.
 - Os argumentos das ferramentas são validados antes da execução.
 - Conteúdo recuperado ou gerado por modelos é tratado como não confiável.
 - A execução arbitrária de código não faz parte do runtime do core.
 - O acesso à rede é introduzido somente por adapters explícitos.
+
+## Providers e ferramentas futuras
+
+Providers deverão receber credenciais por configuração ou serviços de segredos
+injetados, sem expô-las em eventos ou exceções. Ferramentas de agentes deverão
+declarar entradas, validar argumentos, limitar permissões e receber somente os
+serviços explicitamente autorizados no contexto da execução.
+
+Conteúdo vindo de modelos, ferramentas ou bases de conhecimento nunca concede
+autoridade adicional por si só. Um executor genérico de código permanece
+explicitamente fora do escopo inicial.

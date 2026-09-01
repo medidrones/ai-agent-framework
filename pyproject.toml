@@ -68,6 +68,9 @@ line-ending = "lf"
 [tool.mypy]
 python_version = "3.12"
 strict = true
+warn_unused_configs = true
+show_error_codes = true
+pretty = true
 files = ["packages"]
 exclude = ['(^|/)build(/|$)']
 
@@ -77,6 +80,7 @@ addopts = [
     "--strict-markers",
     "--cov=atlas_agents",
     "--cov-report=term-missing:skip-covered",
+    "--cov-report=xml",
     "--cov-fail-under=90",
 ]
 asyncio_mode = "auto"

@@ -12,6 +12,7 @@ negócio.
 
 - Python 3.12 ou superior.
 - Inglês para código, identificadores e docstrings.
+- Inglês para mensagens de commit.
 - Português do Brasil para README, documentação técnica e exemplos voltados
   ao usuário.
 - Termos técnicos podem permanecer em inglês quando a tradução prejudicar a
@@ -33,6 +34,10 @@ O pacote core não deve depender de:
 - bancos de dados vetoriais;
 - bibliotecas específicas de infraestrutura.
 
+Integrações de infraestrutura devem ser pacotes ou plugins opcionais. Evite
+dependências circulares e preserve a direção das dependências para os contratos
+do core.
+
 ## Regras de engenharia
 
 - Use APIs assíncronas para operações de I/O.
@@ -46,6 +51,7 @@ O pacote core não deve depender de:
 - Mantenha as interfaces públicas pequenas.
 - Preserve a compatibilidade retroativa das APIs públicas.
 - Não exponha objetos específicos de provedores pelos contratos do core.
+- Não adicione conceitos específicos de negócio.
 
 ## Qualidade
 
@@ -65,26 +71,30 @@ uv run ruff check .
 uv run ruff format --check .
 uv run mypy packages
 uv run pytest
+uv build --package atlas-agent-core
 ```
 
 ## Segurança
 
 - Nunca registre segredos.
 - Nunca serialize credenciais.
+- Valide entradas externas.
 - Valide todos os argumentos das ferramentas.
 - Trate conteúdo recuperado como dados não confiáveis.
 - Não execute código arbitrário.
 - Não adicione acesso à rede sem um adapter explícito.
+- Não adicione acesso à rede ao pacote core.
 
 ## Política de alterações
 
 Antes de editar:
 
 1. Inspecione a arquitetura atual.
-2. Localize as abstrações existentes.
-3. Evite conceitos duplicados.
-4. Identifique as APIs públicas afetadas.
-5. Preserve as convenções.
+2. Leia a documentação de arquitetura existente.
+3. Localize as abstrações existentes.
+4. Evite conceitos duplicados.
+5. Identifique as APIs públicas afetadas.
+6. Preserve as convenções e mantenha as mudanças dentro do escopo solicitado.
 
 Depois de editar:
 
@@ -92,4 +102,4 @@ Depois de editar:
 2. Resuma os arquivos alterados.
 3. Explique as decisões arquiteturais.
 4. Relate honestamente as verificações que falharam.
-5. Liste os riscos restantes.
+5. Liste os riscos e limitações restantes.

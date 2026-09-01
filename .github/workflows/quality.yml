@@ -36,7 +36,7 @@ jobs:
         run: uv run mypy packages
 
       - name: Test
-        run: uv run pytest
+        run: uv run pytest --cov --cov-report=term-missing --cov-report=xml
 
       - name: Build core package
         run: uv build --package atlas-agent-core
