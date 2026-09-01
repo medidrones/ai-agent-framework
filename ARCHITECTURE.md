@@ -41,7 +41,8 @@ podem ser oferecidos como conveniência, mas não definem os contratos primário
 `ExecutionLifecycle` encapsula o status corrente. Não existe setter público:
 toda alteração passa por um mapa declarativo, produz uma
 `ExecutionTransition` imutável e entra no histórico ordenado. Estados terminais
-são centralizados e não possuem transições de saída.
+são centralizados e não possuem transições de saída. Toda instância nova inicia
+em `CREATED`; restauração futura exigirá um contrato explícito.
 
 O lifecycle não conhece event bus ou observabilidade. `AgentEventFactory`
 transforma transições em eventos separadamente, mantendo sequência local por

@@ -1,7 +1,9 @@
-"""Contract test locking the complete declarative transition protocol."""
+"""Contract tests locking the complete declarative transition protocol."""
+
+import pytest
 
 from atlas_agents import ExecutionStatus
-from atlas_agents.execution import ALLOWED_TRANSITIONS
+from atlas_agents.execution import ALLOWED_TRANSITIONS, TERMINAL_EXECUTION_STATUSES
 
 FAILURE_AND_CANCELLATION = frozenset(
     {ExecutionStatus.FAILED, ExecutionStatus.CANCELLED}
@@ -55,15 +57,21 @@ def test_allowed_transitions_match_the_public_protocol() -> None:
             {
                 ExecutionStatus.EXECUTING_TOOL,
                 ExecutionStatus.WAITING_FOR_APPROVAL,
+                ExecutionStatus.RUNNING,
                 *RESOURCE_TERMINATIONS,
             }
         ),
         ExecutionStatus.EXECUTING_TOOL: frozenset(
-            {ExecutionStatus.RUNNING, *RESOURCE_TERMINATIONS}
+            {
+                ExecutionStatus.RUNNING,
+                ExecutionStatus.WAITING_FOR_TOOL,
+                *RESOURCE_TERMINATIONS,
+            }
         ),
         ExecutionStatus.WAITING_FOR_APPROVAL: frozenset(
             {
                 ExecutionStatus.EXECUTING_TOOL,
+                ExecutionStatus.RUNNING,
                 ExecutionStatus.REJECTED,
                 *PENDING_TERMINATIONS,
             }
@@ -72,6 +80,8 @@ def test_allowed_transitions_match_the_public_protocol() -> None:
             {
                 ExecutionStatus.UPDATING_MEMORY,
                 ExecutionStatus.COMPLETED,
+                ExecutionStatus.RUNNING,
+                ExecutionStatus.REJECTED,
                 *PENDING_TERMINATIONS,
             }
         ),
@@ -88,3 +98,19 @@ def test_allowed_transitions_match_the_public_protocol() -> None:
     }
 
     assert dict(ALLOWED_TRANSITIONS) == expected
+
+
+def test_transition_map_contains_every_execution_status() -> None:
+    assert set(ALLOWED_TRANSITIONS) == set(ExecutionStatus)
+
+
+@pytest.mark.parametrize("status", TERMINAL_EXECUTION_STATUSES)
+def test_terminal_status_has_no_outgoing_transitions(
+    status: ExecutionStatus,
+) -> None:
+    assert ALLOWED_TRANSITIONS[status] == frozenset()
+
+
+@pytest.mark.parametrize("status", tuple(ExecutionStatus))
+def test_transition_map_forbids_self_transitions(status: ExecutionStatus) -> None:
+    assert status not in ALLOWED_TRANSITIONS[status]

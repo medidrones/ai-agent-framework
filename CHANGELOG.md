@@ -24,3 +24,8 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 - O estado genérico `WAITING` foi substituído por estados específicos de
   ferramenta e aprovação.
+- O mapa do lifecycle passou a admitir os retornos normativos de ferramentas,
+  aprovação e reparo de saída para `RUNNING`, além do processamento sequencial
+  de ferramentas e da rejeição terminal de saída.
+- `ExecutionLifecycle` agora sempre inicia em `CREATED`; restauração em outro
+  estado fica reservada a um contrato futuro.

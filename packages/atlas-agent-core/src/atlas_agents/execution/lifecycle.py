@@ -69,15 +69,21 @@ ALLOWED_TRANSITIONS: Mapping[ExecutionStatus, frozenset[ExecutionStatus]] = (
                 {
                     ExecutionStatus.EXECUTING_TOOL,
                     ExecutionStatus.WAITING_FOR_APPROVAL,
+                    ExecutionStatus.RUNNING,
                     *_RESOURCE_TERMINATIONS,
                 }
             ),
             ExecutionStatus.EXECUTING_TOOL: frozenset(
-                {ExecutionStatus.RUNNING, *_RESOURCE_TERMINATIONS}
+                {
+                    ExecutionStatus.RUNNING,
+                    ExecutionStatus.WAITING_FOR_TOOL,
+                    *_RESOURCE_TERMINATIONS,
+                }
             ),
             ExecutionStatus.WAITING_FOR_APPROVAL: frozenset(
                 {
                     ExecutionStatus.EXECUTING_TOOL,
+                    ExecutionStatus.RUNNING,
                     ExecutionStatus.REJECTED,
                     *_PENDING_TERMINATIONS,
                 }
@@ -86,6 +92,8 @@ ALLOWED_TRANSITIONS: Mapping[ExecutionStatus, frozenset[ExecutionStatus]] = (
                 {
                     ExecutionStatus.UPDATING_MEMORY,
                     ExecutionStatus.COMPLETED,
+                    ExecutionStatus.RUNNING,
+                    ExecutionStatus.REJECTED,
                     *_PENDING_TERMINATIONS,
                 }
             ),
@@ -107,13 +115,9 @@ ALLOWED_TRANSITIONS: Mapping[ExecutionStatus, frozenset[ExecutionStatus]] = (
 class ExecutionLifecycle:
     """Control execution status through explicit, recorded transitions."""
 
-    def __init__(
-        self,
-        *,
-        initial_status: ExecutionStatus = ExecutionStatus.CREATED,
-    ) -> None:
-        """Initialize a lifecycle for a new or externally reconstructed status."""
-        self._status = initial_status
+    def __init__(self) -> None:
+        """Initialize a new lifecycle in the created status."""
+        self._status = ExecutionStatus.CREATED
         self._history: list[ExecutionTransition] = []
 
     @property

@@ -1,6 +1,7 @@
 """Tests for the declarative execution lifecycle state machine."""
 
 from datetime import UTC, datetime
+from inspect import signature
 
 import pytest
 from pydantic import ValidationError
@@ -23,9 +24,14 @@ VALID_TRANSITIONS = (
     (ExecutionStatus.UPDATING_MEMORY, ExecutionStatus.COMPLETED),
     (ExecutionStatus.RUNNING, ExecutionStatus.WAITING_FOR_TOOL),
     (ExecutionStatus.WAITING_FOR_TOOL, ExecutionStatus.EXECUTING_TOOL),
+    (ExecutionStatus.WAITING_FOR_TOOL, ExecutionStatus.RUNNING),
     (ExecutionStatus.EXECUTING_TOOL, ExecutionStatus.RUNNING),
+    (ExecutionStatus.EXECUTING_TOOL, ExecutionStatus.WAITING_FOR_TOOL),
     (ExecutionStatus.WAITING_FOR_TOOL, ExecutionStatus.WAITING_FOR_APPROVAL),
     (ExecutionStatus.WAITING_FOR_APPROVAL, ExecutionStatus.EXECUTING_TOOL),
+    (ExecutionStatus.WAITING_FOR_APPROVAL, ExecutionStatus.RUNNING),
+    (ExecutionStatus.VALIDATING_OUTPUT, ExecutionStatus.RUNNING),
+    (ExecutionStatus.VALIDATING_OUTPUT, ExecutionStatus.REJECTED),
 )
 
 INVALID_TRANSITIONS = (
@@ -48,13 +54,109 @@ TERMINAL_STATUSES = (
     ExecutionStatus.REJECTED,
 )
 
+PATHS_TO_STATUS: dict[ExecutionStatus, tuple[ExecutionStatus, ...]] = {
+    ExecutionStatus.CREATED: (),
+    ExecutionStatus.VALIDATING_INPUT: (ExecutionStatus.VALIDATING_INPUT,),
+    ExecutionStatus.LOADING_CONTEXT: (
+        ExecutionStatus.VALIDATING_INPUT,
+        ExecutionStatus.LOADING_CONTEXT,
+    ),
+    ExecutionStatus.RETRIEVING_KNOWLEDGE: (
+        ExecutionStatus.VALIDATING_INPUT,
+        ExecutionStatus.LOADING_CONTEXT,
+        ExecutionStatus.RETRIEVING_KNOWLEDGE,
+    ),
+    ExecutionStatus.RUNNING: (
+        ExecutionStatus.VALIDATING_INPUT,
+        ExecutionStatus.LOADING_CONTEXT,
+        ExecutionStatus.RUNNING,
+    ),
+    ExecutionStatus.WAITING_FOR_TOOL: (
+        ExecutionStatus.VALIDATING_INPUT,
+        ExecutionStatus.LOADING_CONTEXT,
+        ExecutionStatus.RUNNING,
+        ExecutionStatus.WAITING_FOR_TOOL,
+    ),
+    ExecutionStatus.WAITING_FOR_APPROVAL: (
+        ExecutionStatus.VALIDATING_INPUT,
+        ExecutionStatus.LOADING_CONTEXT,
+        ExecutionStatus.RUNNING,
+        ExecutionStatus.WAITING_FOR_TOOL,
+        ExecutionStatus.WAITING_FOR_APPROVAL,
+    ),
+    ExecutionStatus.EXECUTING_TOOL: (
+        ExecutionStatus.VALIDATING_INPUT,
+        ExecutionStatus.LOADING_CONTEXT,
+        ExecutionStatus.RUNNING,
+        ExecutionStatus.WAITING_FOR_TOOL,
+        ExecutionStatus.EXECUTING_TOOL,
+    ),
+    ExecutionStatus.VALIDATING_OUTPUT: (
+        ExecutionStatus.VALIDATING_INPUT,
+        ExecutionStatus.LOADING_CONTEXT,
+        ExecutionStatus.RUNNING,
+        ExecutionStatus.VALIDATING_OUTPUT,
+    ),
+    ExecutionStatus.UPDATING_MEMORY: (
+        ExecutionStatus.VALIDATING_INPUT,
+        ExecutionStatus.LOADING_CONTEXT,
+        ExecutionStatus.RUNNING,
+        ExecutionStatus.VALIDATING_OUTPUT,
+        ExecutionStatus.UPDATING_MEMORY,
+    ),
+    ExecutionStatus.COMPLETED: (
+        ExecutionStatus.VALIDATING_INPUT,
+        ExecutionStatus.LOADING_CONTEXT,
+        ExecutionStatus.RUNNING,
+        ExecutionStatus.VALIDATING_OUTPUT,
+        ExecutionStatus.COMPLETED,
+    ),
+    ExecutionStatus.FAILED: (ExecutionStatus.FAILED,),
+    ExecutionStatus.CANCELLED: (ExecutionStatus.CANCELLED,),
+    ExecutionStatus.TIMED_OUT: (
+        ExecutionStatus.VALIDATING_INPUT,
+        ExecutionStatus.TIMED_OUT,
+    ),
+    ExecutionStatus.LIMIT_EXCEEDED: (
+        ExecutionStatus.VALIDATING_INPUT,
+        ExecutionStatus.LOADING_CONTEXT,
+        ExecutionStatus.RUNNING,
+        ExecutionStatus.LIMIT_EXCEEDED,
+    ),
+    ExecutionStatus.BUDGET_EXCEEDED: (
+        ExecutionStatus.VALIDATING_INPUT,
+        ExecutionStatus.LOADING_CONTEXT,
+        ExecutionStatus.RUNNING,
+        ExecutionStatus.BUDGET_EXCEEDED,
+    ),
+    ExecutionStatus.REJECTED: (
+        ExecutionStatus.VALIDATING_INPUT,
+        ExecutionStatus.REJECTED,
+    ),
+}
+
+
+def _lifecycle_at(status: ExecutionStatus) -> ExecutionLifecycle:
+    lifecycle = ExecutionLifecycle()
+    for target in PATHS_TO_STATUS[status]:
+        lifecycle.transition_to(target)
+    return lifecycle
+
+
+def test_lifecycle_always_starts_created_without_restore_shortcut() -> None:
+    lifecycle = ExecutionLifecycle()
+
+    assert lifecycle.status is ExecutionStatus.CREATED
+    assert lifecycle.history == ()
+    assert signature(ExecutionLifecycle).parameters == {}
+
 
 @pytest.mark.parametrize(("current", "requested"), VALID_TRANSITIONS)
 def test_lifecycle_accepts_declared_transition(
     current: ExecutionStatus,
     requested: ExecutionStatus,
 ) -> None:
-    lifecycle = ExecutionLifecycle(initial_status=current)
+    lifecycle = _lifecycle_at(current)
 
     transition = lifecycle.transition_to(requested)
 
@@ -68,7 +170,8 @@ def test_lifecycle_rejects_undeclared_transition(
     current: ExecutionStatus,
     requested: ExecutionStatus,
 ) -> None:
-    lifecycle = ExecutionLifecycle(initial_status=current)
+    lifecycle = _lifecycle_at(current)
+    history_before_attempt = lifecycle.history
 
     with pytest.raises(InvalidExecutionTransitionError) as captured:
         lifecycle.transition_to(requested)
@@ -77,12 +180,12 @@ def test_lifecycle_rejects_undeclared_transition(
     assert captured.value.requested_status is requested
     assert str(captured.value).startswith("Não é permitido")
     assert lifecycle.status is current
-    assert lifecycle.history == ()
+    assert lifecycle.history == history_before_attempt
 
 
 @pytest.mark.parametrize("status", TERMINAL_STATUSES)
 def test_terminal_status_cannot_transition(status: ExecutionStatus) -> None:
-    lifecycle = ExecutionLifecycle(initial_status=status)
+    lifecycle = _lifecycle_at(status)
 
     assert lifecycle.is_terminal
     with pytest.raises(InvalidExecutionTransitionError):
@@ -91,7 +194,7 @@ def test_terminal_status_cannot_transition(status: ExecutionStatus) -> None:
 
 @pytest.mark.parametrize("status", tuple(ExecutionStatus))
 def test_transition_to_same_status_is_always_invalid(status: ExecutionStatus) -> None:
-    lifecycle = ExecutionLifecycle(initial_status=status)
+    lifecycle = _lifecycle_at(status)
 
     assert not lifecycle.can_transition_to(status)
     with pytest.raises(InvalidExecutionTransitionError):
@@ -170,7 +273,7 @@ def test_operational_states_reach_declared_terminal_statuses(
     current: ExecutionStatus,
     terminal: ExecutionStatus,
 ) -> None:
-    lifecycle = ExecutionLifecycle(initial_status=current)
+    lifecycle = _lifecycle_at(current)
 
     lifecycle.transition_to(terminal)
 

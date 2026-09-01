@@ -7,7 +7,9 @@ registra o histórico.
 
 ## Estados
 
-O estado inicial padrão é `CREATED`. Estados de processamento representam as
+Toda nova instância de `ExecutionLifecycle` inicia em `CREATED`. O construtor
+não aceita outro estado inicial; restauração e checkpoints exigirão uma API
+explícita em uma tarefa futura. Estados de processamento representam as
 fases previstas do protocolo, mesmo quando a funcionalidade correspondente
 ainda não foi implementada:
 
@@ -79,6 +81,7 @@ stateDiagram-v2
 
     WaitingForTool --> ExecutingTool
     WaitingForTool --> WaitingForApproval
+    WaitingForTool --> Running
     WaitingForTool --> Failed
     WaitingForTool --> Cancelled
     WaitingForTool --> TimedOut
@@ -86,6 +89,7 @@ stateDiagram-v2
     WaitingForTool --> BudgetExceeded
 
     ExecutingTool --> Running
+    ExecutingTool --> WaitingForTool
     ExecutingTool --> Failed
     ExecutingTool --> Cancelled
     ExecutingTool --> TimedOut
@@ -93,6 +97,7 @@ stateDiagram-v2
     ExecutingTool --> BudgetExceeded
 
     WaitingForApproval --> ExecutingTool
+    WaitingForApproval --> Running
     WaitingForApproval --> Rejected
     WaitingForApproval --> Failed
     WaitingForApproval --> Cancelled
@@ -100,6 +105,8 @@ stateDiagram-v2
 
     ValidatingOutput --> UpdatingMemory
     ValidatingOutput --> Completed
+    ValidatingOutput --> Running
+    ValidatingOutput --> Rejected
     ValidatingOutput --> Failed
     ValidatingOutput --> Cancelled
     ValidatingOutput --> TimedOut
@@ -124,9 +131,15 @@ stateDiagram-v2
 `status`. O histórico interno também não é exposto: a propriedade `history`
 retorna uma tupla com snapshots imutáveis na ordem de inserção.
 
-O construtor aceita um estado inicial diferente de `CREATED` para futura
-reconstrução de estado. Nesse caso, o histórico começa vazio; a restauração de
+O construtor não oferece atalho para iniciar em outro estado. Isso impede a
+criação de lifecycles que ignorem a validação de entrada; restauração de
 histórico e checkpoints pertence a uma tarefa futura.
+
+Os retornos para `RUNNING` representam continuação controlada após ferramenta
+indisponível, aprovação de ferramenta negada sem encerrar a execução ou reparo
+de saída. `EXECUTING_TOOL → WAITING_FOR_TOOL` representa processamento
+sequencial de tool calls pendentes. `VALIDATING_OUTPUT → REJECTED` é reservado
+a bloqueio terminal por política.
 
 Uma tentativa inválida gera `InvalidExecutionTransitionError`, que expõe
 `current_status` e `requested_status`. O estado e o histórico permanecem

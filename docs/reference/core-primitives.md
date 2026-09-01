@@ -70,7 +70,8 @@ REJECTED
 ```
 
 As transições são controladas por `ExecutionLifecycle`, documentado em
-[execution-lifecycle.md](execution-lifecycle.md).
+[execution-lifecycle.md](execution-lifecycle.md). Toda nova instância começa em
+`CREATED`; não existe construção direta em outro estado.
 
 ## `AgentResult[TOutput]`
 
