@@ -8,8 +8,8 @@ ou adicionar plugins e adapters de transporte opcionais.
 
 O framework fornece abstrações reutilizáveis para agentes de IA sem incorporar
 uma aplicação de negócio. Nesta fase, o escopo inclui a fundação do monorepo,
-os gates de qualidade e os contratos fundamentais de agentes. Comportamento de
-runtime, integrações e lifecycle pertencem às próximas fases.
+os gates de qualidade, os contratos fundamentais de agentes e o protocolo de
+lifecycle. Comportamento de runtime e integrações pertencem às próximas fases.
 
 ## Direção das dependências
 
@@ -38,7 +38,8 @@ implementará seus contratos.
 - manter o pacote core instalável e tipado;
 - definir modelos imutáveis para dados de entrada e saída;
 - oferecer uma abstração assíncrona para agentes concretos;
-- representar eventos mínimos sem implementar uma máquina de estados;
+- validar transições por uma máquina de estados declarativa;
+- registrar histórico e representar eventos sem acoplamento a um event bus;
 - garantir execuções locais e no CI a partir da raiz;
 - documentar limites antes de adicionar integrações;
 - impedir dependências concretas dentro do core.

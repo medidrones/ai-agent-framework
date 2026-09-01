@@ -100,3 +100,32 @@ def test_agent_result_is_immutable() -> None:
 
     with pytest.raises(ValidationError):
         result.status = ExecutionStatus.FAILED
+
+
+@pytest.mark.parametrize(
+    "status",
+    [
+        ExecutionStatus.CANCELLED,
+        ExecutionStatus.TIMED_OUT,
+        ExecutionStatus.LIMIT_EXCEEDED,
+        ExecutionStatus.BUDGET_EXCEEDED,
+        ExecutionStatus.REJECTED,
+    ],
+)
+def test_non_failure_terminal_result_allows_optional_error(
+    status: ExecutionStatus,
+) -> None:
+    without_error = AgentResult[str](
+        execution_id="execution",
+        status=status,
+        usage=Usage(),
+    )
+    with_error = AgentResult[str](
+        execution_id="execution",
+        status=status,
+        usage=Usage(),
+        error=_error(),
+    )
+
+    assert without_error.error is None
+    assert with_error.error is not None

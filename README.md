@@ -31,7 +31,9 @@ autenticação, infraestrutura obrigatória nem regras de um domínio de negóci
 
 O projeto possui a fundação do workspace e os primeiros contratos públicos do
 core. Já é possível descrever agentes, entradas, contexto, identidade, resultados,
-uso e eventos mínimos, além de implementar o contrato abstrato `Agent`.
+uso e eventos, além de implementar o contrato abstrato `Agent`. O lifecycle
+formal valida mudanças de estado, registra um histórico imutável e permite gerar
+eventos monotônicos por execução.
 
 Ainda não existe runtime nem integração com modelos, ferramentas, memória ou
 bases de conhecimento. Um agente concreto pode implementar o contrato, mas sua
@@ -78,7 +80,9 @@ input_data = AgentInput(message="Explique o contrato do agente.")
 ```
 
 A referência completa está em
-[docs/reference/core-primitives.md](docs/reference/core-primitives.md).
+[docs/reference/core-primitives.md](docs/reference/core-primitives.md). Consulte
+também [docs/reference/execution-lifecycle.md](docs/reference/execution-lifecycle.md)
+para o mapa de estados e eventos.
 
 Consulte [ARCHITECTURE.md](ARCHITECTURE.md) para conhecer o desenho de alto
 nível e

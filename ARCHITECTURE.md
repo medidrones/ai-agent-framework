@@ -36,6 +36,18 @@ plugins ou adapters e nunca deve importar esses pacotes.
 Operações que realizam I/O devem expor APIs assíncronas. Wrappers síncronos
 podem ser oferecidos como conveniência, mas não definem os contratos primários.
 
+## Lifecycle de execução
+
+`ExecutionLifecycle` encapsula o status corrente. Não existe setter público:
+toda alteração passa por um mapa declarativo, produz uma
+`ExecutionTransition` imutável e entra no histórico ordenado. Estados terminais
+são centralizados e não possuem transições de saída.
+
+O lifecycle não conhece event bus ou observabilidade. `AgentEventFactory`
+transforma transições em eventos separadamente, mantendo sequência local por
+execução. Essa separação evita acoplar regras de estado ao transporte futuro de
+eventos.
+
 ## Independência de infraestrutura
 
 O core não depende de SDKs de modelos, frameworks web, bancos de dados,
@@ -59,16 +71,16 @@ core.
 
 Atualmente, o repositório inclui o workspace e os contratos fundamentais do
 pacote `atlas-agent-core`: definição, entrada, contexto, identidade, resultado,
-uso, erro estruturado, status, eventos mínimos e a abstração `Agent`.
+uso, erro estruturado, lifecycle, transições, eventos e a abstração `Agent`.
 
 Esses tipos representam snapshots imutáveis nas fronteiras do framework. IDs
 são strings opacas e não impõem UUID. Metadados são explicitamente tipados,
 isolados por instância e validados como serializáveis em JSON. Eventos exigem
 timestamps com fuso horário.
 
-Runtime, lifecycle, providers, ferramentas e armazenamento serão introduzidos
-incrementalmente em tarefas posteriores. O contrato `Agent` não executa modelos
-nem fornece um loop de execução.
+Runtime, providers, ferramentas e armazenamento serão introduzidos
+incrementalmente em tarefas posteriores. O lifecycle atual formaliza estados,
+mas não executa modelos nem fornece um loop de execução.
 
 ## Evolução prevista
 

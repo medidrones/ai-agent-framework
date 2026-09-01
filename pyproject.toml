@@ -56,6 +56,7 @@ select = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
+"packages/atlas-agent-core/src/atlas_agents/events/types.py" = ["A005"]
 "packages/atlas-agent-core/tests/**/*.py" = ["D", "S101"]
 
 [tool.ruff.lint.pydocstyle]

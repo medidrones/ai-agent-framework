@@ -51,8 +51,15 @@ Enumera os estados públicos iniciais:
 
 ```text
 CREATED
+VALIDATING_INPUT
+LOADING_CONTEXT
+RETRIEVING_KNOWLEDGE
 RUNNING
-WAITING
+WAITING_FOR_TOOL
+EXECUTING_TOOL
+WAITING_FOR_APPROVAL
+VALIDATING_OUTPUT
+UPDATING_MEMORY
 COMPLETED
 FAILED
 CANCELLED
@@ -62,7 +69,8 @@ BUDGET_EXCEEDED
 REJECTED
 ```
 
-O enum não implementa transições ou máquina de estados.
+As transições são controladas por `ExecutionLifecycle`, documentado em
+[execution-lifecycle.md](execution-lifecycle.md).
 
 ## `AgentResult[TOutput]`
 
@@ -72,7 +80,9 @@ mínimas:
 
 - um resultado `COMPLETED` não pode conter erro;
 - um resultado `FAILED` deve conter erro;
-- um resultado `CANCELLED` pode omitir saída e erro.
+- resultados `CANCELLED`, `TIMED_OUT`, `LIMIT_EXCEEDED`, `BUDGET_EXCEEDED` e
+  `REJECTED` podem omitir saída e erro, mas aceitam `AgentErrorInfo` quando o
+  consumidor precisa de detalhes estruturados.
 
 ## `Usage`
 
@@ -94,8 +104,9 @@ pode estar vazia e deve ser adequada para leitura humana.
 negativa, tipo, timestamp e dados. O timestamp deve possuir fuso horário; o core
 não cria timestamps automaticamente.
 
-Os tipos iniciais se limitam a criação, início, conclusão, falha e cancelamento
-de uma execução. Eventos de modelos, ferramentas, memória ou guardrails ainda
+Os tipos cobrem o protocolo completo de lifecycle, incluindo fases reservadas
+a modelos, ferramentas, aprovação, conhecimento e memória. Esses tipos
+estabelecem somente contratos de eventos; as respectivas funcionalidades ainda
 não existem.
 
 ## Importação
@@ -110,11 +121,16 @@ from atlas_agents import (
     AgentDefinition,
     AgentErrorInfo,
     AgentEvent,
+    AgentEventFactory,
     AgentEventType,
     AgentInput,
     AgentResult,
     ExecutionIdentity,
+    ExecutionLifecycle,
     ExecutionStatus,
+    ExecutionTransition,
+    InvalidExecutionTransitionError,
     Usage,
+    is_terminal,
 )
 ```

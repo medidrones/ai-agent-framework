@@ -15,3 +15,12 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Documentação inicial de arquitetura e contribuição.
 - Contratos fundamentais e modelos imutáveis de agentes.
 - Eventos mínimos e abstração assíncrona `Agent`.
+- Máquina de estados do lifecycle de execução.
+- Transições validadas e histórico ordenado de execução.
+- Contratos expandidos de eventos de lifecycle.
+- Factory de eventos com sequência monotônica por execução.
+
+### Alterado
+
+- O estado genérico `WAITING` foi substituído por estados específicos de
+  ferramenta e aprovação.

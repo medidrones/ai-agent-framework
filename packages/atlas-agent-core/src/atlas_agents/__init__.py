@@ -14,7 +14,9 @@ from atlas_agents.agents import (
     ExecutionStatus,
     Usage,
 )
-from atlas_agents.events import AgentEvent, AgentEventType
+from atlas_agents.events import AgentEvent, AgentEventFactory, AgentEventType
+from atlas_agents.exceptions import InvalidExecutionTransitionError
+from atlas_agents.execution import ExecutionLifecycle, ExecutionTransition, is_terminal
 
 __version__: str = _distribution_version("atlas-agent-core")
 
@@ -25,11 +27,16 @@ __all__ = [
     "AgentDefinition",
     "AgentErrorInfo",
     "AgentEvent",
+    "AgentEventFactory",
     "AgentEventType",
     "AgentInput",
     "AgentResult",
     "ExecutionIdentity",
+    "ExecutionLifecycle",
     "ExecutionStatus",
+    "ExecutionTransition",
+    "InvalidExecutionTransitionError",
     "Usage",
     "__version__",
+    "is_terminal",
 ]
