@@ -53,11 +53,10 @@ para `ExecutionLifecycle` e expõe seu histórico por `transitions`, sem manter
 uma segunda lista. `complete()`, `fail()`, `cancel()` e `timeout()` são atalhos
 controlados para encerramentos que precisam armazenar dados adicionais.
 
-`ExecutionState` pertence a uma única execução e não é thread-safe. O futuro
-`AgentRuntime` deverá coordenar suas mutações e será o único responsável pelo
-execution loop. Os métodos abstratos `Agent.run()` e `Agent.stream()` permanecem
-como fachadas públicas compatíveis; implementações futuras deverão delegá-los
-ao runtime, sem duplicar o loop.
+`ExecutionState` pertence a uma única execução e não é thread-safe.
+`AgentRuntime` coordena suas mutações e é o único responsável pelo execution
+loop. Os métodos abstratos `Agent.run()` e `Agent.stream()` permanecem como
+fachadas públicas compatíveis e devem delegar ao runtime, sem duplicar o loop.
 
 ## Invariantes
 
@@ -76,7 +75,7 @@ ao runtime, sem duplicar o loop.
 - timestamps têm fuso horário e nunca retrocedem.
 
 `record_event()` apenas valida e registra. Ele não cria eventos nem é chamado
-implicitamente por uma transição. O runtime futuro coordenará
+implicitamente por uma transição. O runtime coordena
 `AgentEventFactory.from_transition()` e `record_event()` de forma explícita.
 
 ## Agregação de uso
@@ -110,6 +109,7 @@ snapshot porque não pertencem ao contrato público atual de `AgentResult`.
 
 ## Fora do escopo
 
-Esta camada não executa providers ou ferramentas, não acessa rede e não contém
+Esta classe não executa providers ou ferramentas, não acessa rede e não contém
 registry, service locator, retry, fallback, RAG, memória persistente, event bus,
-checkpoint/restore nem mecanismo de concorrência.
+checkpoint/restore nem mecanismo de concorrência. A orquestração externa está
+documentada em [`agent-runtime.md`](agent-runtime.md).

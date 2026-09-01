@@ -79,9 +79,17 @@ eventos permanecem anexáveis como journal de observabilidade. `snapshot()`
 produz uma observação frozen e isolada, enquanto `to_result()` só produz um
 `AgentResult` quando o lifecycle é terminal.
 
-O futuro `AgentRuntime` será o único proprietário do execution loop.
+`AgentRuntime` é o único proprietário do execution loop. Na versão single-turn,
+ele cria um estado por chamada, seleciona o modelo pelo registry, constrói um
+request provider-neutral e invoca `ModelProvider.generate()` uma única vez.
 `Agent.run()` e `Agent.stream()` permanecem fachadas públicas e deverão delegar
-ao runtime, sem implementar um segundo loop.
+ao runtime, sem implementar um segundo loop. A decisão está registrada no
+[`ADR-001`](docs/adr/ADR-001-agent-runtime-execution-ownership.md).
+
+O runtime deriva somente capabilities necessárias ao input, normaliza erros
+para `AgentErrorInfo` e preserva cancelamento cooperativo. Providers e registry
+continuam transitórios: nenhuma instância de infraestrutura entra no state ou
+no result.
 
 ## Independência de infraestrutura
 
@@ -114,9 +122,9 @@ são strings opacas e não impõem UUID. Metadados são explicitamente tipados,
 isolados por instância e validados como serializáveis em JSON. Eventos exigem
 timestamps com fuso horário.
 
-O estado local do runtime está formalizado, mas execution loop, providers
-concretos, ferramentas e armazenamento serão introduzidos incrementalmente em
-tarefas posteriores. O core ainda não executa modelos.
+O core já oferece uma execução single-turn por `ModelProvider`, sem provider
+concreto. Streaming do runtime, ferramentas, retries, fallback, memória e
+armazenamento serão introduzidos incrementalmente em tarefas posteriores.
 
 ## Evolução prevista
 

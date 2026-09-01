@@ -39,10 +39,12 @@ sem depender de SDKs concretos. Providers podem ser registrados e seus modelos
 selecionados por capabilities e limites com desempate determinístico.
 O estado de execução em memória já pode integrar esses contratos, acumular
 mensagens e uso, validar eventos e produzir snapshots e resultados terminais.
+`AgentRuntime` coordena uma execução single-turn completa por meio de
+`ModelProvider.generate()`, sem depender de provider concreto.
 
-Ainda não existe execution loop nem integração concreta com modelos,
-ferramentas, memória ou bases de conhecimento. `ExecutionState` controla apenas
-dados locais; chamadas externas serão responsabilidade do futuro runtime.
+Ainda não existem streaming do runtime, tools, retries, fallback, memória, RAG
+ou integração concreta com modelos. O runtime atual realiza exatamente uma
+chamada pela abstração injetada.
 
 ## Requisitos
 
@@ -74,7 +76,13 @@ vazio para o projeto agregador.
 O pacote utiliza o layout `src` e pode ser importado da seguinte forma:
 
 ```python
-from atlas_agents import AgentDefinition, AgentInput
+from atlas_agents import (
+    AgentContext,
+    AgentDefinition,
+    AgentInput,
+    AgentRuntime,
+    ModelProviderRegistry,
+)
 
 definition = AgentDefinition(
     agent_id="assistant",
@@ -82,6 +90,16 @@ definition = AgentDefinition(
     instructions="Responda de forma objetiva.",
 )
 input_data = AgentInput(message="Explique o contrato do agente.")
+
+registry = ModelProviderRegistry()
+# Um ModelProvider implementado em pacote opcional deve ser registrado aqui.
+runtime = AgentRuntime(model_registry=registry)
+
+# result = await runtime.run(
+#     agent=definition,
+#     input_data=input_data,
+#     context=AgentContext(execution_id="execution-1"),
+# )
 ```
 
 A referência completa está em
@@ -93,7 +111,8 @@ a fronteira provider-agnostic de modelos e
 [docs/reference/model-selection.md](docs/reference/model-selection.md) para
 registro, catálogo e seleção determinística e
 [docs/reference/execution-state.md](docs/reference/execution-state.md) para o
-estado controlado do runtime.
+estado controlado do runtime. O primeiro pipeline executável está em
+[docs/reference/agent-runtime.md](docs/reference/agent-runtime.md).
 
 Consulte [ARCHITECTURE.md](ARCHITECTURE.md) para conhecer o desenho de alto
 nível e
@@ -106,7 +125,7 @@ para conferir as restrições de dependência aplicáveis.
 .
 ├── docs/architecture/          # Documentação arquitetural
 ├── packages/
-│   └── atlas-agent-core/      # Distribuição Python principal
+│   └── atlas-agent-core/      # Distribuição e testes organizados por contexto
 ├── .github/workflows/         # Integração contínua
 ├── AGENTS.md                 # Regras para agentes de engenharia
 ├── Makefile                  # Comandos locais de conveniência

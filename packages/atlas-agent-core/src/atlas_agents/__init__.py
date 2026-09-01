@@ -66,11 +66,15 @@ from atlas_agents.models import (
     ToolCall,
 )
 from atlas_agents.runtime import (
+    AgentRuntime,
+    AgentRuntimeError,
     ExecutionAlreadyTerminalError,
     ExecutionSnapshot,
     ExecutionState,
     ExecutionStateError,
     ExecutionStateInvariantError,
+    ModelRequestBuilder,
+    RuntimeInputRejectedError,
 )
 
 __version__: str = _distribution_version("atlas-agent-core")
@@ -86,6 +90,8 @@ __all__ = [
     "AgentEventType",
     "AgentInput",
     "AgentResult",
+    "AgentRuntime",
+    "AgentRuntimeError",
     "AtlasAgentError",
     "AudioContent",
     "DeterministicModelSelectionStrategy",
@@ -124,6 +130,7 @@ __all__ = [
     "ModelProviderRegistryError",
     "ModelRateLimitError",
     "ModelRequest",
+    "ModelRequestBuilder",
     "ModelResponse",
     "ModelResponseError",
     "ModelSelectionError",
@@ -137,6 +144,7 @@ __all__ = [
     "ModelUnavailableError",
     "ModelUsage",
     "NoMatchingModelError",
+    "RuntimeInputRejectedError",
     "StructuredOutputDefinition",
     "TextContent",
     "ToolCall",

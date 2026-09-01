@@ -141,8 +141,14 @@ preferred_capability_matches
 candidate_count
 ```
 
-O futuro runtime poderá obter a instância com
+O runtime obtém a instância selecionada com
 `registry.get(selection.provider_name)`.
+
+Na execução single-turn, o runtime une requisitos do caller às capabilities
+derivadas do input: `TEXT_GENERATION` sempre, `VISION` para imagens e
+`AUDIO_INPUT` para áudio. Restrições explícitas de provider/modelo continuam sem
+fallback. O provider resolvido é usado somente durante a chamada e nunca é
+armazenado em `ExecutionState`.
 
 ## Erros
 
@@ -165,7 +171,7 @@ metadata do request.
 
 ## Fora do escopo
 
-Não há provider concreto, execução de modelo, fallback, retry, cache, plugin
-discovery, config loader, roteamento por custo/latência, health check ou runtime
-de agente. Essas políticas poderão utilizar os contratos desta camada em fases
-futuras.
+Não há provider concreto, fallback, retry, cache, plugin discovery, config
+loader, roteamento por custo/latência ou health check. `AgentRuntime` utiliza
+esta camada para uma única seleção e uma chamada de modelo, sem alterar as
+responsabilidades do registry.

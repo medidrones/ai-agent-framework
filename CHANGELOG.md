@@ -31,6 +31,12 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Estado de execução com mutações controladas e proteção após término.
 - Snapshot imutável e conversão de estados terminais em `AgentResult`.
 - Agregação de uso, contadores e journal validado de eventos por execução.
+- Runtime single-turn com seleção de modelo e uma chamada provider-agnostic.
+- Construção de requests com mensagens e attachments de imagem ou áudio.
+- Normalização de erros de provider e preservação de cancelamento cooperativo.
+- Fake provider reutilizável e testes end-to-end concorrentes.
+- ADR de ownership exclusivo da execução pelo `AgentRuntime`.
+- Organização dos testes por contexto arquitetural.
 
 ### Alterado
 

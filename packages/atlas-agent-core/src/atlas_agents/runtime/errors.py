@@ -13,3 +13,16 @@ class ExecutionStateInvariantError(ExecutionStateError):
 
 class ExecutionAlreadyTerminalError(ExecutionStateInvariantError):
     """Report an operational mutation attempted after terminal state."""
+
+
+class AgentRuntimeError(AtlasAgentError):
+    """Base class for errors raised by runtime orchestration components."""
+
+
+class RuntimeInputRejectedError(AgentRuntimeError):
+    """Describe a structurally valid input unsupported by the current runtime."""
+
+    def __init__(self, *, code: str, message: str) -> None:
+        """Initialize stable rejection facts safe for public events."""
+        self.code = code
+        super().__init__(message)
