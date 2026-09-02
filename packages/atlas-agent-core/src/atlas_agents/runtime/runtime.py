@@ -36,6 +36,12 @@ from atlas_agents.models import (
     ModelStreamEventType,
     TextContent,
 )
+from atlas_agents.runtime.budget import ExecutionBudget, ExecutionBudgetViolation
+from atlas_agents.runtime.deadline import (
+    ExecutionDeadline,
+    ExecutionDeadlineExpiredError,
+)
+from atlas_agents.runtime.enforcement import ExecutionLimitChecker
 from atlas_agents.runtime.error_mapping import (
     model_provider_error_to_agent_error,
     model_selection_error_to_agent_error,
@@ -48,6 +54,10 @@ from atlas_agents.runtime.errors import (
     ModelStreamProtocolError,
     ModelStreamReportedError,
     RuntimeInputRejectedError,
+)
+from atlas_agents.runtime.limits import (
+    ExecutionLimits,
+    ExecutionLimitViolation,
 )
 from atlas_agents.runtime.model_request import ModelRequestBuilder
 from atlas_agents.runtime.state import ExecutionState
@@ -69,6 +79,13 @@ class _PreparedExecution:
     selection: ModelSelectionResult
 
 
+@dataclass(frozen=True)
+class _ExecutionPolicies:
+    limits: ExecutionLimits
+    budget: ExecutionBudget
+    deadline: ExecutionDeadline
+
+
 @runtime_checkable
 class _AsyncClosable(Protocol):
     async def aclose(self) -> None:
@@ -83,12 +100,17 @@ class AgentRuntime:
         *,
         model_registry: ModelProviderRegistry,
         request_builder: ModelRequestBuilder | None = None,
+        limits: ExecutionLimits | None = None,
+        budget: ExecutionBudget | None = None,
     ) -> None:
         """Initialize the runtime with explicit replaceable dependencies."""
         self._model_registry = model_registry
         self._request_builder = (
             request_builder if request_builder is not None else ModelRequestBuilder()
         )
+        self._default_limits = limits if limits is not None else ExecutionLimits()
+        self._default_budget = budget if budget is not None else ExecutionBudget()
+        self._limit_checker = ExecutionLimitChecker()
 
     async def run(
         self,
@@ -97,18 +119,76 @@ class AgentRuntime:
         input_data: AgentInput,
         context: AgentContext,
         model_selection: ModelSelectionRequest | None = None,
+        limits: ExecutionLimits | None = None,
+        budget: ExecutionBudget | None = None,
     ) -> AgentResult[object]:
         """Execute exactly one model generation and return a terminal result."""
-        prepared = await self._prepare(
+        policies = self._resolve_policies(limits=limits, budget=budget)
+        state = ExecutionState(
+            execution_id=context.execution_id,
             agent=agent,
             input_data=input_data,
             context=context,
+        )
+        factory = AgentEventFactory(context.execution_id)
+        self._start_execution(state, factory)
+        try:
+            return await policies.deadline.wait_for(
+                lambda: self._run_execution(
+                    state=state,
+                    factory=factory,
+                    agent=agent,
+                    input_data=input_data,
+                    model_selection=model_selection,
+                    policies=policies,
+                )
+            )
+        except ExecutionDeadlineExpiredError:
+            if not state.is_terminal:
+                self._timeout(state, factory, policies.deadline)
+            return state.to_result()
+        except asyncio.CancelledError:
+            if not state.is_terminal:
+                if state.turn_count > 0:
+                    self._record(
+                        state,
+                        factory,
+                        AgentEventType.MODEL_EXECUTION_COMPLETED,
+                        {"outcome": "cancelled"},
+                    )
+                self._cancel(
+                    state,
+                    factory,
+                    reason="A execução foi cancelada pelo consumidor.",
+                )
+            raise
+
+    async def _run_execution(
+        self,
+        *,
+        state: ExecutionState,
+        factory: AgentEventFactory,
+        agent: AgentDefinition,
+        input_data: AgentInput,
+        model_selection: ModelSelectionRequest | None,
+        policies: _ExecutionPolicies,
+    ) -> AgentResult[object]:
+        """Run the generation path inside one execution policy scope."""
+        prepared = await self._prepare(
+            state=state,
+            factory=factory,
+            agent=agent,
+            input_data=input_data,
             model_selection=model_selection,
         )
         if isinstance(prepared, AgentResult):
             return prepared
-        state = prepared.state
-        factory = prepared.factory
+        turn_violation = self._limit_checker.check_turn_allowed(
+            limits=policies.limits,
+            current_turn_count=state.turn_count,
+        )
+        if turn_violation is not None:
+            return self._exceed_limit(state, factory, turn_violation)
         self._record(
             state,
             factory,
@@ -124,19 +204,6 @@ class AgentRuntime:
                 prepared.request,
                 prepared.model_context,
             )
-        except asyncio.CancelledError:
-            self._record(
-                state,
-                factory,
-                AgentEventType.MODEL_EXECUTION_COMPLETED,
-                {"outcome": "cancelled"},
-            )
-            self._cancel(
-                state,
-                factory,
-                reason="A chamada ao modelo foi cancelada pelo consumidor.",
-            )
-            raise
         except ModelProviderError as error:
             self._record(
                 state,
@@ -156,6 +223,7 @@ class AgentRuntime:
             self._fail(state, factory, self._runtime_error())
             return state.to_result()
 
+        policies.deadline.raise_if_expired()
         self._record(
             state,
             factory,
@@ -166,6 +234,9 @@ class AgentRuntime:
             },
         )
         state.add_model_usage(response.usage)
+        policy_result = self._enforce_usage(state, factory, policies)
+        if policy_result is not None:
+            return policy_result
         state.add_message(
             ModelMessage(role=MessageRole.ASSISTANT, content=response.content)
         )
@@ -180,138 +251,183 @@ class AgentRuntime:
         input_data: AgentInput,
         context: AgentContext,
         model_selection: ModelSelectionRequest | None = None,
+        limits: ExecutionLimits | None = None,
+        budget: ExecutionBudget | None = None,
     ) -> AsyncIterator[RuntimeStreamItem]:
         """Yield incremental execution events followed by one terminal result."""
-        prepared = await self._prepare(
+        policies = self._resolve_policies(limits=limits, budget=budget)
+        state = ExecutionState(
+            execution_id=context.execution_id,
             agent=agent,
             input_data=input_data,
             context=context,
-            model_selection=model_selection,
-            additional_required_capabilities=frozenset({ModelCapability.STREAMING}),
         )
-        if isinstance(prepared, AgentResult):
-            for event in prepared.events:
-                yield RuntimeEventItem(event=event)
-            yield RuntimeResultItem(result=prepared)
-            return
-
-        state = prepared.state
-        factory = prepared.factory
+        factory = AgentEventFactory(context.execution_id)
+        self._start_execution(state, factory)
         emitted_events = 0
         provider_iterator: AsyncIterator[ModelStreamEvent] | None = None
         provider_exhausted = False
         invocation_started = False
         try:
+            prepared = await policies.deadline.wait_for(
+                lambda: self._prepare(
+                    state=state,
+                    factory=factory,
+                    agent=agent,
+                    input_data=input_data,
+                    model_selection=model_selection,
+                    additional_required_capabilities=frozenset(
+                        {ModelCapability.STREAMING}
+                    ),
+                )
+            )
+            if isinstance(prepared, AgentResult):
+                for event in prepared.events:
+                    yield RuntimeEventItem(event=event)
+                yield RuntimeResultItem(result=prepared)
+                return
+
             for event in state.events:
                 yield RuntimeEventItem(event=event)
                 emitted_events += 1
 
-            started_event = self._record(
-                state,
-                factory,
-                AgentEventType.MODEL_EXECUTION_STARTED,
-                {
-                    "provider": prepared.selection.provider_name,
-                    "model": prepared.selection.model,
-                    "mode": "stream",
-                },
+            turn_violation = self._limit_checker.check_turn_allowed(
+                limits=policies.limits,
+                current_turn_count=state.turn_count,
             )
-            yield RuntimeEventItem(event=started_event)
-            emitted_events += 1
-            state.increment_turn()
-            invocation_started = True
-            accumulator = ModelStreamAccumulator()
-            try:
-                provider_iterator = prepared.provider.stream(
-                    prepared.request,
-                    prepared.model_context,
-                )
-                async for model_event in provider_iterator:
-                    accumulator.consume(model_event)
-                    runtime_event = self._record_model_stream_event(
-                        state,
-                        factory,
-                        model_event,
-                    )
-                    yield RuntimeEventItem(event=runtime_event)
-                    emitted_events += 1
-                provider_exhausted = True
-                response = accumulator.finalize()
-            except asyncio.CancelledError:
-                self._record(
+            if turn_violation is not None:
+                result = self._exceed_limit(state, factory, turn_violation)
+            else:
+                started_event = self._record(
                     state,
                     factory,
-                    AgentEventType.MODEL_EXECUTION_COMPLETED,
-                    {"outcome": "cancelled", "mode": "stream"},
+                    AgentEventType.MODEL_EXECUTION_STARTED,
+                    {
+                        "provider": prepared.selection.provider_name,
+                        "model": prepared.selection.model,
+                        "mode": "stream",
+                    },
                 )
+                yield RuntimeEventItem(event=started_event)
+                emitted_events += 1
+                state.increment_turn()
+                invocation_started = True
+                accumulator = ModelStreamAccumulator()
+                try:
+                    provider_iterator = prepared.provider.stream(
+                        prepared.request,
+                        prepared.model_context,
+                    )
+                    while True:
+                        try:
+                            model_event = await policies.deadline.wait_for(
+                                lambda: anext(provider_iterator)
+                            )
+                        except StopAsyncIteration:
+                            provider_exhausted = True
+                            break
+                        policies.deadline.raise_if_expired()
+                        accumulator.consume(model_event)
+                        runtime_event = self._record_model_stream_event(
+                            state,
+                            factory,
+                            model_event,
+                        )
+                        yield RuntimeEventItem(event=runtime_event)
+                        emitted_events += 1
+                    response = accumulator.finalize()
+                except ExecutionDeadlineExpiredError:
+                    raise
+                except ModelProviderError as error:
+                    self._record(
+                        state,
+                        factory,
+                        AgentEventType.MODEL_EXECUTION_COMPLETED,
+                        {"outcome": "failed", "mode": "stream"},
+                    )
+                    self._fail(
+                        state,
+                        factory,
+                        model_provider_error_to_agent_error(error),
+                    )
+                    result = state.to_result()
+                except ModelStreamProtocolError as error:
+                    self._record(
+                        state,
+                        factory,
+                        AgentEventType.MODEL_EXECUTION_COMPLETED,
+                        {"outcome": "failed", "mode": "stream"},
+                    )
+                    self._fail(state, factory, self._stream_error(error))
+                    result = state.to_result()
+                except Exception:
+                    self._record(
+                        state,
+                        factory,
+                        AgentEventType.MODEL_EXECUTION_COMPLETED,
+                        {"outcome": "failed", "mode": "stream"},
+                    )
+                    self._fail(state, factory, self._runtime_error())
+                    result = state.to_result()
+                else:
+                    self._record(
+                        state,
+                        factory,
+                        AgentEventType.MODEL_EXECUTION_COMPLETED,
+                        {
+                            "outcome": "completed",
+                            "mode": "stream",
+                            "finish_reason": response.finish_reason.value,
+                        },
+                    )
+                    state.add_model_usage(response.usage)
+                    policy_result = self._enforce_usage(state, factory, policies)
+                    if policy_result is not None:
+                        result = policy_result
+                    else:
+                        state.add_message(
+                            ModelMessage(
+                                role=MessageRole.ASSISTANT,
+                                content=response.content,
+                            )
+                        )
+                        self._transition(
+                            state,
+                            factory,
+                            ExecutionStatus.VALIDATING_OUTPUT,
+                        )
+                        self._record(
+                            state,
+                            factory,
+                            AgentEventType.OUTPUT_VALIDATION_STARTED,
+                        )
+                        result = self._finish_response(state, factory, response)
+        except ExecutionDeadlineExpiredError:
+            if not state.is_terminal:
+                if invocation_started:
+                    self._record(
+                        state,
+                        factory,
+                        AgentEventType.MODEL_EXECUTION_COMPLETED,
+                        {"outcome": "timed_out", "mode": "stream"},
+                    )
+                self._timeout(state, factory, policies.deadline)
+            result = state.to_result()
+        except asyncio.CancelledError:
+            if not state.is_terminal:
+                if invocation_started:
+                    self._record(
+                        state,
+                        factory,
+                        AgentEventType.MODEL_EXECUTION_COMPLETED,
+                        {"outcome": "cancelled", "mode": "stream"},
+                    )
                 self._cancel(
                     state,
                     factory,
-                    reason="O stream do modelo foi cancelado pelo consumidor.",
+                    reason="O stream foi cancelado pelo consumidor.",
                 )
-                raise
-            except ModelProviderError as error:
-                self._record(
-                    state,
-                    factory,
-                    AgentEventType.MODEL_EXECUTION_COMPLETED,
-                    {"outcome": "failed", "mode": "stream"},
-                )
-                self._fail(
-                    state,
-                    factory,
-                    model_provider_error_to_agent_error(error),
-                )
-                result = state.to_result()
-            except ModelStreamProtocolError as error:
-                self._record(
-                    state,
-                    factory,
-                    AgentEventType.MODEL_EXECUTION_COMPLETED,
-                    {"outcome": "failed", "mode": "stream"},
-                )
-                self._fail(
-                    state,
-                    factory,
-                    self._stream_error(error),
-                )
-                result = state.to_result()
-            except Exception:
-                self._record(
-                    state,
-                    factory,
-                    AgentEventType.MODEL_EXECUTION_COMPLETED,
-                    {"outcome": "failed", "mode": "stream"},
-                )
-                self._fail(state, factory, self._runtime_error())
-                result = state.to_result()
-            else:
-                self._record(
-                    state,
-                    factory,
-                    AgentEventType.MODEL_EXECUTION_COMPLETED,
-                    {
-                        "outcome": "completed",
-                        "mode": "stream",
-                        "finish_reason": response.finish_reason.value,
-                    },
-                )
-                state.add_model_usage(response.usage)
-                state.add_message(
-                    ModelMessage(role=MessageRole.ASSISTANT, content=response.content)
-                )
-                self._transition(state, factory, ExecutionStatus.VALIDATING_OUTPUT)
-                self._record(
-                    state,
-                    factory,
-                    AgentEventType.OUTPUT_VALIDATION_STARTED,
-                )
-                result = self._finish_response(state, factory, response)
-
-            for event in state.events[emitted_events:]:
-                yield RuntimeEventItem(event=event)
-                emitted_events += 1
-            yield RuntimeResultItem(result=result)
+            raise
         finally:
             if (
                 provider_iterator is not None
@@ -333,28 +449,21 @@ class AgentRuntime:
                     reason="O consumidor encerrou o stream antes da conclusão.",
                 )
 
+        for event in state.events[emitted_events:]:
+            yield RuntimeEventItem(event=event)
+            emitted_events += 1
+        yield RuntimeResultItem(result=result)
+
     async def _prepare(
         self,
         *,
+        state: ExecutionState,
+        factory: AgentEventFactory,
         agent: AgentDefinition,
         input_data: AgentInput,
-        context: AgentContext,
         model_selection: ModelSelectionRequest | None,
         additional_required_capabilities: frozenset[ModelCapability] = frozenset(),
     ) -> _PreparedExecution | AgentResult[object]:
-        state = ExecutionState(
-            execution_id=context.execution_id,
-            agent=agent,
-            input_data=input_data,
-            context=context,
-        )
-        factory = AgentEventFactory(context.execution_id)
-        self._record(state, factory, AgentEventType.EXECUTION_CREATED)
-
-        validating_transition = state.transition_to(ExecutionStatus.VALIDATING_INPUT)
-        self._record(state, factory, AgentEventType.EXECUTION_STARTED)
-        state.record_event(factory.from_transition(validating_transition))
-        self._record(state, factory, AgentEventType.INPUT_VALIDATION_STARTED)
         try:
             self._request_builder.validate_input(input_data)
         except RuntimeInputRejectedError as error:
@@ -433,6 +542,17 @@ class AgentRuntime:
             model_context=model_context,
             selection=selection,
         )
+
+    def _start_execution(
+        self,
+        state: ExecutionState,
+        factory: AgentEventFactory,
+    ) -> None:
+        self._record(state, factory, AgentEventType.EXECUTION_CREATED)
+        validating_transition = state.transition_to(ExecutionStatus.VALIDATING_INPUT)
+        self._record(state, factory, AgentEventType.EXECUTION_STARTED)
+        state.record_event(factory.from_transition(validating_transition))
+        self._record(state, factory, AgentEventType.INPUT_VALIDATION_STARTED)
 
     def _finish_response(
         self,
@@ -527,6 +647,121 @@ class AgentRuntime:
         )
         self._fail(state, factory, AgentErrorInfo(code=code, message=message))
         return state.to_result()
+
+    def _resolve_policies(
+        self,
+        *,
+        limits: ExecutionLimits | None,
+        budget: ExecutionBudget | None,
+    ) -> _ExecutionPolicies:
+        resolved_limits = limits if limits is not None else self._default_limits
+        resolved_budget = budget if budget is not None else self._default_budget
+        return _ExecutionPolicies(
+            limits=resolved_limits,
+            budget=resolved_budget,
+            deadline=ExecutionDeadline.start(resolved_limits.timeout_seconds),
+        )
+
+    def _enforce_usage(
+        self,
+        state: ExecutionState,
+        factory: AgentEventFactory,
+        policies: _ExecutionPolicies,
+    ) -> AgentResult[object] | None:
+        violation = self._limit_checker.check_usage(
+            limits=policies.limits,
+            usage=state.usage,
+        )
+        if violation is not None:
+            return self._exceed_limit(state, factory, violation)
+        budget_violation = self._limit_checker.check_budget(
+            budget=policies.budget,
+            usage=state.usage,
+        )
+        if budget_violation is not None:
+            return self._exceed_budget(state, factory, budget_violation)
+        return None
+
+    def _exceed_limit(
+        self,
+        state: ExecutionState,
+        factory: AgentEventFactory,
+        violation: ExecutionLimitViolation,
+    ) -> AgentResult[object]:
+        code = f"execution_{violation.reason.value}_exceeded"
+        error = AgentErrorInfo(
+            code=code,
+            message=(
+                f"A execução excedeu a política configurada '{violation.reason.value}'."
+            ),
+            details={
+                "reason": violation.reason.value,
+                "limit": violation.limit,
+                "observed": violation.observed,
+            },
+        )
+        state.exceed_limit(error=error)
+        state.record_event(factory.from_transition(state.transitions[-1]))
+        self._record(
+            state,
+            factory,
+            AgentEventType.EXECUTION_LIMIT_EXCEEDED,
+            {
+                "reason": violation.reason.value,
+                "limit": violation.limit,
+                "observed": violation.observed,
+            },
+        )
+        return state.to_result()
+
+    def _exceed_budget(
+        self,
+        state: ExecutionState,
+        factory: AgentEventFactory,
+        violation: ExecutionBudgetViolation,
+    ) -> AgentResult[object]:
+        details: dict[str, object] = {
+            "limit": str(violation.limit),
+            "observed": str(violation.observed),
+        }
+        error = AgentErrorInfo(
+            code="execution_budget_exceeded",
+            message="A execução excedeu o budget de custo estimado configurado.",
+            details=details,
+        )
+        state.exceed_budget(error=error)
+        state.record_event(factory.from_transition(state.transitions[-1]))
+        self._record(
+            state,
+            factory,
+            AgentEventType.EXECUTION_BUDGET_EXCEEDED,
+            details,
+        )
+        return state.to_result()
+
+    def _timeout(
+        self,
+        state: ExecutionState,
+        factory: AgentEventFactory,
+        deadline: ExecutionDeadline,
+    ) -> None:
+        timeout_seconds = deadline.timeout_seconds
+        error = AgentErrorInfo(
+            code="execution_timed_out",
+            message="A execução excedeu o timeout total configurado.",
+            details={"timeout_seconds": timeout_seconds},
+        )
+        state.timeout(error=error)
+        state.record_event(factory.from_transition(state.transitions[-1]))
+        self._record(
+            state,
+            factory,
+            AgentEventType.EXECUTION_TIMED_OUT,
+            {
+                "timeout_seconds": timeout_seconds,
+                "elapsed_seconds": deadline.elapsed_seconds,
+            },
+        )
 
     def _record(
         self,

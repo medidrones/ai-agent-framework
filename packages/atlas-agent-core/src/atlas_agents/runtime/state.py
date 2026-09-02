@@ -324,6 +324,14 @@ class ExecutionState:
         self._error = error
         self._updated_at = transition.timestamp
 
+    def exceed_limit(self, *, error: AgentErrorInfo) -> None:
+        """Transition to limit exceeded and retain structured violation details."""
+        self._terminate_by_policy(ExecutionStatus.LIMIT_EXCEEDED, error)
+
+    def exceed_budget(self, *, error: AgentErrorInfo) -> None:
+        """Transition to budget exceeded and retain structured violation details."""
+        self._terminate_by_policy(ExecutionStatus.BUDGET_EXCEEDED, error)
+
     def snapshot(self) -> ExecutionSnapshot:
         """Create an isolated immutable observation of the current state."""
         return ExecutionSnapshot(
@@ -367,6 +375,17 @@ class ExecutionState:
             raise ExecutionAlreadyTerminalError(
                 "A execução já terminou e não aceita mutações operacionais."
             )
+
+    def _terminate_by_policy(
+        self,
+        status: ExecutionStatus,
+        error: AgentErrorInfo,
+    ) -> None:
+        self._ensure_active()
+        mutation_time = self._mutation_timestamp()
+        transition = self._lifecycle.transition_to(status, timestamp=mutation_time)
+        self._error = error
+        self._updated_at = transition.timestamp
 
     def _read_clock(self) -> datetime:
         try:

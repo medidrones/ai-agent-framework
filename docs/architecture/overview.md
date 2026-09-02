@@ -53,6 +53,7 @@ implementará seus contratos.
 - executar um único turn por `ModelProvider.generate()` ou
   `ModelProvider.stream()`, sem SDK concreto;
 - validar e reconstruir streams estruturados sem expor chunks de SDKs.
+- aplicar limites e budget por execução com checker puro e deadline monotônico.
 
 ## Extensibilidade e evolução
 
@@ -66,3 +67,8 @@ snapshots e resultados terminais. `AgentRuntime` possui ownership único da
 orquestração e realiza uma chamada async a `ModelProvider.generate()` ou
 `ModelProvider.stream()`. Nenhum provider concreto, tool, retry, fallback,
 reconexão ou segundo turno é implementado no core.
+
+As políticas são value objects imutáveis fornecidos ao runtime. O checker não
+conhece lifecycle ou provider; ele retorna violações estruturadas. O runtime
+aplica pre-check antes da invocação, pós-check após usage e converte a decisão
+nos estados terminais já definidos, sem alterar o mapa de transições.

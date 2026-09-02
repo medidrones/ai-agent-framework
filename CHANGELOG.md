@@ -35,6 +35,9 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Runtime streaming com eventos incrementais e resultado terminal discriminado.
 - Acumulador determinístico para sequência, texto, tool calls e uso cumulativo.
 - Fechamento cooperativo do stream em cancelamento ou interrupção do consumidor.
+- Políticas imutáveis de limites estruturais, tokens, timeout e budget.
+- Enforcement pós-resposta com precedência determinística e usage preservada.
+- Deadline absoluto monotônico integrado a `run()` e `stream()`.
 - Construção de requests com mensagens e attachments de imagem ou áudio.
 - Normalização de erros de provider e preservação de cancelamento cooperativo.
 - Fake provider reutilizável e testes end-to-end concorrentes.

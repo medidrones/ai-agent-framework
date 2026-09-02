@@ -43,6 +43,8 @@ mensagens e uso, validar eventos e produzir snapshots e resultados terminais.
 `ModelProvider.generate()` ou entrega incremental por `ModelProvider.stream()`,
 sem depender de provider concreto. O streaming valida sequência, protocolo,
 tool calls e snapshots cumulativos de uso antes de reconstruir a resposta.
+Limites opcionais de turnos, tools e tokens, budget estimado e timeout total
+governam ambos os modos sem adicionar dependências de provider.
 
 Ainda não existem execução de tools, retries, fallback, memória, RAG ou
 integração concreta com modelos. Cada modo do runtime realiza exatamente uma
@@ -117,6 +119,8 @@ estado controlado do runtime. O primeiro pipeline executável está em
 [docs/reference/agent-runtime.md](docs/reference/agent-runtime.md), e sua API
 incremental está em
 [docs/reference/runtime-streaming.md](docs/reference/runtime-streaming.md).
+As políticas operacionais estão descritas em
+[docs/reference/execution-limits.md](docs/reference/execution-limits.md).
 
 Consulte [ARCHITECTURE.md](ARCHITECTURE.md) para conhecer o desenho de alto
 nível e

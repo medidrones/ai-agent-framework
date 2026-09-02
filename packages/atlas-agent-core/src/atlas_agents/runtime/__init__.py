@@ -1,5 +1,7 @@
 """Public contracts for runtime state and single-turn execution."""
 
+from atlas_agents.runtime.budget import ExecutionBudget, ExecutionBudgetViolation
+from atlas_agents.runtime.enforcement import ExecutionLimitChecker
 from atlas_agents.runtime.errors import (
     AgentRuntimeError,
     ExecutionAlreadyTerminalError,
@@ -11,6 +13,11 @@ from atlas_agents.runtime.errors import (
     ModelStreamProtocolError,
     ModelStreamReportedError,
     RuntimeInputRejectedError,
+)
+from atlas_agents.runtime.limits import (
+    ExecutionLimitReason,
+    ExecutionLimits,
+    ExecutionLimitViolation,
 )
 from atlas_agents.runtime.model_request import ModelRequestBuilder
 from atlas_agents.runtime.runtime import AgentRuntime
@@ -27,6 +34,12 @@ __all__ = [
     "AgentRuntime",
     "AgentRuntimeError",
     "ExecutionAlreadyTerminalError",
+    "ExecutionBudget",
+    "ExecutionBudgetViolation",
+    "ExecutionLimitChecker",
+    "ExecutionLimitReason",
+    "ExecutionLimitViolation",
+    "ExecutionLimits",
     "ExecutionSnapshot",
     "ExecutionState",
     "ExecutionStateError",

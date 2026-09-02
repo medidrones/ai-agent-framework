@@ -17,6 +17,8 @@ from atlas_agents import (
     AgentResult,
     AgentRuntime,
     AudioContent,
+    ExecutionBudget,
+    ExecutionLimits,
     ExecutionState,
     ExecutionStatus,
     FinishReason,
@@ -75,6 +77,7 @@ def _response(
     *,
     content: tuple[TextContent | ImageContent | AudioContent, ...] | None = None,
     tool_calls: tuple[ToolCall, ...] = (),
+    usage: ModelUsage | None = None,
 ) -> ModelResponse:
     return ModelResponse(
         response_id="response-1",
@@ -84,7 +87,9 @@ def _response(
         else content,
         tool_calls=tool_calls,
         finish_reason=finish_reason,
-        usage=ModelUsage(
+        usage=usage
+        if usage is not None
+        else ModelUsage(
             input_tokens=10,
             output_tokens=20,
             total_tokens=30,
@@ -102,6 +107,8 @@ def _provider(
     response: ModelResponse | None = None,
     generate_exception: BaseException | None = None,
     list_exception: Exception | None = None,
+    list_delay_seconds: float = 0,
+    generate_delay_seconds: float = 0,
 ) -> FakeModelProvider:
     return FakeModelProvider(
         provider_name=provider_name,
@@ -109,6 +116,8 @@ def _provider(
         response=response or _response(),
         generate_exception=generate_exception,
         list_exception=list_exception,
+        list_delay_seconds=list_delay_seconds,
+        generate_delay_seconds=generate_delay_seconds,
     )
 
 
@@ -125,12 +134,16 @@ async def _run(
     input_data: AgentInput | None = None,
     context: AgentContext | None = None,
     selection: ModelSelectionRequest | None = None,
+    limits: ExecutionLimits | None = None,
+    budget: ExecutionBudget | None = None,
 ) -> AgentResult[object]:
     return await runtime.run(
         agent=_agent(),
         input_data=input_data or AgentInput(message="Explain dependency inversion."),
         context=context or _context(),
         model_selection=selection,
+        limits=limits,
+        budget=budget,
     )
 
 
@@ -604,3 +617,234 @@ async def test_concurrent_executions_keep_independent_event_sequences() -> None:
     assert {event.execution_id for event in first.events} == {"execution-a"}
     assert {event.execution_id for event in second.events} == {"execution-b"}
     assert provider.contexts[0].request_id != provider.contexts[1].request_id
+
+
+async def test_max_turns_one_allows_the_single_model_invocation() -> None:
+    provider = _provider()
+
+    result = await _run(_runtime(provider), limits=ExecutionLimits(max_turns=1))
+
+    assert result.status is ExecutionStatus.COMPLETED
+    assert provider.generate_calls == 1
+
+
+@pytest.mark.parametrize(
+    ("limits", "expected_code", "expected_reason"),
+    [
+        (
+            ExecutionLimits(max_input_tokens=9),
+            "execution_max_input_tokens_exceeded",
+            "max_input_tokens",
+        ),
+        (
+            ExecutionLimits(max_output_tokens=19),
+            "execution_max_output_tokens_exceeded",
+            "max_output_tokens",
+        ),
+        (
+            ExecutionLimits(max_total_tokens=29),
+            "execution_max_total_tokens_exceeded",
+            "max_total_tokens",
+        ),
+    ],
+)
+async def test_token_limits_preserve_usage_and_skip_assistant_message(
+    limits: ExecutionLimits,
+    expected_code: str,
+    expected_reason: str,
+) -> None:
+    provider = _provider()
+    registry = ModelProviderRegistry()
+    registry.register(provider)
+    runtime = TrackingRuntime(model_registry=registry)
+
+    result = await _run(runtime, limits=limits)
+
+    assert result.status is ExecutionStatus.LIMIT_EXCEEDED
+    assert result.output is None
+    assert result.usage.total_tokens == 30
+    assert result.error is not None
+    assert result.error.code == expected_code
+    assert result.events[-1].event_type is AgentEventType.EXECUTION_LIMIT_EXCEEDED
+    assert result.events[-1].data == {
+        "reason": expected_reason,
+        "limit": next(value for value in limits.model_dump().values() if value),
+        "observed": {
+            "max_input_tokens": 10,
+            "max_output_tokens": 20,
+            "max_total_tokens": 30,
+        }[expected_reason],
+    }
+    assert provider.generate_calls == 1
+    assert runtime.observed_state is not None
+    assert len(runtime.observed_state.messages) == 2
+
+
+async def test_token_limit_wins_when_budget_is_also_exceeded() -> None:
+    result = await _run(
+        _runtime(_provider()),
+        limits=ExecutionLimits(max_total_tokens=29),
+        budget=ExecutionBudget(max_estimated_cost=Decimal("0.01")),
+    )
+
+    assert result.status is ExecutionStatus.LIMIT_EXCEEDED
+    assert result.error is not None
+    assert result.error.code == "execution_max_total_tokens_exceeded"
+
+
+async def test_budget_enforcement_allows_equal_and_unknown_costs() -> None:
+    equal = await _run(
+        _runtime(_provider()),
+        budget=ExecutionBudget(max_estimated_cost=Decimal("0.05")),
+    )
+    unknown_provider = _provider(
+        response=_response(
+            usage=ModelUsage(input_tokens=1, output_tokens=1, total_tokens=2)
+        )
+    )
+    unknown = await _run(
+        _runtime(unknown_provider),
+        context=_context("execution-unknown-cost"),
+        budget=ExecutionBudget(max_estimated_cost=Decimal("0")),
+    )
+
+    assert equal.status is ExecutionStatus.COMPLETED
+    assert unknown.status is ExecutionStatus.COMPLETED
+    assert unknown.usage.estimated_cost is None
+
+
+async def test_budget_violation_is_terminal_and_preserves_reported_usage() -> None:
+    provider = _provider()
+    registry = ModelProviderRegistry()
+    registry.register(provider)
+    runtime = TrackingRuntime(model_registry=registry)
+
+    result = await _run(
+        runtime,
+        budget=ExecutionBudget(
+            max_estimated_cost=Decimal("0.04"),
+            currency="USD",
+        ),
+    )
+
+    assert result.status is ExecutionStatus.BUDGET_EXCEEDED
+    assert result.output is None
+    assert result.usage.estimated_cost == Decimal("0.05")
+    assert result.error is not None
+    assert result.error.code == "execution_budget_exceeded"
+    assert result.events[-1].event_type is AgentEventType.EXECUTION_BUDGET_EXCEEDED
+    assert result.events[-1].data == {"limit": "0.04", "observed": "0.05"}
+    assert runtime.observed_state is not None
+    assert len(runtime.observed_state.messages) == 2
+
+
+async def test_execution_override_replaces_runtime_default_limits() -> None:
+    provider = _provider()
+    registry = ModelProviderRegistry()
+    registry.register(provider)
+    runtime = AgentRuntime(
+        model_registry=registry,
+        limits=ExecutionLimits(max_total_tokens=1),
+    )
+
+    default_result = await _run(runtime)
+    override_result = await _run(
+        runtime,
+        context=_context("execution-policy-override"),
+        limits=ExecutionLimits(),
+    )
+
+    assert default_result.status is ExecutionStatus.LIMIT_EXCEEDED
+    assert override_result.status is ExecutionStatus.COMPLETED
+
+
+async def test_runtime_timeout_covers_provider_call_without_inventing_usage() -> None:
+    provider = _provider(generate_delay_seconds=0.05)
+
+    result = await _run(
+        _runtime(provider),
+        limits=ExecutionLimits(timeout_seconds=0.001),
+    )
+
+    assert result.status is ExecutionStatus.TIMED_OUT
+    assert result.usage.total_tokens == 0
+    assert result.error is not None
+    assert result.error.code == "execution_timed_out"
+    assert result.events[-1].event_type is AgentEventType.EXECUTION_TIMED_OUT
+    assert result.events[-1].data["timeout_seconds"] == 0.001
+    elapsed = result.events[-1].data["elapsed_seconds"]
+    assert isinstance(elapsed, int | float)
+    assert elapsed >= 0
+    assert provider.generate_calls == 1
+
+
+async def test_runtime_timeout_covers_model_selection() -> None:
+    provider = _provider(list_delay_seconds=0.05)
+
+    result = await _run(
+        _runtime(provider),
+        limits=ExecutionLimits(timeout_seconds=0.001),
+    )
+
+    assert result.status is ExecutionStatus.TIMED_OUT
+    assert result.error is not None
+    assert result.error.code == "execution_timed_out"
+    assert provider.list_models_calls == 1
+    assert provider.generate_calls == 0
+
+
+async def test_provider_timeout_remains_failed_with_runtime_deadline_configured() -> (
+    None
+):
+    provider = _provider(
+        generate_exception=ModelTimeoutError("provider lento", provider="fake")
+    )
+
+    result = await _run(
+        _runtime(provider),
+        limits=ExecutionLimits(timeout_seconds=10),
+    )
+
+    assert result.status is ExecutionStatus.FAILED
+    assert result.error is not None
+    assert result.error.code == "model_timeout"
+
+
+async def test_external_cancellation_wins_before_configured_runtime_deadline() -> None:
+    provider = _provider(generate_delay_seconds=1)
+    registry = ModelProviderRegistry()
+    registry.register(provider)
+    runtime = TrackingRuntime(model_registry=registry)
+    task = asyncio.create_task(
+        _run(runtime, limits=ExecutionLimits(timeout_seconds=10))
+    )
+    await provider.generate_started.wait()
+
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+
+    assert runtime.observed_state is not None
+    assert runtime.observed_state.status is ExecutionStatus.CANCELLED
+
+
+async def test_concurrent_executions_keep_policy_scope_isolated() -> None:
+    provider = _provider()
+    runtime = _runtime(provider)
+
+    limited, allowed = await asyncio.gather(
+        _run(
+            runtime,
+            context=_context("execution-limited"),
+            limits=ExecutionLimits(max_total_tokens=29),
+        ),
+        _run(
+            runtime,
+            context=_context("execution-allowed"),
+            limits=ExecutionLimits(max_total_tokens=30),
+        ),
+    )
+
+    assert limited.status is ExecutionStatus.LIMIT_EXCEEDED
+    assert allowed.status is ExecutionStatus.COMPLETED
+    assert provider.generate_calls == 2

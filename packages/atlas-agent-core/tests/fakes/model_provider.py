@@ -27,6 +27,9 @@ class FakeModelProvider(ModelProvider):
         stream_events: tuple[ModelStreamEvent, ...] = (),
         stream_exception: BaseException | None = None,
         stream_exception_after: int | None = None,
+        list_delay_seconds: float = 0,
+        generate_delay_seconds: float = 0,
+        stream_delay_seconds: float = 0,
     ) -> None:
         self._provider_name = provider_name
         self._descriptors = descriptors
@@ -36,6 +39,9 @@ class FakeModelProvider(ModelProvider):
         self.stream_events = stream_events
         self.stream_exception = stream_exception
         self.stream_exception_after = stream_exception_after
+        self.list_delay_seconds = list_delay_seconds
+        self.generate_delay_seconds = generate_delay_seconds
+        self.stream_delay_seconds = stream_delay_seconds
         self.generate_calls = 0
         self.list_models_calls = 0
         self.stream_calls = 0
@@ -45,6 +51,7 @@ class FakeModelProvider(ModelProvider):
         self.contexts: list[ModelExecutionContext] = []
         self.stream_requests: list[ModelRequest] = []
         self.stream_contexts: list[ModelExecutionContext] = []
+        self.generate_started = asyncio.Event()
 
     @property
     def provider_name(self) -> str:
@@ -52,7 +59,7 @@ class FakeModelProvider(ModelProvider):
 
     async def list_models(self) -> tuple[ModelDescriptor, ...]:
         self.list_models_calls += 1
-        await asyncio.sleep(0)
+        await asyncio.sleep(self.list_delay_seconds)
         if self.list_exception is not None:
             raise self.list_exception
         return self._descriptors
@@ -65,7 +72,8 @@ class FakeModelProvider(ModelProvider):
         self.generate_calls += 1
         self.requests.append(request)
         self.contexts.append(context)
-        await asyncio.sleep(0)
+        self.generate_started.set()
+        await asyncio.sleep(self.generate_delay_seconds)
         if self.generate_exception is not None:
             raise self.generate_exception
         return self.response
@@ -83,7 +91,8 @@ class FakeModelProvider(ModelProvider):
     async def _configured_stream(self) -> AsyncIterator[ModelStreamEvent]:
         try:
             for index, event in enumerate(self.stream_events):
-                await asyncio.sleep(0)
+                if index > 0:
+                    await asyncio.sleep(self.stream_delay_seconds)
                 if (
                     self.stream_exception_after == index
                     and self.stream_exception is not None

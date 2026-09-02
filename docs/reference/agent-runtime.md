@@ -14,6 +14,8 @@ result = await runtime.run(
     input_data=AgentInput(message="Explique inversão de dependência."),
     context=AgentContext(execution_id="execution-1"),
     model_selection=ModelSelectionRequest(provider="fake"),  # opcional
+    limits=ExecutionLimits(timeout_seconds=30),  # opcional
+    budget=ExecutionBudget(max_estimated_cost=Decimal("1.00")),  # opcional
 )
 ```
 
@@ -162,6 +164,12 @@ contabiliza um turno.
 `tool_call_count` representa ferramentas efetivamente executadas e permanece
 zero nesta versão.
 
+Antes da invocação, o runtime verifica `max_turns`; somente depois incrementa o
+contador e chama o provider. Após receber a resposta, agrega usage e verifica,
+nesta ordem, limites de input, output e total de tokens e então budget. Uma
+violação preserva usage, não adiciona a mensagem assistant e não expõe output.
+Consulte [execution-limits.md](execution-limits.md).
+
 | `FinishReason` | Status | Política |
 | --- | --- | --- |
 | `STOP` | `COMPLETED` | concatena conteúdo textual |
@@ -191,9 +199,14 @@ O fechamento antecipado de `stream()` fecha também o iterador assíncrono do
 provider e cancela o estado interno, sem fabricar um resultado que o consumidor
 já não poderia receber.
 
+O timeout total é uma política própria baseada em deadline monotônico. Sua
+expiração produz `TIMED_OUT` e `AgentResult`; `ModelTimeoutError` do provider
+continua sendo `FAILED`, enquanto cancelamento externo continua sendo
+repropagado.
+
 ## Limites desta versão
 
 Não há segunda chamada de modelo, retry, fallback, reconexão, execução de tools,
-RAG, memória, aprovação, guardrails, timeout scheduler ou provider concreto. O
-registry pode ser compartilhado para leitura, mas não deve ser alterado durante
-uma execução.
+RAG, memória, aprovação, guardrails, previsão de tokens/custo ou provider
+concreto. O registry pode ser compartilhado para leitura, mas não deve ser
+alterado durante uma execução.

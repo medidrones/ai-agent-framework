@@ -11,6 +11,8 @@ async for item in runtime.stream(
     agent=definition,
     input_data=AgentInput(message="Explique streaming."),
     context=AgentContext(execution_id="execution-1"),
+    limits=ExecutionLimits(timeout_seconds=30, max_total_tokens=12_000),
+    budget=ExecutionBudget(max_estimated_cost=Decimal("1.00")),
 ):
     if item.type == "event":
         process_event(item.event)
@@ -133,8 +135,15 @@ repropagado. Se o consumidor fechar o iterador antes do fim, o runtime fecha o
 iterador assíncrono do provider e leva seu estado interno a `CANCELLED`. Nesse
 caso não há item final, pois o próprio consumidor interrompeu o canal de saída.
 
+O timeout do runtime usa um deadline absoluto e produz normalmente um
+`RuntimeResultItem` com status `TIMED_OUT`. Cada espera pelo próximo evento usa
+o tempo restante; eventos recebidos não reiniciam o prazo. Limites de tokens e
+budget são avaliados após a resposta final reconstruída. Deltas já observados
+não podem ser retirados, mas o resultado terminal fica sem output e sem nova
+mensagem assistant. Consulte [execution-limits.md](execution-limits.md).
+
 ## Limites
 
 Esta versão não executa tool calls, embora preserve seus eventos e reconstrua a
 resposta. Também não oferece retry, fallback, reconexão, múltiplos turnos,
-memória, RAG, aprovação, guardrails, scheduler de timeout ou provider concreto.
+memória, RAG, aprovação, guardrails ou provider concreto.

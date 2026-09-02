@@ -2,6 +2,7 @@
 
 import asyncio
 from collections.abc import AsyncGenerator, AsyncIterator, Mapping
+from decimal import Decimal
 from typing import cast
 
 import pytest
@@ -14,6 +15,8 @@ from atlas_agents import (
     AgentEventType,
     AgentInput,
     AgentRuntime,
+    ExecutionBudget,
+    ExecutionLimits,
     ExecutionState,
     ExecutionStatus,
     FinishReason,
@@ -89,6 +92,7 @@ def _text_stream(
     *,
     finish_reason: FinishReason = FinishReason.STOP,
     deltas: tuple[str, ...] = ("Olá, ", "mundo!"),
+    estimated_cost: Decimal | None = None,
 ) -> tuple[ModelStreamEvent, ...]:
     events = [_event(ModelStreamEventType.RESPONSE_STARTED, 1, {"model": "model-a"})]
     events.extend(
@@ -104,6 +108,9 @@ def _text_stream(
                     "input_tokens": 2,
                     "output_tokens": 3,
                     "total_tokens": 5,
+                    "estimated_cost": (
+                        None if estimated_cost is None else str(estimated_cost)
+                    ),
                 }
             },
         )
@@ -125,6 +132,8 @@ def _provider(
     stream_events: tuple[ModelStreamEvent, ...] | None = None,
     stream_exception: BaseException | None = None,
     stream_exception_after: int | None = None,
+    list_delay_seconds: float = 0,
+    stream_delay_seconds: float = 0,
 ) -> FakeModelProvider:
     return FakeModelProvider(
         provider_name=provider_name,
@@ -133,6 +142,8 @@ def _provider(
         stream_events=_text_stream() if stream_events is None else stream_events,
         stream_exception=stream_exception,
         stream_exception_after=stream_exception_after,
+        list_delay_seconds=list_delay_seconds,
+        stream_delay_seconds=stream_delay_seconds,
     )
 
 
@@ -148,6 +159,8 @@ async def _collect(
     *,
     context: AgentContext | None = None,
     selection: ModelSelectionRequest | None = None,
+    limits: ExecutionLimits | None = None,
+    budget: ExecutionBudget | None = None,
 ) -> list[RuntimeStreamItem]:
     return [
         item
@@ -156,6 +169,8 @@ async def _collect(
             input_data=AgentInput(message="Explique streaming."),
             context=context or _context(),
             model_selection=selection,
+            limits=limits,
+            budget=budget,
         )
     ]
 
@@ -547,3 +562,125 @@ async def test_success_records_one_turn_and_one_final_assistant_message() -> Non
     assert runtime.observed_state.messages[-1].content == (
         TextContent(text="Olá, mundo!"),
     )
+
+
+async def test_stream_token_violation_preserves_usage_without_assistant_message() -> (
+    None
+):
+    provider = _provider()
+    runtime = _tracking_runtime(provider)
+
+    items = await _collect(runtime, limits=ExecutionLimits(max_total_tokens=4))
+    result = _result(items).result
+
+    assert result.status is ExecutionStatus.LIMIT_EXCEEDED
+    assert result.output is None
+    assert result.usage.total_tokens == 5
+    assert result.error is not None
+    assert result.error.code == "execution_max_total_tokens_exceeded"
+    assert result.events[-1].event_type is AgentEventType.EXECUTION_LIMIT_EXCEEDED
+    assert runtime.observed_state is not None
+    assert len(runtime.observed_state.messages) == 2
+    assert provider.stream_calls == 1
+    assert provider.generate_calls == 0
+
+
+async def test_stream_budget_violation_uses_final_cumulative_usage() -> None:
+    provider = _provider(stream_events=_text_stream(estimated_cost=Decimal("0.02")))
+
+    items = await _collect(
+        _runtime(provider),
+        budget=ExecutionBudget(max_estimated_cost=Decimal("0.01")),
+    )
+    result = _result(items).result
+
+    assert result.status is ExecutionStatus.BUDGET_EXCEEDED
+    assert result.usage.estimated_cost == Decimal("0.02")
+    assert result.error is not None
+    assert result.error.code == "execution_budget_exceeded"
+    assert result.events[-1].event_type is AgentEventType.EXECUTION_BUDGET_EXCEEDED
+
+
+async def test_stream_runtime_timeout_returns_terminal_result_and_closes_provider() -> (
+    None
+):
+    provider = BlockingStreamingProvider()
+
+    items = await _collect(
+        _runtime(provider),
+        limits=ExecutionLimits(timeout_seconds=0.01),
+    )
+    result = _result(items).result
+
+    assert result.status is ExecutionStatus.TIMED_OUT
+    assert result.usage.total_tokens == 0
+    assert result.error is not None
+    assert result.error.code == "execution_timed_out"
+    assert result.events[-1].event_type is AgentEventType.EXECUTION_TIMED_OUT
+    assert provider.stream_calls == 1
+    assert provider.stream_finalizations == 1
+
+
+async def test_stream_timeout_covers_selection_before_provider_invocation() -> None:
+    provider = _provider(list_delay_seconds=0.05)
+
+    items = await _collect(
+        _runtime(provider),
+        limits=ExecutionLimits(timeout_seconds=0.001),
+    )
+
+    assert _result(items).result.status is ExecutionStatus.TIMED_OUT
+    assert provider.list_models_calls == 1
+    assert provider.stream_calls == 0
+
+
+async def test_stream_events_do_not_reset_absolute_deadline() -> None:
+    provider = _provider(stream_delay_seconds=0.07)
+
+    items = await _collect(
+        _runtime(provider),
+        limits=ExecutionLimits(timeout_seconds=0.12),
+    )
+    result = _result(items).result
+
+    assert result.status is ExecutionStatus.TIMED_OUT
+    assert provider.stream_yields == 2
+    assert provider.stream_finalizations == 1
+
+
+async def test_external_stream_cancellation_remains_distinct_from_deadline() -> None:
+    provider = BlockingStreamingProvider()
+    runtime = _tracking_runtime(provider)
+    task = asyncio.create_task(
+        _collect(runtime, limits=ExecutionLimits(timeout_seconds=10))
+    )
+    await provider.waiting.wait()
+
+    task.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await task
+
+    assert runtime.observed_state is not None
+    assert runtime.observed_state.status is ExecutionStatus.CANCELLED
+
+
+async def test_concurrent_streams_keep_execution_policies_isolated() -> None:
+    provider = _provider()
+    runtime = _runtime(provider)
+
+    limited, allowed = await asyncio.gather(
+        _collect(
+            runtime,
+            context=_context("stream-limited"),
+            limits=ExecutionLimits(max_total_tokens=4),
+        ),
+        _collect(
+            runtime,
+            context=_context("stream-allowed"),
+            limits=ExecutionLimits(max_total_tokens=5),
+        ),
+    )
+
+    assert _result(limited).result.status is ExecutionStatus.LIMIT_EXCEEDED
+    assert _result(allowed).result.status is ExecutionStatus.COMPLETED
+    assert provider.stream_calls == 2

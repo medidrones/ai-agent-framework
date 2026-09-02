@@ -50,8 +50,11 @@ snapshot = state.snapshot()
 
 O status não possui setter. `transition_to()` delega integralmente a validação
 para `ExecutionLifecycle` e expõe seu histórico por `transitions`, sem manter
-uma segunda lista. `complete()`, `fail()`, `cancel()` e `timeout()` são atalhos
-controlados para encerramentos que precisam armazenar dados adicionais.
+uma segunda lista. `complete()`, `fail()`, `cancel()`, `timeout()`,
+`exceed_limit()` e `exceed_budget()` são atalhos controlados para encerramentos
+que precisam armazenar dados adicionais. A decisão de aplicar uma política
+permanece no runtime; o estado somente efetiva a transição solicitada e preserva
+o `AgentErrorInfo` correspondente.
 
 `ExecutionState` pertence a uma única execução e não é thread-safe.
 `AgentRuntime` coordena suas mutações e é o único responsável pelo execution

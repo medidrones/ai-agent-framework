@@ -123,3 +123,25 @@ def test_agent_runtime_uses_only_one_call_for_each_provider_execution_mode() -> 
     assert called_attributes.count("generate") == 1
     assert called_attributes.count("stream") == 1
     assert "get_service" not in source
+
+
+def test_execution_policies_are_provider_and_infrastructure_agnostic() -> None:
+    runtime_root = Path(__file__).parents[2] / "src" / "atlas_agents" / "runtime"
+    policy_paths = (
+        runtime_root / "budget.py",
+        runtime_root / "deadline.py",
+        runtime_root / "enforcement.py",
+        runtime_root / "limits.py",
+    )
+    forbidden_names = {
+        "ModelProvider",
+        "ModelRequest",
+        "ExecutionLifecycle",
+        "Redis",
+        "Database",
+    }
+
+    for path in policy_paths:
+        source = path.read_text(encoding="utf-8")
+        assert _import_roots(path) & FORBIDDEN_IMPORTS == set()
+        assert forbidden_names.isdisjoint(source.split())

@@ -176,6 +176,12 @@ eventos automaticamente: o runtime futuro deverá converter a transição pela
 factory e registrar o evento explicitamente. Consulte
 [`execution-state.md`](execution-state.md) para as invariantes de mutação.
 
+`AgentRuntime` agora conecta políticas reais aos terminais `TIMED_OUT`,
+`LIMIT_EXCEEDED` e `BUDGET_EXCEEDED`. A decisão permanece fora do lifecycle: o
+checker apenas descreve violações, o runtime coordena o enforcement e esta
+máquina continua responsável exclusivamente por validar a transição. Consulte
+[`execution-limits.md`](execution-limits.md).
+
 Uma factory não deve ser compartilhada entre execuções nem entre threads. Esta
 tarefa não introduz sincronização, event bus ou mecanismo de entrega.
 

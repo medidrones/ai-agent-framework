@@ -393,6 +393,20 @@ def test_fail_cancel_and_timeout_delegate_to_lifecycle() -> None:
     assert timed_out.error == _error()
 
 
+def test_limit_and_budget_termination_preserve_structured_errors() -> None:
+    limited = _state()
+    _advance_to_running(limited)
+    limited.exceed_limit(error=_error())
+    assert limited.status is ExecutionStatus.LIMIT_EXCEEDED
+    assert limited.error == _error()
+
+    budgeted = _state()
+    _advance_to_running(budgeted)
+    budgeted.exceed_budget(error=_error())
+    assert budgeted.status is ExecutionStatus.BUDGET_EXCEEDED
+    assert budgeted.error == _error()
+
+
 def test_fail_requires_error() -> None:
     with pytest.raises(ExecutionStateInvariantError, match="erro estruturado"):
         _state().fail(None)  # type: ignore[arg-type]

@@ -93,6 +93,13 @@ para `AgentErrorInfo` e preserva cancelamento cooperativo. Providers e registry
 continuam transitórios: nenhuma instância de infraestrutura entra no state ou
 no result.
 
+`ExecutionLimits` e `ExecutionBudget` configuram políticas por execução.
+`ExecutionLimitChecker` avalia contadores, usage e custo sem mutar estado; o
+runtime mantém ownership das transições `LIMIT_EXCEEDED` e `BUDGET_EXCEEDED`.
+Um deadline absoluto baseado em relógio monotônico governa seleção e invocação
+nos modos completo e incremental. Ele não converte timeout do provider nem
+cancelamento externo em timeout do runtime.
+
 ## Independência de infraestrutura
 
 O core não depende de SDKs de modelos, frameworks web, bancos de dados,
@@ -125,8 +132,9 @@ isolados por instância e validados como serializáveis em JSON. Eventos exigem
 timestamps com fuso horário.
 
 O core já oferece execução single-turn completa ou incremental por
-`ModelProvider`, sem provider concreto. Ferramentas, retries, fallback, memória
-e armazenamento serão introduzidos incrementalmente em tarefas posteriores.
+`ModelProvider`, sem provider concreto, com limites, budget e timeout opcionais.
+Ferramentas, retries, fallback, memória e armazenamento serão introduzidos
+incrementalmente em tarefas posteriores.
 
 ## Evolução prevista
 
