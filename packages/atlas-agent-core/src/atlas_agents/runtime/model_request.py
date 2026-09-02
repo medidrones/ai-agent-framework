@@ -75,10 +75,12 @@ class ModelRequestBuilder:
         self,
         input_data: AgentInput,
         requested: ModelSelectionRequest | None = None,
+        *,
+        additional_required_capabilities: frozenset[ModelCapability] = frozenset(),
     ) -> ModelSelectionRequest:
         """Merge caller policy with capabilities required by the actual input."""
         self.validate_input(input_data)
-        required = {ModelCapability.TEXT_GENERATION}
+        required = {ModelCapability.TEXT_GENERATION, *additional_required_capabilities}
         for attachment in input_data.attachments:
             if attachment.media_type.startswith("image/"):
                 required.add(ModelCapability.VISION)

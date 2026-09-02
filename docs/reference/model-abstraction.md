@@ -173,8 +173,9 @@ opcional, dados JSON, timestamp com fuso horário e imutabilidade de modelo. Se 
 timestamp não for informado, o contrato utiliza o instante atual em UTC. Um
 stream bem-sucedido começa com `RESPONSE_STARTED` e termina com
 `RESPONSE_COMPLETED`; o provider deve preservar a ordem lógica e emitir
-informação suficiente para formar uma resposta final. Um acumulador de
-streaming pertence a uma tarefa futura.
+informação suficiente para formar uma resposta final. `ModelStreamAccumulator`
+valida esse protocolo e reconstrói a resposta usada por `AgentRuntime.stream()`;
+consulte [runtime-streaming.md](runtime-streaming.md).
 
 ## Contexto e erros
 
@@ -204,6 +205,6 @@ responsáveis por nunca inserir segredos nesses mapas.
 
 ## Fora do escopo
 
-Esta camada não implementa SDK de provider, rede, registry, router, fallback,
-retry, runtime do agente, execução de ferramentas, acumulador de streaming nem
-cálculo de custos. Essas implementações dependerão dos contratos aqui definidos.
+Esta camada não implementa SDK de provider, rede, router, fallback, retry,
+execução de ferramentas nem cálculo de custos. Registry, seleção e runtime
+provider-neutral são implementados no core sobre os contratos aqui definidos.

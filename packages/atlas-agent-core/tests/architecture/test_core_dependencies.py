@@ -100,7 +100,7 @@ def test_execution_state_does_not_own_infrastructure_or_execute_providers() -> N
     assert {"generate", "stream", "list_models"}.isdisjoint(called_attributes)
 
 
-def test_agent_runtime_uses_only_provider_abstractions_and_one_generate_call() -> None:
+def test_agent_runtime_uses_only_one_call_for_each_provider_execution_mode() -> None:
     source_root = Path(__file__).parents[2] / "src" / "atlas_agents"
     runtime_path = source_root / "runtime" / "runtime.py"
     source = runtime_path.read_text(encoding="utf-8")
@@ -121,5 +121,5 @@ def test_agent_runtime_uses_only_provider_abstractions_and_one_generate_call() -
     assert _import_roots(runtime_path) & FORBIDDEN_IMPORTS == set()
     assert forbidden_concrete_providers.isdisjoint(source.split())
     assert called_attributes.count("generate") == 1
-    assert "stream" not in called_attributes
+    assert called_attributes.count("stream") == 1
     assert "get_service" not in source

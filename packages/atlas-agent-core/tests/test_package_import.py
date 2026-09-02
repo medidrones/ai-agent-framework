@@ -76,8 +76,17 @@ def test_runtime_state_contracts_are_intentionally_public() -> None:
         "ExecutionState",
         "ExecutionStateError",
         "ExecutionStateInvariantError",
+        "InvalidModelStreamProtocolError",
+        "InvalidModelStreamSequenceError",
         "ModelRequestBuilder",
+        "ModelStreamAccumulator",
+        "ModelStreamIncompleteError",
+        "ModelStreamProtocolError",
+        "ModelStreamReportedError",
+        "RuntimeEventItem",
         "RuntimeInputRejectedError",
+        "RuntimeResultItem",
+        "RuntimeStreamItem",
     }
 
     assert expected <= set(atlas_agents.__all__)

@@ -81,9 +81,11 @@ produz uma observação frozen e isolada, enquanto `to_result()` só produz um
 
 `AgentRuntime` é o único proprietário do execution loop. Na versão single-turn,
 ele cria um estado por chamada, seleciona o modelo pelo registry, constrói um
-request provider-neutral e invoca `ModelProvider.generate()` uma única vez.
-`Agent.run()` e `Agent.stream()` permanecem fachadas públicas e deverão delegar
-ao runtime, sem implementar um segundo loop. A decisão está registrada no
+request provider-neutral e invoca uma única vez `ModelProvider.generate()` ou
+`ModelProvider.stream()`. No modo incremental, um acumulador valida o protocolo
+e reconstrói a mesma `ModelResponse` usada pela política terminal. `Agent.run()`
+e `Agent.stream()` permanecem fachadas públicas e deverão delegar ao runtime,
+sem implementar um segundo loop. A decisão está registrada no
 [`ADR-001`](docs/adr/ADR-001-agent-runtime-execution-ownership.md).
 
 O runtime deriva somente capabilities necessárias ao input, normaliza erros
@@ -122,9 +124,9 @@ são strings opacas e não impõem UUID. Metadados são explicitamente tipados,
 isolados por instância e validados como serializáveis em JSON. Eventos exigem
 timestamps com fuso horário.
 
-O core já oferece uma execução single-turn por `ModelProvider`, sem provider
-concreto. Streaming do runtime, ferramentas, retries, fallback, memória e
-armazenamento serão introduzidos incrementalmente em tarefas posteriores.
+O core já oferece execução single-turn completa ou incremental por
+`ModelProvider`, sem provider concreto. Ferramentas, retries, fallback, memória
+e armazenamento serão introduzidos incrementalmente em tarefas posteriores.
 
 ## Evolução prevista
 

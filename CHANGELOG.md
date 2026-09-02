@@ -32,6 +32,9 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Snapshot imutável e conversão de estados terminais em `AgentResult`.
 - Agregação de uso, contadores e journal validado de eventos por execução.
 - Runtime single-turn com seleção de modelo e uma chamada provider-agnostic.
+- Runtime streaming com eventos incrementais e resultado terminal discriminado.
+- Acumulador determinístico para sequência, texto, tool calls e uso cumulativo.
+- Fechamento cooperativo do stream em cancelamento ou interrupção do consumidor.
 - Construção de requests com mensagens e attachments de imagem ou áudio.
 - Normalização de erros de provider e preservação de cancelamento cooperativo.
 - Fake provider reutilizável e testes end-to-end concorrentes.

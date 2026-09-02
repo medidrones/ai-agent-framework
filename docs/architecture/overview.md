@@ -10,8 +10,8 @@ O framework fornece abstrações reutilizáveis para agentes de IA sem incorpora
 uma aplicação de negócio. Nesta fase, o escopo inclui a fundação do monorepo,
 os gates de qualidade, os contratos fundamentais de agentes e o protocolo de
 lifecycle, além da abstração provider-agnostic de modelos. O runtime single-turn
-já coordena uma chamada pela abstração de modelos; integrações concretas e
-comportamentos multi-turn pertencem às próximas fases.
+já coordena uma chamada completa ou incremental pela abstração de modelos;
+integrações concretas e comportamentos multi-turn pertencem às próximas fases.
 
 ## Direção das dependências
 
@@ -50,7 +50,9 @@ implementará seus contratos.
 - impedir dependências concretas dentro do core;
 - controlar o estado local de uma execução sem executar providers ou
   ferramentas;
-- executar um único turn pela abstração `ModelProvider`, sem SDK concreto.
+- executar um único turn por `ModelProvider.generate()` ou
+  `ModelProvider.stream()`, sem SDK concreto;
+- validar e reconstruir streams estruturados sem expor chunks de SDKs.
 
 ## Extensibilidade e evolução
 
@@ -61,5 +63,6 @@ isoladas na distribuição que as utiliza.
 
 `ExecutionState` permanece responsável somente por mutações controladas,
 snapshots e resultados terminais. `AgentRuntime` possui ownership único da
-orquestração e realiza uma chamada async a `ModelProvider.generate()`. Nenhum
-provider concreto, tool, retry, fallback ou streaming é implementado no core.
+orquestração e realiza uma chamada async a `ModelProvider.generate()` ou
+`ModelProvider.stream()`. Nenhum provider concreto, tool, retry, fallback,
+reconexão ou segundo turno é implementado no core.

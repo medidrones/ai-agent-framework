@@ -3,7 +3,8 @@
 `AgentRuntime` executa o primeiro pipeline funcional do Atlas por meio da
 abstração `ModelProvider`. Cada chamada de `run()` cria estado e factory de
 eventos próprios, seleciona um modelo e realiza no máximo uma chamada
-`generate()`.
+`generate()`. A API `stream()` reutiliza o mesmo pipeline e realiza no máximo
+uma chamada `ModelProvider.stream()`.
 
 ```python
 runtime = AgentRuntime(model_registry=registry)
@@ -54,6 +55,10 @@ AgentRuntime
      ├── ModelProvider.generate()
      │       ↓
      │   ModelResponse
+     │
+     ├── ou ModelProvider.stream()
+     │       ↓
+     │   ModelStreamAccumulator → ModelResponse
      │
      └── ExecutionState.to_result()
              ↓
@@ -109,6 +114,9 @@ O runtime sempre requer `TEXT_GENERATION`, acrescenta `VISION` para imagens e
 obrigatórios; provider, modelo, preferências e limites são preservados. O
 caller nunca consegue remover uma capability exigida pelo input.
 
+`stream()` acrescenta também `STREAMING` aos requisitos e não recorre a
+`generate()` quando nenhum modelo compatível está disponível.
+
 O request não contém tools, structured output, temperatura ou opções
 específicas de vendor. `ModelExecutionContext` transporta somente IDs de
 correlação e um `request_id` novo, sem metadata ou credenciais do consumidor.
@@ -140,12 +148,17 @@ qual operação está sendo executada. Uma execução normal produz:
 Cada execução possui sua própria `AgentEventFactory`; sequências começam em 1,
 não têm gaps e permanecem independentes em chamadas concorrentes.
 
+No modo incremental, eventos de início, deltas textuais, tool calls, uso e
+término do modelo entram no mesmo journal e são entregues imediatamente. O
+contrato detalhado está em [runtime-streaming.md](runtime-streaming.md).
+
 ## Respostas e uso
 
 Uso reportado é agregado mesmo quando uma resposta válida termina em status
 diferente de `COMPLETED`. Sem resposta, nenhum uso é inventado. O contador de
-turnos é incrementado imediatamente antes de `generate()`; falha de seleção
-mantém zero, enquanto qualquer tentativa de geração contabiliza um turno.
+turnos é incrementado imediatamente antes de `generate()` ou da criação do
+stream; falha de seleção mantém zero, enquanto qualquer invocação do provider
+contabiliza um turno.
 `tool_call_count` representa ferramentas efetivamente executadas e permanece
 zero nesta versão.
 
@@ -174,9 +187,13 @@ responses, headers, credenciais e stack traces não são expostos. O campo
 `CANCELLED`: o runtime tenta registrar `CANCELLED` e seus eventos e então
 repropaga a exceção para preservar cancelamento cooperativo.
 
+O fechamento antecipado de `stream()` fecha também o iterador assíncrono do
+provider e cancela o estado interno, sem fabricar um resultado que o consumidor
+já não poderia receber.
+
 ## Limites desta versão
 
-Não há streaming do runtime, segunda chamada de modelo, retry, fallback,
-execução de tools, RAG, memória, aprovação, guardrails, timeout scheduler ou
-provider concreto. O registry pode ser compartilhado para leitura, mas não
-deve ser alterado durante uma execução.
+Não há segunda chamada de modelo, retry, fallback, reconexão, execução de tools,
+RAG, memória, aprovação, guardrails, timeout scheduler ou provider concreto. O
+registry pode ser compartilhado para leitura, mas não deve ser alterado durante
+uma execução.

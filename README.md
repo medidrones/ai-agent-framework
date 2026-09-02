@@ -40,10 +40,12 @@ selecionados por capabilities e limites com desempate determinístico.
 O estado de execução em memória já pode integrar esses contratos, acumular
 mensagens e uso, validar eventos e produzir snapshots e resultados terminais.
 `AgentRuntime` coordena uma execução single-turn completa por meio de
-`ModelProvider.generate()`, sem depender de provider concreto.
+`ModelProvider.generate()` ou entrega incremental por `ModelProvider.stream()`,
+sem depender de provider concreto. O streaming valida sequência, protocolo,
+tool calls e snapshots cumulativos de uso antes de reconstruir a resposta.
 
-Ainda não existem streaming do runtime, tools, retries, fallback, memória, RAG
-ou integração concreta com modelos. O runtime atual realiza exatamente uma
+Ainda não existem execução de tools, retries, fallback, memória, RAG ou
+integração concreta com modelos. Cada modo do runtime realiza exatamente uma
 chamada pela abstração injetada.
 
 ## Requisitos
@@ -112,7 +114,9 @@ a fronteira provider-agnostic de modelos e
 registro, catálogo e seleção determinística e
 [docs/reference/execution-state.md](docs/reference/execution-state.md) para o
 estado controlado do runtime. O primeiro pipeline executável está em
-[docs/reference/agent-runtime.md](docs/reference/agent-runtime.md).
+[docs/reference/agent-runtime.md](docs/reference/agent-runtime.md), e sua API
+incremental está em
+[docs/reference/runtime-streaming.md](docs/reference/runtime-streaming.md).
 
 Consulte [ARCHITECTURE.md](ARCHITECTURE.md) para conhecer o desenho de alto
 nível e

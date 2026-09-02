@@ -24,17 +24,27 @@ class FakeModelProvider(ModelProvider):
         response: ModelResponse,
         generate_exception: BaseException | None = None,
         list_exception: Exception | None = None,
+        stream_events: tuple[ModelStreamEvent, ...] = (),
+        stream_exception: BaseException | None = None,
+        stream_exception_after: int | None = None,
     ) -> None:
         self._provider_name = provider_name
         self._descriptors = descriptors
         self.response = response
         self.generate_exception = generate_exception
         self.list_exception = list_exception
+        self.stream_events = stream_events
+        self.stream_exception = stream_exception
+        self.stream_exception_after = stream_exception_after
         self.generate_calls = 0
         self.list_models_calls = 0
         self.stream_calls = 0
+        self.stream_yields = 0
+        self.stream_finalizations = 0
         self.requests: list[ModelRequest] = []
         self.contexts: list[ModelExecutionContext] = []
+        self.stream_requests: list[ModelRequest] = []
+        self.stream_contexts: list[ModelExecutionContext] = []
 
     @property
     def provider_name(self) -> str:
@@ -65,11 +75,26 @@ class FakeModelProvider(ModelProvider):
         request: ModelRequest,
         context: ModelExecutionContext,
     ) -> AsyncIterator[ModelStreamEvent]:
-        del request, context
         self.stream_calls += 1
-        return self._empty_stream()
+        self.stream_requests.append(request)
+        self.stream_contexts.append(context)
+        return self._configured_stream()
 
-    @staticmethod
-    async def _empty_stream() -> AsyncIterator[ModelStreamEvent]:
-        if False:
-            yield  # pragma: no cover
+    async def _configured_stream(self) -> AsyncIterator[ModelStreamEvent]:
+        try:
+            for index, event in enumerate(self.stream_events):
+                await asyncio.sleep(0)
+                if (
+                    self.stream_exception_after == index
+                    and self.stream_exception is not None
+                ):
+                    raise self.stream_exception
+                self.stream_yields += 1
+                yield event
+            if self.stream_exception is not None and (
+                self.stream_exception_after is None
+                or self.stream_exception_after >= len(self.stream_events)
+            ):
+                raise self.stream_exception
+        finally:
+            self.stream_finalizations += 1

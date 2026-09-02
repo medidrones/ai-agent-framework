@@ -10,6 +10,7 @@ from atlas_agents import (
     AgentAttachment,
     AgentContext,
     AgentDefinition,
+    AgentEvent,
     AgentEventFactory,
     AgentEventType,
     AgentInput,
@@ -511,9 +512,9 @@ class TrackingRuntime(AgentRuntime):
         factory: AgentEventFactory,
         event_type: AgentEventType,
         data: Mapping[str, object] | None = None,
-    ) -> None:
+    ) -> AgentEvent:
         self.observed_state = state
-        AgentRuntime._record(self, state, factory, event_type, data)
+        return AgentRuntime._record(self, state, factory, event_type, data)
 
 
 async def test_cancelled_error_marks_cancelled_and_is_repropagated() -> None:

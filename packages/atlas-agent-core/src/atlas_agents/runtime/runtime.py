@@ -1,7 +1,9 @@
 """Single-turn agent runtime orchestrating one complete model invocation."""
 
 import asyncio
-from collections.abc import Mapping
+from collections.abc import AsyncIterator, Mapping
+from dataclasses import dataclass
+from typing import Protocol, cast, runtime_checkable
 from uuid import uuid4
 
 from atlas_agents.agents import (
@@ -12,7 +14,7 @@ from atlas_agents.agents import (
     AgentResult,
     ExecutionStatus,
 )
-from atlas_agents.events import AgentEventFactory, AgentEventType
+from atlas_agents.events import AgentEvent, AgentEventFactory, AgentEventType
 from atlas_agents.exceptions import (
     ModelProviderError,
     ModelProviderRegistryError,
@@ -21,11 +23,17 @@ from atlas_agents.exceptions import (
 from atlas_agents.models import (
     FinishReason,
     MessageRole,
+    ModelCapability,
     ModelExecutionContext,
     ModelMessage,
+    ModelProvider,
     ModelProviderRegistry,
+    ModelRequest,
     ModelResponse,
     ModelSelectionRequest,
+    ModelSelectionResult,
+    ModelStreamEvent,
+    ModelStreamEventType,
     TextContent,
 )
 from atlas_agents.runtime.error_mapping import (
@@ -33,9 +41,38 @@ from atlas_agents.runtime.error_mapping import (
     model_selection_error_to_agent_error,
     registry_error_to_agent_error,
 )
-from atlas_agents.runtime.errors import RuntimeInputRejectedError
+from atlas_agents.runtime.errors import (
+    InvalidModelStreamProtocolError,
+    InvalidModelStreamSequenceError,
+    ModelStreamIncompleteError,
+    ModelStreamProtocolError,
+    ModelStreamReportedError,
+    RuntimeInputRejectedError,
+)
 from atlas_agents.runtime.model_request import ModelRequestBuilder
 from atlas_agents.runtime.state import ExecutionState
+from atlas_agents.runtime.stream_accumulator import ModelStreamAccumulator
+from atlas_agents.runtime.stream_items import (
+    RuntimeEventItem,
+    RuntimeResultItem,
+    RuntimeStreamItem,
+)
+
+
+@dataclass(frozen=True)
+class _PreparedExecution:
+    state: ExecutionState
+    factory: AgentEventFactory
+    provider: ModelProvider
+    request: ModelRequest
+    model_context: ModelExecutionContext
+    selection: ModelSelectionResult
+
+
+@runtime_checkable
+class _AsyncClosable(Protocol):
+    async def aclose(self) -> None:
+        """Close an asynchronous provider iterator."""
 
 
 class AgentRuntime:
@@ -62,98 +99,31 @@ class AgentRuntime:
         model_selection: ModelSelectionRequest | None = None,
     ) -> AgentResult[object]:
         """Execute exactly one model generation and return a terminal result."""
-        state = ExecutionState(
-            execution_id=context.execution_id,
+        prepared = await self._prepare(
             agent=agent,
             input_data=input_data,
             context=context,
+            model_selection=model_selection,
         )
-        factory = AgentEventFactory(context.execution_id)
-        self._record(state, factory, AgentEventType.EXECUTION_CREATED)
-
-        validating_transition = state.transition_to(ExecutionStatus.VALIDATING_INPUT)
-        self._record(state, factory, AgentEventType.EXECUTION_STARTED)
-        state.record_event(factory.from_transition(validating_transition))
-        self._record(state, factory, AgentEventType.INPUT_VALIDATION_STARTED)
-        try:
-            self._request_builder.validate_input(input_data)
-        except RuntimeInputRejectedError as error:
-            self._record(
-                state,
-                factory,
-                AgentEventType.INPUT_VALIDATION_COMPLETED,
-                {"outcome": "rejected", "code": error.code},
-            )
-            self._reject(state, factory, code=error.code, reason=str(error))
-            return state.to_result()
-        self._record(
-            state,
-            factory,
-            AgentEventType.INPUT_VALIDATION_COMPLETED,
-            {"outcome": "accepted"},
-        )
-
-        self._transition(state, factory, ExecutionStatus.LOADING_CONTEXT)
-        self._record(state, factory, AgentEventType.CONTEXT_LOADING_STARTED)
-        messages = self._request_builder.build_initial_messages(agent, input_data)
-        for message in messages:
-            state.add_message(message)
-        selection_request = self._request_builder.derive_selection_request(
-            input_data,
-            model_selection,
-        )
-        try:
-            selection = await self._model_registry.select(selection_request)
-            state.set_model_selection(selection)
-            provider = self._model_registry.get(selection.provider_name)
-        except ModelProviderError as error:
-            self._fail_preparation(
-                state,
-                factory,
-                model_provider_error_to_agent_error(error),
-            )
-            return state.to_result()
-        except ModelSelectionError as error:
-            self._fail_preparation(
-                state,
-                factory,
-                model_selection_error_to_agent_error(error),
-            )
-            return state.to_result()
-        except ModelProviderRegistryError as error:
-            self._fail_preparation(
-                state,
-                factory,
-                registry_error_to_agent_error(error),
-            )
-            return state.to_result()
-        except Exception:
-            self._fail_preparation(state, factory, self._runtime_error())
-            return state.to_result()
-
-        self._record(
-            state,
-            factory,
-            AgentEventType.CONTEXT_LOADING_COMPLETED,
-            {"outcome": "completed"},
-        )
-
-        self._transition(state, factory, ExecutionStatus.RUNNING)
-        request = self._request_builder.build_request(state, selection)
-        model_context = ModelExecutionContext(
-            execution_id=state.execution_id,
-            agent_id=agent.agent_id,
-            request_id=str(uuid4()),
-        )
+        if isinstance(prepared, AgentResult):
+            return prepared
+        state = prepared.state
+        factory = prepared.factory
         self._record(
             state,
             factory,
             AgentEventType.MODEL_EXECUTION_STARTED,
-            {"provider": selection.provider_name, "model": selection.model},
+            {
+                "provider": prepared.selection.provider_name,
+                "model": prepared.selection.model,
+            },
         )
         state.increment_turn()
         try:
-            response = await provider.generate(request, model_context)
+            response = await prepared.provider.generate(
+                prepared.request,
+                prepared.model_context,
+            )
         except asyncio.CancelledError:
             self._record(
                 state,
@@ -202,6 +172,267 @@ class AgentRuntime:
         self._transition(state, factory, ExecutionStatus.VALIDATING_OUTPUT)
         self._record(state, factory, AgentEventType.OUTPUT_VALIDATION_STARTED)
         return self._finish_response(state, factory, response)
+
+    async def stream(
+        self,
+        *,
+        agent: AgentDefinition,
+        input_data: AgentInput,
+        context: AgentContext,
+        model_selection: ModelSelectionRequest | None = None,
+    ) -> AsyncIterator[RuntimeStreamItem]:
+        """Yield incremental execution events followed by one terminal result."""
+        prepared = await self._prepare(
+            agent=agent,
+            input_data=input_data,
+            context=context,
+            model_selection=model_selection,
+            additional_required_capabilities=frozenset({ModelCapability.STREAMING}),
+        )
+        if isinstance(prepared, AgentResult):
+            for event in prepared.events:
+                yield RuntimeEventItem(event=event)
+            yield RuntimeResultItem(result=prepared)
+            return
+
+        state = prepared.state
+        factory = prepared.factory
+        emitted_events = 0
+        provider_iterator: AsyncIterator[ModelStreamEvent] | None = None
+        provider_exhausted = False
+        invocation_started = False
+        try:
+            for event in state.events:
+                yield RuntimeEventItem(event=event)
+                emitted_events += 1
+
+            started_event = self._record(
+                state,
+                factory,
+                AgentEventType.MODEL_EXECUTION_STARTED,
+                {
+                    "provider": prepared.selection.provider_name,
+                    "model": prepared.selection.model,
+                    "mode": "stream",
+                },
+            )
+            yield RuntimeEventItem(event=started_event)
+            emitted_events += 1
+            state.increment_turn()
+            invocation_started = True
+            accumulator = ModelStreamAccumulator()
+            try:
+                provider_iterator = prepared.provider.stream(
+                    prepared.request,
+                    prepared.model_context,
+                )
+                async for model_event in provider_iterator:
+                    accumulator.consume(model_event)
+                    runtime_event = self._record_model_stream_event(
+                        state,
+                        factory,
+                        model_event,
+                    )
+                    yield RuntimeEventItem(event=runtime_event)
+                    emitted_events += 1
+                provider_exhausted = True
+                response = accumulator.finalize()
+            except asyncio.CancelledError:
+                self._record(
+                    state,
+                    factory,
+                    AgentEventType.MODEL_EXECUTION_COMPLETED,
+                    {"outcome": "cancelled", "mode": "stream"},
+                )
+                self._cancel(
+                    state,
+                    factory,
+                    reason="O stream do modelo foi cancelado pelo consumidor.",
+                )
+                raise
+            except ModelProviderError as error:
+                self._record(
+                    state,
+                    factory,
+                    AgentEventType.MODEL_EXECUTION_COMPLETED,
+                    {"outcome": "failed", "mode": "stream"},
+                )
+                self._fail(
+                    state,
+                    factory,
+                    model_provider_error_to_agent_error(error),
+                )
+                result = state.to_result()
+            except ModelStreamProtocolError as error:
+                self._record(
+                    state,
+                    factory,
+                    AgentEventType.MODEL_EXECUTION_COMPLETED,
+                    {"outcome": "failed", "mode": "stream"},
+                )
+                self._fail(
+                    state,
+                    factory,
+                    self._stream_error(error),
+                )
+                result = state.to_result()
+            except Exception:
+                self._record(
+                    state,
+                    factory,
+                    AgentEventType.MODEL_EXECUTION_COMPLETED,
+                    {"outcome": "failed", "mode": "stream"},
+                )
+                self._fail(state, factory, self._runtime_error())
+                result = state.to_result()
+            else:
+                self._record(
+                    state,
+                    factory,
+                    AgentEventType.MODEL_EXECUTION_COMPLETED,
+                    {
+                        "outcome": "completed",
+                        "mode": "stream",
+                        "finish_reason": response.finish_reason.value,
+                    },
+                )
+                state.add_model_usage(response.usage)
+                state.add_message(
+                    ModelMessage(role=MessageRole.ASSISTANT, content=response.content)
+                )
+                self._transition(state, factory, ExecutionStatus.VALIDATING_OUTPUT)
+                self._record(
+                    state,
+                    factory,
+                    AgentEventType.OUTPUT_VALIDATION_STARTED,
+                )
+                result = self._finish_response(state, factory, response)
+
+            for event in state.events[emitted_events:]:
+                yield RuntimeEventItem(event=event)
+                emitted_events += 1
+            yield RuntimeResultItem(result=result)
+        finally:
+            if (
+                provider_iterator is not None
+                and not provider_exhausted
+                and isinstance(provider_iterator, _AsyncClosable)
+            ):
+                await provider_iterator.aclose()
+            if not state.is_terminal:
+                if invocation_started:
+                    self._record(
+                        state,
+                        factory,
+                        AgentEventType.MODEL_EXECUTION_COMPLETED,
+                        {"outcome": "cancelled", "mode": "stream"},
+                    )
+                self._cancel(
+                    state,
+                    factory,
+                    reason="O consumidor encerrou o stream antes da conclusão.",
+                )
+
+    async def _prepare(
+        self,
+        *,
+        agent: AgentDefinition,
+        input_data: AgentInput,
+        context: AgentContext,
+        model_selection: ModelSelectionRequest | None,
+        additional_required_capabilities: frozenset[ModelCapability] = frozenset(),
+    ) -> _PreparedExecution | AgentResult[object]:
+        state = ExecutionState(
+            execution_id=context.execution_id,
+            agent=agent,
+            input_data=input_data,
+            context=context,
+        )
+        factory = AgentEventFactory(context.execution_id)
+        self._record(state, factory, AgentEventType.EXECUTION_CREATED)
+
+        validating_transition = state.transition_to(ExecutionStatus.VALIDATING_INPUT)
+        self._record(state, factory, AgentEventType.EXECUTION_STARTED)
+        state.record_event(factory.from_transition(validating_transition))
+        self._record(state, factory, AgentEventType.INPUT_VALIDATION_STARTED)
+        try:
+            self._request_builder.validate_input(input_data)
+        except RuntimeInputRejectedError as error:
+            self._record(
+                state,
+                factory,
+                AgentEventType.INPUT_VALIDATION_COMPLETED,
+                {"outcome": "rejected", "code": error.code},
+            )
+            self._reject(state, factory, code=error.code, reason=str(error))
+            return state.to_result()
+        self._record(
+            state,
+            factory,
+            AgentEventType.INPUT_VALIDATION_COMPLETED,
+            {"outcome": "accepted"},
+        )
+
+        self._transition(state, factory, ExecutionStatus.LOADING_CONTEXT)
+        self._record(state, factory, AgentEventType.CONTEXT_LOADING_STARTED)
+        messages = self._request_builder.build_initial_messages(agent, input_data)
+        for message in messages:
+            state.add_message(message)
+        selection_request = self._request_builder.derive_selection_request(
+            input_data,
+            model_selection,
+            additional_required_capabilities=additional_required_capabilities,
+        )
+        try:
+            selection = await self._model_registry.select(selection_request)
+            state.set_model_selection(selection)
+            provider = self._model_registry.get(selection.provider_name)
+        except ModelProviderError as error:
+            self._fail_preparation(
+                state,
+                factory,
+                model_provider_error_to_agent_error(error),
+            )
+            return state.to_result()
+        except ModelSelectionError as error:
+            self._fail_preparation(
+                state,
+                factory,
+                model_selection_error_to_agent_error(error),
+            )
+            return state.to_result()
+        except ModelProviderRegistryError as error:
+            self._fail_preparation(
+                state,
+                factory,
+                registry_error_to_agent_error(error),
+            )
+            return state.to_result()
+        except Exception:
+            self._fail_preparation(state, factory, self._runtime_error())
+            return state.to_result()
+
+        self._record(
+            state,
+            factory,
+            AgentEventType.CONTEXT_LOADING_COMPLETED,
+            {"outcome": "completed"},
+        )
+        self._transition(state, factory, ExecutionStatus.RUNNING)
+        request = self._request_builder.build_request(state, selection)
+        model_context = ModelExecutionContext(
+            execution_id=state.execution_id,
+            agent_id=agent.agent_id,
+            request_id=str(uuid4()),
+        )
+        return _PreparedExecution(
+            state=state,
+            factory=factory,
+            provider=provider,
+            request=request,
+            model_context=model_context,
+            selection=selection,
+        )
 
     def _finish_response(
         self,
@@ -303,9 +534,75 @@ class AgentRuntime:
         factory: AgentEventFactory,
         event_type: AgentEventType,
         data: Mapping[str, object] | None = None,
-    ) -> None:
+    ) -> AgentEvent:
         del self
-        state.record_event(factory.create(event_type, data=data))
+        event = factory.create(event_type, data=data)
+        state.record_event(event)
+        return event
+
+    def _record_model_stream_event(
+        self,
+        state: ExecutionState,
+        factory: AgentEventFactory,
+        event: ModelStreamEvent,
+    ) -> AgentEvent:
+        event_type, data = self._map_model_stream_event(event)
+        return self._record(state, factory, event_type, data)
+
+    @staticmethod
+    def _map_model_stream_event(
+        event: ModelStreamEvent,
+    ) -> tuple[AgentEventType, dict[str, object]]:
+        if event.type is ModelStreamEventType.RESPONSE_STARTED:
+            data: dict[str, object] = {"response_id": event.response_id}
+            if "model" in event.data:
+                data["model"] = event.data["model"]
+            return AgentEventType.MODEL_STREAM_STARTED, data
+        if event.type is ModelStreamEventType.TEXT_DELTA:
+            return AgentEventType.MODEL_TEXT_DELTA, {"text": event.data["text"]}
+        if event.type is ModelStreamEventType.TOOL_CALL_STARTED:
+            return AgentEventType.MODEL_TOOL_CALL_STARTED, {
+                "tool_call_id": event.data["tool_call_id"],
+                "name": event.data["name"],
+            }
+        if event.type is ModelStreamEventType.TOOL_CALL_ARGUMENT_DELTA:
+            return AgentEventType.MODEL_TOOL_CALL_ARGUMENT_DELTA, {
+                "tool_call_id": event.data["tool_call_id"],
+                "delta": event.data["delta"],
+            }
+        if event.type is ModelStreamEventType.TOOL_CALL_COMPLETED:
+            tool_call = cast(dict[str, object], event.data["tool_call"])
+            return AgentEventType.MODEL_TOOL_CALL_COMPLETED, {
+                "tool_call_id": tool_call["tool_call_id"],
+                "name": tool_call["name"],
+            }
+        if event.type is ModelStreamEventType.USAGE_UPDATED:
+            return AgentEventType.MODEL_USAGE_UPDATED, {"usage": event.data["usage"]}
+        if event.type is ModelStreamEventType.RESPONSE_COMPLETED:
+            return AgentEventType.MODEL_STREAM_COMPLETED, {
+                "outcome": "completed",
+                "response_id": event.response_id,
+                "model": event.data["model"],
+                "finish_reason": event.data["finish_reason"],
+            }
+        return AgentEventType.MODEL_STREAM_COMPLETED, {
+            "outcome": "error",
+            "response_id": event.response_id,
+        }
+
+    @staticmethod
+    def _stream_error(error: ModelStreamProtocolError) -> AgentErrorInfo:
+        if isinstance(error, InvalidModelStreamSequenceError):
+            code = "model_stream_sequence_error"
+        elif isinstance(error, ModelStreamIncompleteError):
+            code = "incomplete_model_stream"
+        elif isinstance(error, ModelStreamReportedError):
+            code = "model_stream_error"
+        elif isinstance(error, InvalidModelStreamProtocolError):
+            code = "invalid_model_stream_protocol"
+        else:
+            code = "model_stream_protocol_error"
+        return AgentErrorInfo(code=code, message=str(error))
 
     @staticmethod
     def _transition(
