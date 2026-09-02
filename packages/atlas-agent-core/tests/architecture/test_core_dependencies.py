@@ -145,3 +145,45 @@ def test_execution_policies_are_provider_and_infrastructure_agnostic() -> None:
         source = path.read_text(encoding="utf-8")
         assert _import_roots(path) & FORBIDDEN_IMPORTS == set()
         assert forbidden_names.isdisjoint(source.split())
+
+
+def test_tools_have_no_service_locator_or_arbitrary_code_execution() -> None:
+    tools_root = Path(__file__).parents[2] / "src" / "atlas_agents" / "tools"
+    forbidden_names = {
+        "ServiceContainer",
+        "get_service",
+        "require_service",
+        "services",
+    }
+    forbidden_calls = {"eval", "exec", "__import__"}
+    forbidden_attributes = {"system", "popen", "Popen"}
+
+    for path in tools_root.rglob("*.py"):
+        source = path.read_text(encoding="utf-8")
+        tree = ast.parse(source, filename=str(path))
+        names = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}
+        attributes = {
+            node.attr for node in ast.walk(tree) if isinstance(node, ast.Attribute)
+        }
+        called_names = {
+            node.func.id
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+        }
+
+        assert _import_roots(path) & FORBIDDEN_IMPORTS == set()
+        assert {"subprocess", "importlib"}.isdisjoint(_import_roots(path))
+        assert forbidden_names.isdisjoint(names | attributes)
+        assert forbidden_calls.isdisjoint(called_names)
+        assert forbidden_attributes.isdisjoint(attributes)
+
+
+def test_agent_runtime_does_not_implement_the_tool_loop_yet() -> None:
+    runtime_path = (
+        Path(__file__).parents[2] / "src" / "atlas_agents" / "runtime" / "runtime.py"
+    )
+    source = runtime_path.read_text(encoding="utf-8")
+
+    assert "atlas_agents.tools" not in source
+    assert "ToolExecutor" not in source
+    assert "ToolRegistry" not in source

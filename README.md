@@ -45,10 +45,13 @@ sem depender de provider concreto. O streaming valida sequência, protocolo,
 tool calls e snapshots cumulativos de uso antes de reconstruir a resposta.
 Limites opcionais de turnos, tools e tokens, budget estimado e timeout total
 governam ambos os modos sem adicionar dependências de provider.
+Uma camada independente de ferramentas já oferece contratos imutáveis, registry
+determinístico, autorização, validação JSON Schema e execução assíncrona segura.
 
-Ainda não existem execução de tools, retries, fallback, memória, RAG ou
-integração concreta com modelos. Cada modo do runtime realiza exatamente uma
-chamada pela abstração injetada.
+O executor de ferramentas ainda não está ligado ao `AgentRuntime`: não existe o
+loop `modelo → ferramenta → modelo`. Também não existem retries, fallback,
+memória, RAG ou integração concreta com modelos. Cada modo do runtime realiza
+exatamente uma chamada pela abstração injetada.
 
 ## Requisitos
 
@@ -120,7 +123,9 @@ estado controlado do runtime. O primeiro pipeline executável está em
 incremental está em
 [docs/reference/runtime-streaming.md](docs/reference/runtime-streaming.md).
 As políticas operacionais estão descritas em
-[docs/reference/execution-limits.md](docs/reference/execution-limits.md).
+[docs/reference/execution-limits.md](docs/reference/execution-limits.md), e a
+infraestrutura segura de ferramentas em
+[docs/reference/tools.md](docs/reference/tools.md).
 
 Consulte [ARCHITECTURE.md](ARCHITECTURE.md) para conhecer o desenho de alto
 nível e

@@ -12,6 +12,8 @@ os gates de qualidade, os contratos fundamentais de agentes e o protocolo de
 lifecycle, além da abstração provider-agnostic de modelos. O runtime single-turn
 já coordena uma chamada completa ou incremental pela abstração de modelos;
 integrações concretas e comportamentos multi-turn pertencem às próximas fases.
+A camada de ferramentas já pode validar e executar implementações registradas,
+mas ainda não está conectada ao runtime de agentes.
 
 ## Direção das dependências
 
@@ -54,6 +56,8 @@ implementará seus contratos.
   `ModelProvider.stream()`, sem SDK concreto;
 - validar e reconstruir streams estruturados sem expor chunks de SDKs.
 - aplicar limites e budget por execução com checker puro e deadline monotônico.
+- registrar ferramentas em ordem determinística e derivar sua visão do modelo;
+- autorizar, validar e executar ferramentas conhecidas por uma fronteira segura.
 
 ## Extensibilidade e evolução
 
@@ -65,10 +69,16 @@ isoladas na distribuição que as utiliza.
 `ExecutionState` permanece responsável somente por mutações controladas,
 snapshots e resultados terminais. `AgentRuntime` possui ownership único da
 orquestração e realiza uma chamada async a `ModelProvider.generate()` ou
-`ModelProvider.stream()`. Nenhum provider concreto, tool, retry, fallback,
-reconexão ou segundo turno é implementado no core.
+`ModelProvider.stream()`. Nenhum provider concreto, loop de tools, retry,
+fallback, reconexão ou segundo turno é implementado no core.
 
 As políticas são value objects imutáveis fornecidos ao runtime. O checker não
 conhece lifecycle ou provider; ele retorna violações estruturadas. O runtime
 aplica pre-check antes da invocação, pós-check após usage e converte a decisão
 nos estados terminais já definidos, sem alterar o mapa de transições.
+
+Ferramentas recebem dependências diretamente em seus construtores. O contexto
+restrito não oferece container de serviços. O executor resolve somente nomes
+exatos já registrados, verifica autorização antes do schema e não importa ou
+executa código indicado pelo modelo. Consulte
+[`docs/reference/tools.md`](../reference/tools.md).

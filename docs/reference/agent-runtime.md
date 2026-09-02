@@ -119,8 +119,10 @@ caller nunca consegue remover uma capability exigida pelo input.
 `stream()` acrescenta também `STREAMING` aos requisitos e não recorre a
 `generate()` quando nenhum modelo compatível está disponível.
 
-O request não contém tools, structured output, temperatura ou opções
-específicas de vendor. `ModelExecutionContext` transporta somente IDs de
+O request ainda não contém tools, structured output, temperatura ou opções
+específicas de vendor. Embora `ToolRegistry` e `ToolExecutor` já existam como
+infraestrutura independente, o runtime não os recebe nem executa nesta versão.
+`ModelExecutionContext` transporta somente IDs de
 correlação e um `request_id` novo, sem metadata ou credenciais do consumidor.
 
 ## Eventos
@@ -206,7 +208,8 @@ repropagado.
 
 ## Limites desta versão
 
-Não há segunda chamada de modelo, retry, fallback, reconexão, execução de tools,
-RAG, memória, aprovação, guardrails, previsão de tokens/custo ou provider
-concreto. O registry pode ser compartilhado para leitura, mas não deve ser
-alterado durante uma execução.
+Não há segunda chamada de modelo, retry, fallback, reconexão, loop ou execução
+de tools pelo runtime, RAG, memória, aprovação, guardrails, previsão de
+tokens/custo ou provider concreto. O registry de modelos pode ser compartilhado
+para leitura, mas não deve ser alterado durante uma execução. A execução isolada
+e segura de ferramentas está descrita em [tools.md](tools.md).

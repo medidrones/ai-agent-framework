@@ -99,6 +99,10 @@ executável. `ToolCall` registra ID, nome e argumentos já convertidos para
 `dict[str, object]`; JSON textual específico de provider deve ser convertido
 pelo adapter.
 
+A camada de runtime de ferramentas usa contratos distintos e converte
+`ToolDefinition` explicitamente para `ModelToolDefinition`, sem expor permissões,
+idempotência ou metadata interna. Consulte [tools.md](tools.md).
+
 `StructuredOutputDefinition` contém nome, descrição opcional, JSON Schema e a
 flag `strict`. Tipos Pydantic não atravessam diretamente essa fronteira.
 
@@ -205,6 +209,8 @@ responsáveis por nunca inserir segredos nesses mapas.
 
 ## Fora do escopo
 
-Esta camada não implementa SDK de provider, rede, router, fallback, retry,
-execução de ferramentas nem cálculo de custos. Registry, seleção e runtime
-provider-neutral são implementados no core sobre os contratos aqui definidos.
+Esta camada não implementa SDK de provider, rede, router, fallback, retry nem
+cálculo de custos. A execução isolada de ferramentas pertence ao namespace
+`atlas_agents.tools`; o loop que devolve resultados ao modelo ainda não existe.
+Registry, seleção e runtime provider-neutral são implementados no core sobre os
+contratos aqui definidos.

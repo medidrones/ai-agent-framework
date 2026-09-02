@@ -43,6 +43,13 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Fake provider reutilizável e testes end-to-end concorrentes.
 - ADR de ownership exclusivo da execução pelo `AgentRuntime`.
 - Organização dos testes por contexto arquitetural.
+- Contratos provider-agnostic para definições, implementações e outputs de tools.
+- Registry local com resolução exata e descoberta determinística de ferramentas.
+- Fronteira segura de execução com requests e resultados estruturados.
+- Avaliação explícita de permissões antes da validação de argumentos.
+- Validação de argumentos pelo JSON Schema Draft 2020-12.
+- Normalização de erros de tools e preservação do cancelamento cooperativo.
+- Semântica declarativa de idempotência sem deduplicação fictícia.
 
 ### Alterado
 

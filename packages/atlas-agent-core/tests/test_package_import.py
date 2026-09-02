@@ -96,3 +96,34 @@ def test_runtime_state_contracts_are_intentionally_public() -> None:
     }
 
     assert expected <= set(atlas_agents.__all__)
+
+
+def test_tool_contracts_are_intentionally_public() -> None:
+    expected = {
+        "DuplicateToolError",
+        "JsonSchemaToolArgumentValidator",
+        "Tool",
+        "ToolArgumentValidationIssue",
+        "ToolArgumentValidationResult",
+        "ToolArgumentValidator",
+        "ToolDefinition",
+        "ToolError",
+        "ToolExecutionContext",
+        "ToolExecutionError",
+        "ToolExecutionInvariantError",
+        "ToolExecutionRequest",
+        "ToolExecutionResult",
+        "ToolExecutionStatus",
+        "ToolExecutor",
+        "ToolIdempotency",
+        "ToolInvalidOperationError",
+        "ToolNotRegisteredError",
+        "ToolOutput",
+        "ToolPermissionDecision",
+        "ToolPermissionEvaluator",
+        "ToolRegistry",
+        "ToolRegistryError",
+        "ToolUnavailableError",
+    }
+
+    assert expected <= set(atlas_agents.__all__)

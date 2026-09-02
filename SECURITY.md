@@ -25,14 +25,23 @@ atualizações enquanto o relato estiver sob investigação.
 - Conteúdo recuperado ou gerado por modelos é tratado como não confiável.
 - A execução arbitrária de código não faz parte do runtime do core.
 - O acesso à rede é introduzido somente por adapters explícitos.
+- O executor resolve somente ferramentas registradas, verifica autorização
+  antes do schema e valida argumentos antes de chamar a implementação.
+- Nomes de ferramentas nunca disparam import dinâmico, shell, `eval` ou `exec`.
 
-## Providers e ferramentas futuras
+## Providers e ferramentas
 
 Providers deverão receber credenciais por configuração ou serviços de segredos
-injetados, sem expô-las em eventos ou exceções. Ferramentas de agentes deverão
-declarar entradas, validar argumentos, limitar permissões e receber somente os
-serviços explicitamente autorizados no contexto da execução.
+injetados, sem expô-las em eventos ou exceções. Ferramentas declaram entradas e
+permissões em `ToolDefinition`; dependências são injetadas diretamente em seus
+construtores, não obtidas de um container no contexto da execução.
 
 Conteúdo vindo de modelos, ferramentas ou bases de conhecimento nunca concede
 autoridade adicional por si só. Um executor genérico de código permanece
 explicitamente fora do escopo inicial.
+
+`ToolExecutionResult` não retém exceptions, stack traces nem output parcial em
+falhas. Erros inesperados são substituídos por mensagem pública genérica. A
+semântica de idempotência é apenas declarativa nesta versão: não existe cache ou
+deduplicação local que possa transmitir uma garantia falsa em ambiente
+distribuído.

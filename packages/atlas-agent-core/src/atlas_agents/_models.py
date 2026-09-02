@@ -31,6 +31,15 @@ def _json_mapping(value: dict[str, object]) -> dict[str, object]:
     return deepcopy(value)
 
 
+def _json_value(value: object) -> object:
+    try:
+        json.dumps(value, allow_nan=False)
+    except (TypeError, ValueError) as exc:
+        msg = "O valor deve conter somente dados serializáveis em JSON"
+        raise ValueError(msg) from exc
+    return deepcopy(value)
+
+
 def _timezone_aware(value: datetime, *, label: str) -> datetime:
     if value.tzinfo is None or value.utcoffset() is None:
         msg = f"O timestamp {label} deve possuir fuso horário"

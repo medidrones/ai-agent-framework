@@ -100,6 +100,20 @@ Um deadline absoluto baseado em relógio monotônico governa seleção e invoca�
 nos modos completo e incremental. Ele não converte timeout do provider nem
 cancelamento externo em timeout do runtime.
 
+## Ferramentas
+
+`ToolDefinition` representa o contrato completo de runtime; sua conversão para
+`ModelToolDefinition` expõe somente nome, descrição e parâmetros. Implementações
+assíncronas de `Tool` recebem suas dependências no construtor e um
+`ToolExecutionContext` restrito por chamada, sem service locator.
+
+`ToolRegistry` armazena apenas ferramentas conhecidas, localmente e em ordem de
+registro. `ToolExecutor` resolve nomes exatos, avalia permissões, valida
+argumentos pelo JSON Schema Draft 2020-12 e normaliza output e erros. Ele não
+possui estado por execução, retry, deduplicação, descoberta dinâmica ou acesso
+à infraestrutura. O `AgentRuntime` ainda não integra essa camada nem implementa
+o loop multi-turn.
+
 ## Independência de infraestrutura
 
 O core não depende de SDKs de modelos, frameworks web, bancos de dados,
@@ -133,8 +147,9 @@ timestamps com fuso horário.
 
 O core já oferece execução single-turn completa ou incremental por
 `ModelProvider`, sem provider concreto, com limites, budget e timeout opcionais.
-Ferramentas, retries, fallback, memória e armazenamento serão introduzidos
-incrementalmente em tarefas posteriores.
+Também oferece contratos, registro e execução isolada de ferramentas. A
+integração multi-turn entre modelos e ferramentas, retries, fallback, memória e
+armazenamento será introduzida incrementalmente em tarefas posteriores.
 
 ## Evolução prevista
 

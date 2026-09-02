@@ -22,6 +22,11 @@ O core não deve ler segredos de variáveis de ambiente, usar registries globais
 mutáveis, executar código arbitrário ou expor valores específicos de provedores
 por interfaces públicas.
 
+`jsonschema` é usado somente como mecanismo geral de validação do padrão JSON
+Schema Draft 2020-12 na fronteira de ferramentas. A biblioteca não introduz
+integração de infraestrutura nem semântica específica de provider. Os stubs de
+tipagem correspondentes permanecem restritos ao grupo de desenvolvimento.
+
 ## Plugins
 
 Plugins implementam contratos declarados pelo core. Um plugin pode depender do
