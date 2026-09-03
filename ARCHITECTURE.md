@@ -79,11 +79,12 @@ eventos permanecem anexáveis como journal de observabilidade. `snapshot()`
 produz uma observação frozen e isolada, enquanto `to_result()` só produz um
 `AgentResult` quando o lifecycle é terminal.
 
-`AgentRuntime` é o único proprietário do execution loop. Na versão single-turn,
-ele cria um estado por chamada, seleciona o modelo pelo registry, constrói um
-request provider-neutral e invoca uma única vez `ModelProvider.generate()` ou
-`ModelProvider.stream()`. No modo incremental, um acumulador valida o protocolo
-e reconstrói a mesma `ModelResponse` usada pela política terminal. `Agent.run()`
+`AgentRuntime` é o único proprietário do execution loop. Ele cria um estado por
+chamada, seleciona o modelo uma vez pelo registry e constrói requests
+provider-neutral para cada turn. Respostas `TOOL_CALL` acionam tools permitidas,
+e seus resultados retornam ao mesmo provider/model no histórico da conversa.
+No modo incremental, um acumulador por turn valida o protocolo e reconstrói a
+mesma `ModelResponse` usada pelo loop. `Agent.run()`
 e `Agent.stream()` permanecem fachadas públicas e deverão delegar ao runtime,
 sem implementar um segundo loop. A decisão está registrada no
 [`ADR-001`](docs/adr/ADR-001-agent-runtime-execution-ownership.md).
@@ -111,8 +112,9 @@ assíncronas de `Tool` recebem suas dependências no construtor e um
 registro. `ToolExecutor` resolve nomes exatos, avalia permissões, valida
 argumentos pelo JSON Schema Draft 2020-12 e normaliza output e erros. Ele não
 possui estado por execução, retry, deduplicação, descoberta dinâmica ou acesso
-à infraestrutura. O `AgentRuntime` ainda não integra essa camada nem implementa
-o loop multi-turn.
+à infraestrutura. O `AgentRuntime` integra a camada usando a allowlist de cada
+agente, mantém deduplicação estritamente local no `ExecutionState` e executa
+batches sequencialmente.
 
 ## Independência de infraestrutura
 
@@ -145,11 +147,11 @@ são strings opacas e não impõem UUID. Metadados são explicitamente tipados,
 isolados por instância e validados como serializáveis em JSON. Eventos exigem
 timestamps com fuso horário.
 
-O core já oferece execução single-turn completa ou incremental por
+O core já oferece execução multi-turn completa ou incremental por
 `ModelProvider`, sem provider concreto, com limites, budget e timeout opcionais.
-Também oferece contratos, registro e execução isolada de ferramentas. A
-integração multi-turn entre modelos e ferramentas, retries, fallback, memória e
-armazenamento será introduzida incrementalmente em tarefas posteriores.
+Também oferece contratos, registro e execução integrada de ferramentas.
+Retries, fallback, memória, approval e armazenamento serão introduzidos
+incrementalmente em tarefas posteriores.
 
 ## Evolução prevista
 

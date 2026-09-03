@@ -90,6 +90,8 @@ from atlas_agents.runtime import (
     RuntimeInputRejectedError,
     RuntimeResultItem,
     RuntimeStreamItem,
+    ToolCallRecord,
+    ToolResultMessageMapper,
 )
 from atlas_agents.tools import (
     DuplicateToolError,
@@ -210,6 +212,7 @@ __all__ = [
     "ToolArgumentValidationResult",
     "ToolArgumentValidator",
     "ToolCall",
+    "ToolCallRecord",
     "ToolDefinition",
     "ToolError",
     "ToolExecutionContext",
@@ -227,6 +230,7 @@ __all__ = [
     "ToolPermissionEvaluator",
     "ToolRegistry",
     "ToolRegistryError",
+    "ToolResultMessageMapper",
     "ToolUnavailableError",
     "Usage",
     "__version__",

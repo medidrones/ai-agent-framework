@@ -7,6 +7,7 @@ from pydantic import Field, field_validator, model_validator
 
 from atlas_agents._models import _FrozenModel, _json_mapping, _non_empty
 from atlas_agents.models.content import MessageContent
+from atlas_agents.models.tool_call import ToolCall
 
 
 class MessageRole(StrEnum):
@@ -26,6 +27,7 @@ class ModelMessage(_FrozenModel):
     content: tuple[MessageContent, ...] = ()
     name: str | None = None
     tool_call_id: str | None = None
+    tool_calls: tuple[ToolCall, ...] = ()
     metadata: dict[str, object] = Field(default_factory=dict)
 
     @field_validator("name", "tool_call_id")
@@ -41,9 +43,12 @@ class ModelMessage(_FrozenModel):
         return _json_mapping(value)
 
     @model_validator(mode="after")
-    def validate_tool_result(self) -> Self:
-        """Require tool results to identify their originating call."""
+    def validate_tool_protocol(self) -> Self:
+        """Keep assistant calls and tool results on their valid roles."""
         if self.role is MessageRole.TOOL and self.tool_call_id is None:
             msg = "Uma mensagem de ferramenta deve informar tool_call_id"
+            raise ValueError(msg)
+        if self.tool_calls and self.role is not MessageRole.ASSISTANT:
+            msg = "Somente mensagens do assistant podem conter tool_calls"
             raise ValueError(msg)
         return self

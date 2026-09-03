@@ -100,7 +100,7 @@ def test_execution_state_does_not_own_infrastructure_or_execute_providers() -> N
     assert {"generate", "stream", "list_models"}.isdisjoint(called_attributes)
 
 
-def test_agent_runtime_uses_only_one_call_for_each_provider_execution_mode() -> None:
+def test_agent_runtime_keeps_provider_execution_modes_separate() -> None:
     source_root = Path(__file__).parents[2] / "src" / "atlas_agents"
     runtime_path = source_root / "runtime" / "runtime.py"
     source = runtime_path.read_text(encoding="utf-8")
@@ -121,7 +121,7 @@ def test_agent_runtime_uses_only_one_call_for_each_provider_execution_mode() -> 
     assert _import_roots(runtime_path) & FORBIDDEN_IMPORTS == set()
     assert forbidden_concrete_providers.isdisjoint(source.split())
     assert called_attributes.count("generate") == 1
-    assert called_attributes.count("stream") == 1
+    assert called_attributes.count("stream") == 2
     assert "get_service" not in source
 
 
@@ -178,12 +178,13 @@ def test_tools_have_no_service_locator_or_arbitrary_code_execution() -> None:
         assert forbidden_attributes.isdisjoint(attributes)
 
 
-def test_agent_runtime_does_not_implement_the_tool_loop_yet() -> None:
+def test_agent_runtime_owns_tool_loop_without_infrastructure_dependencies() -> None:
     runtime_path = (
         Path(__file__).parents[2] / "src" / "atlas_agents" / "runtime" / "runtime.py"
     )
     source = runtime_path.read_text(encoding="utf-8")
 
-    assert "atlas_agents.tools" not in source
-    assert "ToolExecutor" not in source
-    assert "ToolRegistry" not in source
+    assert "ToolExecutor" in source
+    assert "ToolRegistry" in source
+    assert _import_roots(runtime_path) & FORBIDDEN_IMPORTS == set()
+    assert "get_service" not in source

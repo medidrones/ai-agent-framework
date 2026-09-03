@@ -2,8 +2,8 @@
 
 A camada de ferramentas define uma fronteira provider-agnostic para registrar
 implementações conhecidas, autorizar uma chamada, validar argumentos e produzir
-um resultado operacional seguro. Ela não integra ainda o ciclo
-`modelo → ferramenta → modelo` do `AgentRuntime`.
+um resultado operacional seguro. O `AgentRuntime` usa essa fronteira no ciclo
+`modelo → ferramenta → modelo`, sem transferir responsabilidades do executor.
 
 ## Fronteiras dos contratos
 
@@ -172,6 +172,12 @@ normalizar ToolOutput ou erro
 ToolExecutionResult
 ```
 
+`prepare()` executa resolução, identidade, autorização e validação. Quando a
+chamada pode alcançar a implementação, ele devolve uma preparação opaca;
+`execute_prepared()` efetiva essa chamada. Essa separação permite ao runtime
+verificar `max_tool_calls` depois dos controles e antes de executar. O método
+`execute()` permanece como a API conveniente que encadeia as duas etapas.
+
 Uma ferramenta desconhecida vira `FAILED/tool_not_found`. `ToolError` preserva
 seu código seguro, detalhes e retryability, sem disparar retry. Exceções
 inesperadas viram `FAILED/tool_execution_error` com mensagem genérica;
@@ -185,11 +191,12 @@ o executor não cria lock, semaphore, thread pool ou serialização global.
 
 `ToolIdempotency` declara `UNSPECIFIED`, `IDEMPOTENT` ou `NON_IDEMPOTENT`, e a
 solicitação pode transportar uma `idempotency_key`. Isso estabelece identidade
-para uma camada futura, mas declaração não é enforcement: duas chamadas de
-`execute()` com o mesmo `tool_call_id` ou chave executam duas vezes.
+para uma camada futura, mas declaração não é enforcement no executor: duas
+chamadas diretas de `execute()` com o mesmo ID ou chave executam duas vezes. O
+runtime mantém deduplicação local por `tool_call_id` durante cada execução.
 
 Não existem cache local, store distribuído, auto retry, fallback, timeout
 específico, approval, import dinâmico, shell, `eval`, `exec`, ferramenta genérica
-de filesystem ou acesso à rede no core. A Task de runtime seguinte deverá
-resolver e validar a chamada, verificar `max_tool_calls`, incrementar o contador
-somente para uma ferramenta efetivamente executada e então chamar o executor.
+de filesystem ou acesso à rede no core. Não existe store distribuído que estenda
+a deduplicação entre processos ou execuções. Consulte
+[multi-turn-runtime.md](multi-turn-runtime.md).

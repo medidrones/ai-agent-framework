@@ -1,4 +1,4 @@
-"""Public contracts for runtime state and single-turn execution."""
+"""Public contracts for runtime state and multi-turn execution."""
 
 from atlas_agents.runtime.budget import ExecutionBudget, ExecutionBudgetViolation
 from atlas_agents.runtime.enforcement import ExecutionLimitChecker
@@ -29,6 +29,8 @@ from atlas_agents.runtime.stream_items import (
     RuntimeResultItem,
     RuntimeStreamItem,
 )
+from atlas_agents.runtime.tool_calls import ToolCallRecord
+from atlas_agents.runtime.tool_results import ToolResultMessageMapper
 
 __all__ = [
     "AgentRuntime",
@@ -55,4 +57,6 @@ __all__ = [
     "RuntimeInputRejectedError",
     "RuntimeResultItem",
     "RuntimeStreamItem",
+    "ToolCallRecord",
+    "ToolResultMessageMapper",
 ]

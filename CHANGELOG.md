@@ -31,7 +31,7 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Estado de execução com mutações controladas e proteção após término.
 - Snapshot imutável e conversão de estados terminais em `AgentResult`.
 - Agregação de uso, contadores e journal validado de eventos por execução.
-- Runtime single-turn com seleção de modelo e uma chamada provider-agnostic.
+- Runtime provider-agnostic com loop multi-turn de modelo e ferramentas.
 - Runtime streaming com eventos incrementais e resultado terminal discriminado.
 - Acumulador determinístico para sequência, texto, tool calls e uso cumulativo.
 - Fechamento cooperativo do stream em cancelamento ou interrupção do consumidor.
@@ -50,6 +50,9 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Validação de argumentos pelo JSON Schema Draft 2020-12.
 - Normalização de erros de tools e preservação do cancelamento cooperativo.
 - Semântica declarativa de idempotência sem deduplicação fictícia.
+- Allowlist ordenada de ferramentas por agente e requisito `TOOL_CALLING`.
+- Journal de chamadas de ferramentas e deduplicação por execução.
+- Mensagens de resultado de ferramenta seguras e determinísticas.
 
 ### Alterado
 

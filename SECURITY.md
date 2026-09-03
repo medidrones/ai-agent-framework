@@ -27,6 +27,8 @@ atualizações enquanto o relato estiver sob investigação.
 - O acesso à rede é introduzido somente por adapters explícitos.
 - O executor resolve somente ferramentas registradas, verifica autorização
   antes do schema e valida argumentos antes de chamar a implementação.
+- O runtime oferece ao modelo somente a allowlist declarada pelo agente e
+  rejeita ferramentas registradas que estejam fora dela.
 - Nomes de ferramentas nunca disparam import dinâmico, shell, `eval` ou `exec`.
 
 ## Providers e ferramentas
@@ -42,6 +44,7 @@ explicitamente fora do escopo inicial.
 
 `ToolExecutionResult` não retém exceptions, stack traces nem output parcial em
 falhas. Erros inesperados são substituídos por mensagem pública genérica. A
-semântica de idempotência é apenas declarativa nesta versão: não existe cache ou
-deduplicação local que possa transmitir uma garantia falsa em ambiente
-distribuído.
+semântica de idempotência permanece declarativa e não oferece garantia
+distribuída. O runtime deduplica apenas `tool_call_id` dentro de uma execução:
+payload idêntico reutiliza o resultado já registrado, enquanto payload
+conflitante encerra a execução com segurança.

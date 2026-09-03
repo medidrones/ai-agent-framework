@@ -1,8 +1,9 @@
-"""Single-turn agent runtime orchestrating one complete model invocation."""
+"""Multi-turn agent runtime orchestrating model and tool invocations."""
 
 import asyncio
 from collections.abc import AsyncIterator, Mapping
 from dataclasses import dataclass
+from functools import partial
 from typing import Protocol, cast, runtime_checkable
 from uuid import uuid4
 
@@ -28,13 +29,14 @@ from atlas_agents.models import (
     ModelMessage,
     ModelProvider,
     ModelProviderRegistry,
-    ModelRequest,
     ModelResponse,
     ModelSelectionRequest,
     ModelSelectionResult,
     ModelStreamEvent,
     ModelStreamEventType,
+    ModelToolDefinition,
     TextContent,
+    ToolCall,
 )
 from atlas_agents.runtime.budget import ExecutionBudget, ExecutionBudgetViolation
 from atlas_agents.runtime.deadline import (
@@ -67,6 +69,17 @@ from atlas_agents.runtime.stream_items import (
     RuntimeResultItem,
     RuntimeStreamItem,
 )
+from atlas_agents.runtime.tool_calls import ToolCallRecord
+from atlas_agents.runtime.tool_results import ToolResultMessageMapper
+from atlas_agents.tools import (
+    ToolExecutionContext,
+    ToolExecutionInvariantError,
+    ToolExecutionRequest,
+    ToolExecutionResult,
+    ToolExecutor,
+    ToolNotRegisteredError,
+    ToolRegistry,
+)
 
 
 @dataclass(frozen=True)
@@ -74,9 +87,8 @@ class _PreparedExecution:
     state: ExecutionState
     factory: AgentEventFactory
     provider: ModelProvider
-    request: ModelRequest
-    model_context: ModelExecutionContext
     selection: ModelSelectionResult
+    tool_definitions: tuple[ModelToolDefinition, ...]
 
 
 @dataclass(frozen=True)
@@ -93,18 +105,32 @@ class _AsyncClosable(Protocol):
 
 
 class AgentRuntime:
-    """Own the provider-agnostic execution loop for one model turn."""
+    """Own the provider-agnostic multi-turn model and tool execution loop."""
 
     def __init__(
         self,
         *,
         model_registry: ModelProviderRegistry,
+        tool_registry: ToolRegistry | None = None,
+        tool_executor: ToolExecutor | None = None,
         request_builder: ModelRequestBuilder | None = None,
         limits: ExecutionLimits | None = None,
         budget: ExecutionBudget | None = None,
     ) -> None:
         """Initialize the runtime with explicit replaceable dependencies."""
         self._model_registry = model_registry
+        if tool_executor is not None and tool_registry is None:
+            msg = "tool_registry deve ser informado junto com tool_executor"
+            raise ValueError(msg)
+        self._tool_registry = (
+            tool_registry if tool_registry is not None else ToolRegistry()
+        )
+        self._tool_executor = (
+            tool_executor
+            if tool_executor is not None
+            else ToolExecutor(registry=self._tool_registry)
+        )
+        self._tool_result_mapper = ToolResultMessageMapper()
         self._request_builder = (
             request_builder if request_builder is not None else ModelRequestBuilder()
         )
@@ -122,7 +148,7 @@ class AgentRuntime:
         limits: ExecutionLimits | None = None,
         budget: ExecutionBudget | None = None,
     ) -> AgentResult[object]:
-        """Execute exactly one model generation and return a terminal result."""
+        """Execute model and tool turns and return a terminal result."""
         policies = self._resolve_policies(limits=limits, budget=budget)
         state = ExecutionState(
             execution_id=context.execution_id,
@@ -149,7 +175,7 @@ class AgentRuntime:
             return state.to_result()
         except asyncio.CancelledError:
             if not state.is_terminal:
-                if state.turn_count > 0:
+                if self._model_invocation_open(state):
                     self._record(
                         state,
                         factory,
@@ -163,6 +189,18 @@ class AgentRuntime:
                 )
             raise
 
+    @staticmethod
+    def _model_invocation_open(state: ExecutionState) -> bool:
+        started = sum(
+            event.event_type is AgentEventType.MODEL_EXECUTION_STARTED
+            for event in state.events
+        )
+        completed = sum(
+            event.event_type is AgentEventType.MODEL_EXECUTION_COMPLETED
+            for event in state.events
+        )
+        return started > completed
+
     async def _run_execution(
         self,
         *,
@@ -173,7 +211,7 @@ class AgentRuntime:
         model_selection: ModelSelectionRequest | None,
         policies: _ExecutionPolicies,
     ) -> AgentResult[object]:
-        """Run the generation path inside one execution policy scope."""
+        """Run model and tool turns inside one unchanged policy scope."""
         prepared = await self._prepare(
             state=state,
             factory=factory,
@@ -183,66 +221,87 @@ class AgentRuntime:
         )
         if isinstance(prepared, AgentResult):
             return prepared
-        turn_violation = self._limit_checker.check_turn_allowed(
-            limits=policies.limits,
-            current_turn_count=state.turn_count,
-        )
-        if turn_violation is not None:
-            return self._exceed_limit(state, factory, turn_violation)
-        self._record(
-            state,
-            factory,
-            AgentEventType.MODEL_EXECUTION_STARTED,
-            {
-                "provider": prepared.selection.provider_name,
-                "model": prepared.selection.model,
-            },
-        )
-        state.increment_turn()
-        try:
-            response = await prepared.provider.generate(
-                prepared.request,
-                prepared.model_context,
-            )
-        except ModelProviderError as error:
-            self._record(
-                state,
-                factory,
-                AgentEventType.MODEL_EXECUTION_COMPLETED,
-                {"outcome": "failed"},
-            )
-            self._fail(state, factory, model_provider_error_to_agent_error(error))
-            return state.to_result()
-        except Exception:
-            self._record(
-                state,
-                factory,
-                AgentEventType.MODEL_EXECUTION_COMPLETED,
-                {"outcome": "failed"},
-            )
-            self._fail(state, factory, self._runtime_error())
-            return state.to_result()
 
-        policies.deadline.raise_if_expired()
-        self._record(
-            state,
-            factory,
-            AgentEventType.MODEL_EXECUTION_COMPLETED,
-            {
-                "outcome": "completed",
-                "finish_reason": response.finish_reason.value,
-            },
-        )
-        state.add_model_usage(response.usage)
-        policy_result = self._enforce_usage(state, factory, policies)
-        if policy_result is not None:
-            return policy_result
-        state.add_message(
-            ModelMessage(role=MessageRole.ASSISTANT, content=response.content)
-        )
-        self._transition(state, factory, ExecutionStatus.VALIDATING_OUTPUT)
-        self._record(state, factory, AgentEventType.OUTPUT_VALIDATION_STARTED)
-        return self._finish_response(state, factory, response)
+        while True:
+            turn_violation = self._limit_checker.check_turn_allowed(
+                limits=policies.limits,
+                current_turn_count=state.turn_count,
+            )
+            if turn_violation is not None:
+                return self._exceed_limit(state, factory, turn_violation)
+            self._record(
+                state,
+                factory,
+                AgentEventType.MODEL_EXECUTION_STARTED,
+                {
+                    "provider": prepared.selection.provider_name,
+                    "model": prepared.selection.model,
+                    "turn": state.turn_count + 1,
+                },
+            )
+            state.increment_turn()
+            request = self._request_builder.build_request(
+                state,
+                prepared.selection,
+                tools=prepared.tool_definitions,
+            )
+            model_context = self._model_context(state, agent)
+            try:
+                response = await prepared.provider.generate(request, model_context)
+            except ModelProviderError as error:
+                self._record(
+                    state,
+                    factory,
+                    AgentEventType.MODEL_EXECUTION_COMPLETED,
+                    {"outcome": "failed"},
+                )
+                self._fail(
+                    state,
+                    factory,
+                    model_provider_error_to_agent_error(error),
+                )
+                return state.to_result()
+            except Exception:
+                self._record(
+                    state,
+                    factory,
+                    AgentEventType.MODEL_EXECUTION_COMPLETED,
+                    {"outcome": "failed"},
+                )
+                self._fail(state, factory, self._runtime_error())
+                return state.to_result()
+
+            policies.deadline.raise_if_expired()
+            self._record(
+                state,
+                factory,
+                AgentEventType.MODEL_EXECUTION_COMPLETED,
+                {
+                    "outcome": "completed",
+                    "finish_reason": response.finish_reason.value,
+                },
+            )
+            state.add_model_usage(response.usage)
+            policy_result = self._enforce_usage(state, factory, policies)
+            if policy_result is not None:
+                return policy_result
+            if response.finish_reason is FinishReason.TOOL_CALL:
+                tool_result = await self._process_tool_calls(
+                    state=state,
+                    factory=factory,
+                    response=response,
+                    policies=policies,
+                )
+                if tool_result is not None:
+                    return tool_result
+                continue
+
+            state.add_message(
+                ModelMessage(role=MessageRole.ASSISTANT, content=response.content)
+            )
+            self._transition(state, factory, ExecutionStatus.VALIDATING_OUTPUT)
+            self._record(state, factory, AgentEventType.OUTPUT_VALIDATION_STARTED)
+            return self._finish_response(state, factory, response)
 
     async def stream(
         self,
@@ -267,7 +326,6 @@ class AgentRuntime:
         emitted_events = 0
         provider_iterator: AsyncIterator[ModelStreamEvent] | None = None
         provider_exhausted = False
-        invocation_started = False
         try:
             prepared = await policies.deadline.wait_for(
                 lambda: self._prepare(
@@ -311,12 +369,16 @@ class AgentRuntime:
                 yield RuntimeEventItem(event=started_event)
                 emitted_events += 1
                 state.increment_turn()
-                invocation_started = True
                 accumulator = ModelStreamAccumulator()
                 try:
+                    request = self._request_builder.build_request(
+                        state,
+                        prepared.selection,
+                        tools=prepared.tool_definitions,
+                    )
                     provider_iterator = prepared.provider.stream(
-                        prepared.request,
-                        prepared.model_context,
+                        request,
+                        self._model_context(state, agent),
                     )
                     while True:
                         try:
@@ -384,6 +446,28 @@ class AgentRuntime:
                     policy_result = self._enforce_usage(state, factory, policies)
                     if policy_result is not None:
                         result = policy_result
+                    elif response.finish_reason is FinishReason.TOOL_CALL:
+                        tool_result = await self._process_tool_calls(
+                            state=state,
+                            factory=factory,
+                            response=response,
+                            policies=policies,
+                        )
+                        for event in state.events[emitted_events:]:
+                            yield RuntimeEventItem(event=event)
+                            emitted_events += 1
+                        if tool_result is not None:
+                            result = tool_result
+                        else:
+                            async for item in self._stream_followup_turns(
+                                state=state,
+                                factory=factory,
+                                prepared=prepared,
+                                agent=agent,
+                                policies=policies,
+                            ):
+                                yield item
+                            return
                     else:
                         state.add_message(
                             ModelMessage(
@@ -404,7 +488,7 @@ class AgentRuntime:
                         result = self._finish_response(state, factory, response)
         except ExecutionDeadlineExpiredError:
             if not state.is_terminal:
-                if invocation_started:
+                if self._model_invocation_open(state):
                     self._record(
                         state,
                         factory,
@@ -415,7 +499,7 @@ class AgentRuntime:
             result = state.to_result()
         except asyncio.CancelledError:
             if not state.is_terminal:
-                if invocation_started:
+                if self._model_invocation_open(state):
                     self._record(
                         state,
                         factory,
@@ -436,7 +520,7 @@ class AgentRuntime:
             ):
                 await provider_iterator.aclose()
             if not state.is_terminal:
-                if invocation_started:
+                if self._model_invocation_open(state):
                     self._record(
                         state,
                         factory,
@@ -449,6 +533,158 @@ class AgentRuntime:
                     reason="O consumidor encerrou o stream antes da conclusão.",
                 )
 
+        for event in state.events[emitted_events:]:
+            yield RuntimeEventItem(event=event)
+            emitted_events += 1
+        yield RuntimeResultItem(result=result)
+
+    async def _stream_followup_turns(
+        self,
+        *,
+        state: ExecutionState,
+        factory: AgentEventFactory,
+        prepared: _PreparedExecution,
+        agent: AgentDefinition,
+        policies: _ExecutionPolicies,
+    ) -> AsyncIterator[RuntimeStreamItem]:
+        """Continue a streaming execution after the first processed tool batch."""
+        emitted_events = len(state.events)
+        result: AgentResult[object] | None = None
+        while result is None:
+            turn_violation = self._limit_checker.check_turn_allowed(
+                limits=policies.limits,
+                current_turn_count=state.turn_count,
+            )
+            if turn_violation is not None:
+                result = self._exceed_limit(state, factory, turn_violation)
+                break
+
+            started_event = self._record(
+                state,
+                factory,
+                AgentEventType.MODEL_EXECUTION_STARTED,
+                {
+                    "provider": prepared.selection.provider_name,
+                    "model": prepared.selection.model,
+                    "mode": "stream",
+                    "turn": state.turn_count + 1,
+                },
+            )
+            yield RuntimeEventItem(event=started_event)
+            emitted_events += 1
+            state.increment_turn()
+            accumulator = ModelStreamAccumulator()
+            provider_iterator: AsyncIterator[ModelStreamEvent] | None = None
+            provider_exhausted = False
+            try:
+                request = self._request_builder.build_request(
+                    state,
+                    prepared.selection,
+                    tools=prepared.tool_definitions,
+                )
+                provider_iterator = prepared.provider.stream(
+                    request,
+                    self._model_context(state, agent),
+                )
+                while True:
+                    try:
+                        model_event = await policies.deadline.wait_for(
+                            partial(anext, provider_iterator)
+                        )
+                    except StopAsyncIteration:
+                        provider_exhausted = True
+                        break
+                    policies.deadline.raise_if_expired()
+                    accumulator.consume(model_event)
+                    runtime_event = self._record_model_stream_event(
+                        state,
+                        factory,
+                        model_event,
+                    )
+                    yield RuntimeEventItem(event=runtime_event)
+                    emitted_events += 1
+                response = accumulator.finalize()
+            except ExecutionDeadlineExpiredError:
+                raise
+            except ModelProviderError as error:
+                self._record(
+                    state,
+                    factory,
+                    AgentEventType.MODEL_EXECUTION_COMPLETED,
+                    {"outcome": "failed", "mode": "stream"},
+                )
+                self._fail(
+                    state,
+                    factory,
+                    model_provider_error_to_agent_error(error),
+                )
+                result = state.to_result()
+                break
+            except ModelStreamProtocolError as error:
+                self._record(
+                    state,
+                    factory,
+                    AgentEventType.MODEL_EXECUTION_COMPLETED,
+                    {"outcome": "failed", "mode": "stream"},
+                )
+                self._fail(state, factory, self._stream_error(error))
+                result = state.to_result()
+                break
+            except Exception:
+                self._record(
+                    state,
+                    factory,
+                    AgentEventType.MODEL_EXECUTION_COMPLETED,
+                    {"outcome": "failed", "mode": "stream"},
+                )
+                self._fail(state, factory, self._runtime_error())
+                result = state.to_result()
+                break
+            finally:
+                if (
+                    provider_iterator is not None
+                    and not provider_exhausted
+                    and isinstance(provider_iterator, _AsyncClosable)
+                ):
+                    await provider_iterator.aclose()
+
+            self._record(
+                state,
+                factory,
+                AgentEventType.MODEL_EXECUTION_COMPLETED,
+                {
+                    "outcome": "completed",
+                    "mode": "stream",
+                    "finish_reason": response.finish_reason.value,
+                },
+            )
+            state.add_model_usage(response.usage)
+            result = self._enforce_usage(state, factory, policies)
+            if result is None and response.finish_reason is FinishReason.TOOL_CALL:
+                result = await self._process_tool_calls(
+                    state=state,
+                    factory=factory,
+                    response=response,
+                    policies=policies,
+                )
+            elif result is None:
+                state.add_message(
+                    ModelMessage(role=MessageRole.ASSISTANT, content=response.content)
+                )
+                self._transition(state, factory, ExecutionStatus.VALIDATING_OUTPUT)
+                self._record(
+                    state,
+                    factory,
+                    AgentEventType.OUTPUT_VALIDATION_STARTED,
+                )
+                result = self._finish_response(state, factory, response)
+
+            for event in state.events[emitted_events:]:
+                yield RuntimeEventItem(event=event)
+                emitted_events += 1
+
+        if result is None:
+            raise RuntimeError("O loop incremental terminou sem resultado.")
         for event in state.events[emitted_events:]:
             yield RuntimeEventItem(event=event)
             emitted_events += 1
@@ -487,10 +723,32 @@ class AgentRuntime:
         messages = self._request_builder.build_initial_messages(agent, input_data)
         for message in messages:
             state.add_message(message)
+        try:
+            tools = tuple(self._tool_registry.get(name) for name in agent.tool_names)
+        except ToolNotRegisteredError as error:
+            self._fail_preparation(
+                state,
+                factory,
+                AgentErrorInfo(
+                    code="agent_tool_not_registered",
+                    message="Uma ferramenta configurada no agente não está registrada.",
+                    details={"tool_name": error.tool_name},
+                ),
+            )
+            return state.to_result()
+        except Exception:
+            self._fail_preparation(state, factory, self._runtime_error())
+            return state.to_result()
+        tool_definitions = tuple(
+            tool.definition.to_model_definition() for tool in tools
+        )
+        required_capabilities = set(additional_required_capabilities)
+        if tool_definitions:
+            required_capabilities.add(ModelCapability.TOOL_CALLING)
         selection_request = self._request_builder.derive_selection_request(
             input_data,
             model_selection,
-            additional_required_capabilities=additional_required_capabilities,
+            additional_required_capabilities=frozenset(required_capabilities),
         )
         try:
             selection = await self._model_registry.select(selection_request)
@@ -528,19 +786,224 @@ class AgentRuntime:
             {"outcome": "completed"},
         )
         self._transition(state, factory, ExecutionStatus.RUNNING)
-        request = self._request_builder.build_request(state, selection)
-        model_context = ModelExecutionContext(
-            execution_id=state.execution_id,
-            agent_id=agent.agent_id,
-            request_id=str(uuid4()),
-        )
         return _PreparedExecution(
             state=state,
             factory=factory,
             provider=provider,
-            request=request,
-            model_context=model_context,
             selection=selection,
+            tool_definitions=tool_definitions,
+        )
+
+    @staticmethod
+    def _model_context(
+        state: ExecutionState,
+        agent: AgentDefinition,
+    ) -> ModelExecutionContext:
+        return ModelExecutionContext(
+            execution_id=state.execution_id,
+            agent_id=agent.agent_id,
+            request_id=str(uuid4()),
+        )
+
+    async def _process_tool_calls(
+        self,
+        *,
+        state: ExecutionState,
+        factory: AgentEventFactory,
+        response: ModelResponse,
+        policies: _ExecutionPolicies,
+    ) -> AgentResult[object] | None:
+        """Process one model-ordered tool batch and restore running state."""
+        if not state.agent.tool_names:
+            self._fail(
+                state,
+                factory,
+                AgentErrorInfo(
+                    code="unexpected_tool_call",
+                    message=(
+                        "O modelo solicitou uma ferramenta não oferecida pelo agente."
+                    ),
+                ),
+            )
+            return state.to_result()
+
+        state.add_message(
+            ModelMessage(
+                role=MessageRole.ASSISTANT,
+                content=response.content,
+                tool_calls=response.tool_calls,
+            )
+        )
+        for call in response.tool_calls:
+            self._record(
+                state,
+                factory,
+                AgentEventType.TOOL_REQUESTED,
+                {
+                    "tool_call_id": call.tool_call_id,
+                    "tool_name": call.name,
+                    "argument_keys": sorted(call.arguments),
+                },
+            )
+        self._transition(state, factory, ExecutionStatus.WAITING_FOR_TOOL)
+        self._transition(state, factory, ExecutionStatus.EXECUTING_TOOL)
+
+        for call in response.tool_calls:
+            previous = state.get_tool_call_record(call.tool_call_id)
+            if previous is not None:
+                if (
+                    previous.tool_name != call.name
+                    or previous.arguments != call.arguments
+                ):
+                    self._fail(
+                        state,
+                        factory,
+                        AgentErrorInfo(
+                            code="tool_call_id_conflict",
+                            message=(
+                                "O modelo reutilizou um tool_call_id com dados "
+                                "diferentes."
+                            ),
+                            details={"tool_call_id": call.tool_call_id},
+                        ),
+                    )
+                    return state.to_result()
+                self._record_tool_completion(
+                    state,
+                    factory,
+                    previous.result,
+                    deduplicated=True,
+                )
+                state.add_message(self._tool_result_mapper.map(previous.result))
+                continue
+
+            registered = self._tool_registry.try_get(call.name)
+            if registered is not None and call.name not in state.agent.tool_names:
+                self._fail(
+                    state,
+                    factory,
+                    AgentErrorInfo(
+                        code="tool_not_available_for_agent",
+                        message=(
+                            "A ferramenta solicitada não está disponível ao agente."
+                        ),
+                        details={"tool_name": call.name},
+                    ),
+                )
+                return state.to_result()
+
+            request = ToolExecutionRequest(
+                tool_call_id=call.tool_call_id,
+                tool_name=call.name,
+                arguments=call.arguments,
+            )
+            context = ToolExecutionContext(
+                execution_id=state.execution_id,
+                agent_id=state.agent.agent_id,
+                tool_call_id=call.tool_call_id,
+                identity=state.context.identity,
+            )
+            try:
+                prepared = self._tool_executor.prepare(request, context)
+            except ToolExecutionInvariantError:
+                self._fail(
+                    state,
+                    factory,
+                    AgentErrorInfo(
+                        code="tool_execution_invariant",
+                        message=(
+                            "O executor de ferramentas violou uma invariante interna."
+                        ),
+                    ),
+                )
+                return state.to_result()
+            except Exception:
+                self._fail(state, factory, self._runtime_error())
+                return state.to_result()
+            if isinstance(prepared, ToolExecutionResult):
+                self._record_processed_tool_call(state, call, prepared)
+                self._record_tool_completion(state, factory, prepared)
+                state.add_message(self._tool_result_mapper.map(prepared))
+                continue
+
+            violation = self._limit_checker.check_tool_call_allowed(
+                limits=policies.limits,
+                current_tool_call_count=state.tool_call_count,
+            )
+            if violation is not None:
+                return self._exceed_limit(state, factory, violation)
+            state.increment_tool_calls()
+            self._record(
+                state,
+                factory,
+                AgentEventType.TOOL_EXECUTION_STARTED,
+                {"tool_call_id": call.tool_call_id, "tool_name": call.name},
+            )
+            try:
+                result = await policies.deadline.wait_for(
+                    partial(self._tool_executor.execute_prepared, prepared)
+                )
+            except ExecutionDeadlineExpiredError:
+                raise
+            except ToolExecutionInvariantError:
+                self._fail(
+                    state,
+                    factory,
+                    AgentErrorInfo(
+                        code="tool_execution_invariant",
+                        message=(
+                            "O executor de ferramentas violou uma invariante interna."
+                        ),
+                    ),
+                )
+                return state.to_result()
+            except Exception:
+                self._fail(state, factory, self._runtime_error())
+                return state.to_result()
+            self._record_processed_tool_call(state, call, result)
+            self._record_tool_completion(state, factory, result)
+            state.add_message(self._tool_result_mapper.map(result))
+
+        self._transition(state, factory, ExecutionStatus.RUNNING)
+        return None
+
+    @staticmethod
+    def _record_processed_tool_call(
+        state: ExecutionState,
+        call: ToolCall,
+        result: ToolExecutionResult,
+    ) -> None:
+        state.record_tool_call(
+            ToolCallRecord(
+                tool_call_id=call.tool_call_id,
+                tool_name=call.name,
+                arguments=call.arguments,
+                result=result,
+            )
+        )
+
+    def _record_tool_completion(
+        self,
+        state: ExecutionState,
+        factory: AgentEventFactory,
+        result: ToolExecutionResult,
+        *,
+        deduplicated: bool = False,
+    ) -> None:
+        data: dict[str, object] = {
+            "tool_call_id": result.tool_call_id,
+            "tool_name": result.tool_name,
+            "status": result.status.value,
+        }
+        if result.error is not None:
+            data["error_code"] = result.error.code
+        if deduplicated:
+            data["deduplicated"] = True
+        self._record(
+            state,
+            factory,
+            AgentEventType.TOOL_EXECUTION_COMPLETED,
+            data,
         )
 
     def _start_execution(
@@ -617,7 +1080,7 @@ class AgentRuntime:
         error_facts = {
             FinishReason.TOOL_CALL: (
                 "unsupported_tool_call",
-                "Chamadas de ferramentas não são suportadas pelo runtime single-turn.",
+                "A resposta de ferramenta não pôde ser processada pelo runtime.",
             ),
             FinishReason.ERROR: (
                 "model_error_finish_reason",

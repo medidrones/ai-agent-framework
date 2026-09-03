@@ -23,6 +23,7 @@ from atlas_agents.runtime.errors import (
     ExecutionStateInvariantError,
 )
 from atlas_agents.runtime.snapshot import ExecutionSnapshot
+from atlas_agents.runtime.tool_calls import ToolCallRecord
 
 Clock = Callable[[], datetime]
 
@@ -86,6 +87,8 @@ class ExecutionState:
         self._has_usage = False
         self._turn_count = 0
         self._tool_call_count = 0
+        self._tool_calls: list[ToolCallRecord] = []
+        self._tool_calls_by_id: dict[str, ToolCallRecord] = {}
         self._events: list[AgentEvent] = []
         self._output: object | None = None
         self._error: AgentErrorInfo | None = None
@@ -152,6 +155,11 @@ class ExecutionState:
     def tool_call_count(self) -> int:
         """Return the monotonic tool-call counter."""
         return self._tool_call_count
+
+    @property
+    def tool_calls(self) -> tuple[ToolCallRecord, ...]:
+        """Return processed tool-call records in first-seen order."""
+        return tuple(self._tool_calls)
 
     @property
     def events(self) -> tuple[AgentEvent, ...]:
@@ -241,6 +249,28 @@ class ExecutionState:
         mutation_time = self._mutation_timestamp()
         self._tool_call_count += count
         self._updated_at = mutation_time
+
+    def record_tool_call(self, record: ToolCallRecord) -> None:
+        """Record one processed call exactly once for execution-scoped reuse."""
+        self._ensure_active()
+        if record.tool_call_id in self._tool_calls_by_id:
+            raise ExecutionStateInvariantError(
+                "Uma chamada de ferramenta não pode ser registrada duas vezes."
+            )
+        mutation_time = self._mutation_timestamp()
+        self._tool_calls.append(record)
+        self._tool_calls_by_id[record.tool_call_id] = record
+        self._updated_at = mutation_time
+
+    def get_tool_call_record(self, tool_call_id: str) -> ToolCallRecord | None:
+        """Return a processed call by exact ID without exposing the mutable map."""
+        try:
+            validated_id = _non_empty(tool_call_id)
+        except ValueError as exc:
+            raise ExecutionStateInvariantError(
+                "O identificador da chamada de ferramenta não pode estar vazio."
+            ) from exc
+        return self._tool_calls_by_id.get(validated_id)
 
     def add_model_usage(self, usage: ModelUsage) -> None:
         """Aggregate provider usage, propagating an unknown monetary cost."""
@@ -343,6 +373,7 @@ class ExecutionState:
             usage=self._usage,
             turn_count=self._turn_count,
             tool_call_count=self._tool_call_count,
+            tool_calls=self.tool_calls,
             events=self.events,
             output=deepcopy(self._output),
             error=self._error,

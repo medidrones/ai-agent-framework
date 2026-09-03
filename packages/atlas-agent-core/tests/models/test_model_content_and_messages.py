@@ -10,6 +10,7 @@ from atlas_agents import (
     MessageRole,
     ModelMessage,
     TextContent,
+    ToolCall,
 )
 
 
@@ -116,3 +117,34 @@ def test_model_message_supports_multiple_multimodal_items() -> None:
 def test_tool_message_requires_tool_call_identifier() -> None:
     with pytest.raises(ValidationError, match="tool_call_id"):
         ModelMessage(role=MessageRole.TOOL, content=(TextContent(text="OK"),))
+
+
+def test_assistant_message_preserves_provider_neutral_tool_calls() -> None:
+    call = ToolCall(tool_call_id="call-1", name="search", arguments={"q": "atlas"})
+    message = ModelMessage(
+        role=MessageRole.ASSISTANT,
+        content=(TextContent(text="Vou pesquisar."),),
+        tool_calls=(call,),
+    )
+
+    assert message.tool_calls == (call,)
+    assert message.model_dump(mode="json")["tool_calls"] == [
+        call.model_dump(mode="json")
+    ]
+    with pytest.raises(ValidationError):
+        message.tool_calls = ()
+
+
+@pytest.mark.parametrize(
+    "role",
+    [MessageRole.SYSTEM, MessageRole.DEVELOPER, MessageRole.USER, MessageRole.TOOL],
+)
+def test_non_assistant_messages_reject_tool_calls(role: MessageRole) -> None:
+    call = ToolCall(tool_call_id="call-1", name="search", arguments={})
+
+    with pytest.raises(ValidationError, match="assistant"):
+        ModelMessage(
+            role=role,
+            tool_call_id="call-1" if role is MessageRole.TOOL else None,
+            tool_calls=(call,),
+        )

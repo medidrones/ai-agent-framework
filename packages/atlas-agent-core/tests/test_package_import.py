@@ -93,6 +93,8 @@ def test_runtime_state_contracts_are_intentionally_public() -> None:
         "RuntimeInputRejectedError",
         "RuntimeResultItem",
         "RuntimeStreamItem",
+        "ToolCallRecord",
+        "ToolResultMessageMapper",
     }
 
     assert expected <= set(atlas_agents.__all__)

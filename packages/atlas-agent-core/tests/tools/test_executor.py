@@ -12,6 +12,7 @@ from atlas_agents import (
     ToolExecutionContext,
     ToolExecutionInvariantError,
     ToolExecutionRequest,
+    ToolExecutionResult,
     ToolExecutionStatus,
     ToolExecutor,
     ToolOutput,
@@ -102,6 +103,20 @@ async def test_executor_happy_path_preserves_identity_and_context() -> None:
     assert result.completed_at >= result.started_at
     assert tool.call_count == 1
     assert tool.calls == [(request.arguments, context)]
+
+
+@pytest.mark.asyncio
+async def test_prepare_does_not_execute_until_explicit_prepared_invocation() -> None:
+    tool = FakeTool(tool_definition())
+    executor = _executor(tool)
+
+    prepared = executor.prepare(_request(), _context())
+
+    assert not isinstance(prepared, ToolExecutionResult)
+    assert tool.call_count == 0
+    result = await executor.execute_prepared(prepared)
+    assert result.status is ToolExecutionStatus.SUCCEEDED
+    assert tool.call_count == 1
 
 
 @pytest.mark.asyncio

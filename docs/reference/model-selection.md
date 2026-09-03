@@ -144,7 +144,7 @@ candidate_count
 O runtime obtém a instância selecionada com
 `registry.get(selection.provider_name)`.
 
-Na execução single-turn, o runtime une requisitos do caller às capabilities
+Na execução do runtime, os requisitos do caller são unidos às capabilities
 derivadas do input: `TEXT_GENERATION` sempre, `VISION` para imagens e
 `AUDIO_INPUT` para áudio. Restrições explícitas de provider/modelo continuam sem
 fallback. O provider resolvido é usado somente durante a chamada e nunca é
@@ -173,5 +173,5 @@ metadata do request.
 
 Não há provider concreto, fallback, retry, cache, plugin discovery, config
 loader, roteamento por custo/latência ou health check. `AgentRuntime` utiliza
-esta camada para uma única seleção e uma chamada de modelo, sem alterar as
-responsabilidades do registry.
+esta camada para uma única seleção por execução. O resultado selecionado é
+reutilizado em todos os turnos, sem alterar as responsabilidades do registry.

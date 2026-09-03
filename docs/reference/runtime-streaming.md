@@ -1,7 +1,8 @@
 # Streaming do runtime
 
-`AgentRuntime.stream()` executa uma única chamada a `ModelProvider.stream()` e
-expõe o progresso da execução sem depender de um SDK concreto. O retorno é um
+`AgentRuntime.stream()` executa chamadas sucessivas a `ModelProvider.stream()`
+quando o modelo solicita ferramentas e expõe todo o progresso sem depender de
+um SDK concreto. O retorno é um
 `AsyncIterator[RuntimeStreamItem]`: cada item intermediário é um
 `RuntimeEventItem`, e o último item é sempre um único `RuntimeResultItem` quando
 a iteração termina normalmente.
@@ -28,12 +29,13 @@ Os itens são modelos imutáveis e formam uma união discriminada pelo campo
 O modo streaming acrescenta `STREAMING` às capabilities obrigatórias derivadas
 do input. Um modelo sem essa capability não é selecionado, inclusive quando o
 caller informa provider e modelo explicitamente. Não existe fallback para
-`generate()`, reconexão ou retry: cada execução inicia no máximo um stream do
-provider e contabiliza um turno quando essa invocação começa.
+`generate()`, reconexão ou retry: todos os turnos incrementais usam
+exclusivamente `stream()` e cada novo stream contabiliza um turno.
 
 Validação de input, construção das mensagens, seleção, contexto do modelo,
 política de `FinishReason` e estados terminais são compartilhados com `run()`.
-As duas APIs diferem somente na forma de obter e entregar a resposta.
+As duas APIs compartilham o mesmo loop; diferem somente na forma de obter e
+entregar cada resposta do modelo.
 
 ```text
 Consumer
@@ -142,8 +144,12 @@ budget são avaliados após a resposta final reconstruída. Deltas já observado
 não podem ser retirados, mas o resultado terminal fica sem output e sem nova
 mensagem assistant. Consulte [execution-limits.md](execution-limits.md).
 
+Quando a resposta reconstruída termina em `TOOL_CALL`, o runtime executa o
+batch sequencialmente, acrescenta as mensagens `ASSISTANT` e `TOOL` ao histórico
+e abre outro stream. Eventos de ferramentas e de modelo compartilham o mesmo
+journal. Consulte [multi-turn-runtime.md](multi-turn-runtime.md).
+
 ## Limites
 
-Esta versão não executa tool calls, embora preserve seus eventos e reconstrua a
-resposta. Também não oferece retry, fallback, reconexão, múltiplos turnos,
-memória, RAG, aprovação, guardrails ou provider concreto.
+Esta versão não oferece retry, fallback, reconexão, tools paralelas, memória,
+RAG, aprovação, guardrails ou provider concreto.

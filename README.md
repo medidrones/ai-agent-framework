@@ -39,7 +39,7 @@ sem depender de SDKs concretos. Providers podem ser registrados e seus modelos
 selecionados por capabilities e limites com desempate determinístico.
 O estado de execução em memória já pode integrar esses contratos, acumular
 mensagens e uso, validar eventos e produzir snapshots e resultados terminais.
-`AgentRuntime` coordena uma execução single-turn completa por meio de
+`AgentRuntime` coordena execuções completas por meio de
 `ModelProvider.generate()` ou entrega incremental por `ModelProvider.stream()`,
 sem depender de provider concreto. O streaming valida sequência, protocolo,
 tool calls e snapshots cumulativos de uso antes de reconstruir a resposta.
@@ -48,10 +48,11 @@ governam ambos os modos sem adicionar dependências de provider.
 Uma camada independente de ferramentas já oferece contratos imutáveis, registry
 determinístico, autorização, validação JSON Schema e execução assíncrona segura.
 
-O executor de ferramentas ainda não está ligado ao `AgentRuntime`: não existe o
-loop `modelo → ferramenta → modelo`. Também não existem retries, fallback,
-memória, RAG ou integração concreta com modelos. Cada modo do runtime realiza
-exatamente uma chamada pela abstração injetada.
+Agentes declaram uma allowlist ordenada de ferramentas. O runtime executa o loop
+`modelo → ferramenta → modelo`, preserva o histórico provider-neutral, protege
+chamadas duplicadas dentro da execução e suporta múltiplos model turns nos modos
+completo e streaming. Ainda não existem retries automáticos, fallback, memória,
+RAG, approval ou integração concreta com modelos.
 
 ## Requisitos
 
@@ -125,7 +126,8 @@ incremental está em
 As políticas operacionais estão descritas em
 [docs/reference/execution-limits.md](docs/reference/execution-limits.md), e a
 infraestrutura segura de ferramentas em
-[docs/reference/tools.md](docs/reference/tools.md).
+[docs/reference/tools.md](docs/reference/tools.md). O loop agentic completo está
+em [docs/reference/multi-turn-runtime.md](docs/reference/multi-turn-runtime.md).
 
 Consulte [ARCHITECTURE.md](ARCHITECTURE.md) para conhecer o desenho de alto
 nível e

@@ -12,11 +12,13 @@ def test_agent_definition_accepts_valid_data() -> None:
         name="Support Agent",
         description="Answers general questions.",
         instructions="Respond clearly.",
+        tool_names=("search", "create_ticket"),
         metadata={"version": 1},
     )
 
     assert definition.agent_id == "support-agent"
     assert definition.metadata == {"version": 1}
+    assert definition.tool_names == ("search", "create_ticket")
 
 
 @pytest.mark.parametrize(
@@ -63,4 +65,21 @@ def test_agent_definition_rejects_non_serializable_metadata() -> None:
             name="Agent",
             instructions="Run.",
             metadata={"invalid": object()},
+        )
+
+
+def test_agent_definition_rejects_empty_or_duplicate_tool_names() -> None:
+    with pytest.raises(ValidationError, match="não pode estar vazio"):
+        AgentDefinition(
+            agent_id="agent",
+            name="Agent",
+            instructions="Run.",
+            tool_names=(" ",),
+        )
+    with pytest.raises(ValidationError, match="não podem se repetir"):
+        AgentDefinition(
+            agent_id="agent",
+            name="Agent",
+            instructions="Run.",
+            tool_names=("search", "search"),
         )

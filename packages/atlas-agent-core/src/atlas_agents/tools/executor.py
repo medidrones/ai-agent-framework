@@ -1,5 +1,6 @@
 """Secure operational boundary for executing explicitly registered tools."""
 
+from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from atlas_agents.tools.context import ToolExecutionContext
@@ -13,10 +14,21 @@ from atlas_agents.tools.result import (
     ToolExecutionStatus,
     ToolOutput,
 )
+from atlas_agents.tools.tool import Tool
 from atlas_agents.tools.validation import (
     JsonSchemaToolArgumentValidator,
     ToolArgumentValidator,
 )
+
+
+@dataclass(frozen=True)
+class _PreparedToolExecution:
+    """Hold one authorized and validated invocation before it starts."""
+
+    request: ToolExecutionRequest
+    context: ToolExecutionContext
+    tool: Tool
+    started_at: datetime
 
 
 class ToolExecutor:
@@ -46,6 +58,17 @@ class ToolExecutor:
         context: ToolExecutionContext,
     ) -> ToolExecutionResult:
         """Execute one request while preserving identity and cancellation."""
+        prepared = self.prepare(request, context)
+        if isinstance(prepared, ToolExecutionResult):
+            return prepared
+        return await self.execute_prepared(prepared)
+
+    def prepare(
+        self,
+        request: ToolExecutionRequest,
+        context: ToolExecutionContext,
+    ) -> _PreparedToolExecution | ToolExecutionResult:
+        """Resolve, authorize, and validate without invoking the implementation."""
         started_at = datetime.now(UTC)
         tool = self._registry.try_get(request.tool_name)
         if tool is None:
@@ -102,12 +125,25 @@ class ToolExecutor:
                 ),
             )
 
+        return _PreparedToolExecution(
+            request=request,
+            context=context,
+            tool=tool,
+            started_at=started_at,
+        )
+
+    async def execute_prepared(
+        self,
+        prepared: _PreparedToolExecution,
+    ) -> ToolExecutionResult:
+        """Invoke exactly one previously authorized and validated tool."""
+        request = prepared.request
         try:
-            output = await tool.execute(request.arguments, context)
+            output = await prepared.tool.execute(request.arguments, prepared.context)
         except ToolError as exc:
             return self._failure(
                 request=request,
-                started_at=started_at,
+                started_at=prepared.started_at,
                 status=ToolExecutionStatus.FAILED,
                 error=ToolExecutionError(
                     code=exc.code,
@@ -119,7 +155,7 @@ class ToolExecutor:
         except Exception:
             return self._failure(
                 request=request,
-                started_at=started_at,
+                started_at=prepared.started_at,
                 status=ToolExecutionStatus.FAILED,
                 error=ToolExecutionError(
                     code="tool_execution_error",
@@ -130,7 +166,7 @@ class ToolExecutor:
         if not isinstance(output, ToolOutput):
             return self._failure(
                 request=request,
-                started_at=started_at,
+                started_at=prepared.started_at,
                 status=ToolExecutionStatus.FAILED,
                 error=ToolExecutionError(
                     code="tool_invalid_output",
@@ -142,7 +178,7 @@ class ToolExecutor:
             tool_name=request.tool_name,
             status=ToolExecutionStatus.SUCCEEDED,
             output=output,
-            started_at=started_at,
+            started_at=prepared.started_at,
             completed_at=datetime.now(UTC),
             metadata=request.metadata,
         )

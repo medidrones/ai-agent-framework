@@ -64,8 +64,9 @@ públicos são `max_turns`, `max_tool_calls`, `max_input_tokens`,
 `max_turns` representa o número máximo de invocações do modelo. O runtime
 verifica o contador antes, incrementa o turno e somente então chama o provider.
 `max_tool_calls` representa ferramentas efetivamente executadas, não solicitações
-do modelo. Como o Tool Runtime ainda não existe, somente o contrato reutilizável
-de pre-check é oferecido nesta fase.
+do modelo. O runtime prepara autorização e argumentos primeiro, verifica o
+limite imediatamente antes da invocação e incrementa o contador apenas quando
+a implementação será chamada.
 
 ## Enforcement pós-resposta
 
@@ -112,8 +113,9 @@ valores.
 ## Deadline absoluto
 
 O timeout utiliza um único `ExecutionDeadline` baseado em `time.monotonic()`.
-O prazo começa com a execução e cobre validação, seleção, invocação e
-processamento. No streaming, cada espera usa o tempo restante do mesmo deadline;
+O prazo começa com a execução e cobre validação, seleção, todos os turnos do
+modelo, execução de ferramentas e processamento. No streaming, cada espera usa
+o tempo restante do mesmo deadline;
 um chunk não renova o prazo e o tempo do consumidor entre chamadas ao iterador
 não é envolvido por um contexto de cancelamento do runtime.
 
@@ -153,4 +155,4 @@ não retryable nesta versão.
 
 Não há pricing database, tokenizer, previsão ou reserva de custo, conversão de
 moeda, quotas globais ou por tenant, rate limiting, limite de concorrência,
-retry, fallback, roteamento adaptativo, Tool Runtime ou execução multi-turn.
+retry, fallback, roteamento adaptativo, aprovação ou execução paralela de tools.

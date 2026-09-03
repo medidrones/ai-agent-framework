@@ -12,6 +12,7 @@ class AgentDefinition(_FrozenModel):
     name: str
     description: str = ""
     instructions: str
+    tool_names: tuple[str, ...] = ()
     metadata: dict[str, object] = Field(default_factory=dict)
 
     @field_validator("agent_id", "name", "instructions")
@@ -19,6 +20,16 @@ class AgentDefinition(_FrozenModel):
     def validate_required_text(cls, value: str) -> str:
         """Reject required text containing no meaningful characters."""
         return _non_empty(value)
+
+    @field_validator("tool_names")
+    @classmethod
+    def validate_tool_names(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        """Require unique non-empty tool names while preserving declared order."""
+        validated = tuple(_non_empty(name) for name in value)
+        if len(set(validated)) != len(validated):
+            msg = "Os nomes de ferramentas do agente não podem se repetir"
+            raise ValueError(msg)
+        return validated
 
     @field_validator("metadata")
     @classmethod

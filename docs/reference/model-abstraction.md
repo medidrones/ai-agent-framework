@@ -88,8 +88,8 @@ model ID continua opaco. Preços não fazem parte do descriptor.
 - `AudioContent` contém URI opaca, media type e metadata.
 
 O core não baixa URIs, não lê arquivos nem interpreta Base64. Mensagens de
-papel `TOOL` devem informar `tool_call_id`; outras políticas de mensagens ficam
-reservadas ao futuro Tool Runtime.
+papel `TOOL` devem informar `tool_call_id`. Somente mensagens `ASSISTANT` podem
+conter `tool_calls`; os demais papéis rejeitam esse campo.
 
 ## Tools e structured output
 
@@ -211,6 +211,6 @@ responsáveis por nunca inserir segredos nesses mapas.
 
 Esta camada não implementa SDK de provider, rede, router, fallback, retry nem
 cálculo de custos. A execução isolada de ferramentas pertence ao namespace
-`atlas_agents.tools`; o loop que devolve resultados ao modelo ainda não existe.
-Registry, seleção e runtime provider-neutral são implementados no core sobre os
-contratos aqui definidos.
+`atlas_agents.tools`; o `AgentRuntime` coordena o loop provider-neutral descrito
+em [multi-turn-runtime.md](multi-turn-runtime.md). Registry e seleção também são
+implementados no core sobre os contratos aqui definidos.

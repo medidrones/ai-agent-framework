@@ -23,6 +23,7 @@ class FakeTool(Tool):
         self.dependency = dependency
         self.call_count = 0
         self.calls: list[tuple[dict[str, object], ToolExecutionContext]] = []
+        self.started_event = asyncio.Event()
 
     @property
     def definition(self) -> ToolDefinition:
@@ -35,6 +36,7 @@ class FakeTool(Tool):
     ) -> ToolOutput:
         self.call_count += 1
         self.calls.append((arguments, context))
+        self.started_event.set()
         if self.wait_event is not None:
             await self.wait_event.wait()
         if self.exception is not None:

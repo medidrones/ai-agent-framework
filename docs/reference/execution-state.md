@@ -17,6 +17,7 @@ ExecutionState
       ├── ExecutionLifecycle
       ├── ModelSelectionResult
       ├── ModelMessage[]
+      ├── ToolCallRecord[]
       ├── Usage
       ├── AgentEvent[]
       ├── turn_count / tool_call_count
@@ -42,6 +43,7 @@ state.add_message(message)
 state.set_model_selection(selection)
 state.increment_turn()
 state.increment_tool_calls(2)
+state.record_tool_call(tool_call_record)
 state.add_model_usage(model_usage)
 state.record_event(event)
 
@@ -68,6 +70,7 @@ fachadas públicas compatíveis e devem delegar ao runtime, sem duplicar o loop.
 - toda instância inicia em `CREATED`;
 - mensagens mantêm ordem e são expostas como tupla;
 - uma seleção de modelo pode ser registrada exatamente uma vez;
+- chamadas de ferramenta mantêm ordem e um ID não pode ser registrado duas vezes;
 - turnos crescem de um em um e chamadas de ferramentas somente por valor
   inteiro positivo;
 - eventos pertencem à mesma execução e seguem a sequência contínua `1, 2, 3`;
@@ -101,6 +104,10 @@ Portanto, o valor nunca sugere um custo total que não possa ser comprovado.
 | `ExecutionSnapshot` | frozen | observação serializável |
 | `AgentResult` | frozen | resultado público terminal |
 
+`ToolCallRecord` preserva ID, nome, argumentos e resultado normalizado. Esse
+journal pertence somente à execução e permite deduplicar solicitações repetidas
+sem criar estado global.
+
 `snapshot()` produz cópias lógicas das coleções, metadados e output. Alterações
 posteriores no estado não modificam snapshots anteriores. O snapshot contém
 somente dados e não inclui lifecycle, provider, registry, clock, locks ou
@@ -108,7 +115,8 @@ callbacks. Restauração ainda não é suportada.
 
 `to_result()` só funciona em estados terminais e mapeia `execution_id`, status,
 output, uso, eventos e erro. Mensagens e seleção permanecem no estado e no
-snapshot porque não pertencem ao contrato público atual de `AgentResult`.
+snapshot porque não pertencem ao contrato público atual de `AgentResult`. O
+journal de chamadas de ferramenta também integra o snapshot.
 
 ## Fora do escopo
 

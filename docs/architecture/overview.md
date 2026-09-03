@@ -9,11 +9,9 @@ ou adicionar plugins e adapters de transporte opcionais.
 O framework fornece abstrações reutilizáveis para agentes de IA sem incorporar
 uma aplicação de negócio. Nesta fase, o escopo inclui a fundação do monorepo,
 os gates de qualidade, os contratos fundamentais de agentes e o protocolo de
-lifecycle, além da abstração provider-agnostic de modelos. O runtime single-turn
-já coordena uma chamada completa ou incremental pela abstração de modelos;
-integrações concretas e comportamentos multi-turn pertencem às próximas fases.
-A camada de ferramentas já pode validar e executar implementações registradas,
-mas ainda não está conectada ao runtime de agentes.
+lifecycle, além da abstração provider-agnostic de modelos. O runtime coordena
+chamadas completas ou incrementais e executa ciclos multi-turn com ferramentas
+permitidas pelo agente. Integrações concretas continuam em pacotes externos.
 
 ## Direção das dependências
 
@@ -52,8 +50,8 @@ implementará seus contratos.
 - impedir dependências concretas dentro do core;
 - controlar o estado local de uma execução sem executar providers ou
   ferramentas;
-- executar um único turn por `ModelProvider.generate()` ou
-  `ModelProvider.stream()`, sem SDK concreto;
+- executar múltiplos turns por `ModelProvider.generate()` ou exclusivamente
+  por `ModelProvider.stream()` no modo incremental, sem SDK concreto;
 - validar e reconstruir streams estruturados sem expor chunks de SDKs.
 - aplicar limites e budget por execução com checker puro e deadline monotônico.
 - registrar ferramentas em ordem determinística e derivar sua visão do modelo;
@@ -68,9 +66,10 @@ isoladas na distribuição que as utiliza.
 
 `ExecutionState` permanece responsável somente por mutações controladas,
 snapshots e resultados terminais. `AgentRuntime` possui ownership único da
-orquestração e realiza uma chamada async a `ModelProvider.generate()` ou
-`ModelProvider.stream()`. Nenhum provider concreto, loop de tools, retry,
-fallback, reconexão ou segundo turno é implementado no core.
+orquestração e realiza quantas chamadas async a `ModelProvider.generate()` ou
+`ModelProvider.stream()` forem admitidas pelos limites do loop. O runtime
+integra tools do core sem conhecer suas dependências concretas. Nenhum provider
+concreto, retry, fallback ou reconexão é implementado no core.
 
 As políticas são value objects imutáveis fornecidos ao runtime. O checker não
 conhece lifecycle ou provider; ele retorna violações estruturadas. O runtime
@@ -82,3 +81,8 @@ restrito não oferece container de serviços. O executor resolve somente nomes
 exatos já registrados, verifica autorização antes do schema e não importa ou
 executa código indicado pelo modelo. Consulte
 [`docs/reference/tools.md`](../reference/tools.md).
+
+O agente restringe quais registros podem ser apresentados e executados. O
+estado guarda o histórico de mensagens e um journal imutável de tool calls para
+reutilização segura dentro da execução. Consulte
+[`docs/reference/multi-turn-runtime.md`](../reference/multi-turn-runtime.md).

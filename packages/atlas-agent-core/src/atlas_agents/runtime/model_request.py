@@ -11,6 +11,7 @@ from atlas_agents.models import (
     ModelRequest,
     ModelSelectionRequest,
     ModelSelectionResult,
+    ModelToolDefinition,
     TextContent,
 )
 from atlas_agents.runtime.errors import RuntimeInputRejectedError
@@ -18,7 +19,7 @@ from atlas_agents.runtime.state import ExecutionState
 
 
 class ModelRequestBuilder:
-    """Build validated single-turn messages, requirements, and model requests."""
+    """Build validated messages, requirements, and model requests."""
 
     def validate_input(self, input_data: AgentInput) -> None:
         """Reject empty input and attachment types unsupported by this runtime."""
@@ -32,8 +33,7 @@ class ModelRequestBuilder:
                 raise RuntimeInputRejectedError(
                     code="unsupported_attachment",
                     message=(
-                        "O runtime single-turn aceita somente attachments de imagem "
-                        "ou áudio."
+                        "O runtime aceita somente attachments de imagem ou áudio."
                     ),
                 )
 
@@ -103,9 +103,12 @@ class ModelRequestBuilder:
         self,
         state: ExecutionState,
         selection: ModelSelectionResult,
+        *,
+        tools: tuple[ModelToolDefinition, ...] = (),
     ) -> ModelRequest:
-        """Build one vendor-neutral request from selected model and state messages."""
+        """Build one request from the selected model and current conversation."""
         return ModelRequest(
             model=selection.model,
             messages=state.messages,
+            tools=tools,
         )

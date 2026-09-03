@@ -1,10 +1,9 @@
-# Runtime single-turn de agentes
+# Runtime de agentes
 
-`AgentRuntime` executa o primeiro pipeline funcional do Atlas por meio da
-abstração `ModelProvider`. Cada chamada de `run()` cria estado e factory de
-eventos próprios, seleciona um modelo e realiza no máximo uma chamada
-`generate()`. A API `stream()` reutiliza o mesmo pipeline e realiza no máximo
-uma chamada `ModelProvider.stream()`.
+`AgentRuntime` executa o pipeline provider-agnostic do Atlas. Cada chamada de
+`run()` ou `stream()` cria estado e factory de eventos próprios, seleciona um
+modelo uma única vez e pode alternar chamadas do modelo com ferramentas até
+obter uma resposta terminal ou atingir uma política de execução.
 
 ```python
 runtime = AgentRuntime(model_registry=registry)
@@ -57,6 +56,10 @@ AgentRuntime
      ├── ModelProvider.generate()
      │       ↓
      │   ModelResponse
+     │       ↓ TOOL_CALL
+     ├── ToolExecutor
+     │       ↓
+     │   ModelMessage(TOOL)
      │
      ├── ou ModelProvider.stream()
      │       ↓
@@ -94,7 +97,7 @@ sequenceDiagram
     R-->>C: AgentResult
 ```
 
-O happy path percorre exatamente:
+Sem ferramentas, o happy path percorre exatamente:
 
 ```text
 CREATED → VALIDATING_INPUT → LOADING_CONTEXT → RUNNING
@@ -119,9 +122,10 @@ caller nunca consegue remover uma capability exigida pelo input.
 `stream()` acrescenta também `STREAMING` aos requisitos e não recorre a
 `generate()` quando nenhum modelo compatível está disponível.
 
-O request ainda não contém tools, structured output, temperatura ou opções
-específicas de vendor. Embora `ToolRegistry` e `ToolExecutor` já existam como
-infraestrutura independente, o runtime não os recebe nem executa nesta versão.
+O request contém somente as tools declaradas em `AgentDefinition.tool_names`,
+na ordem da allowlist. Quando ela não está vazia, o runtime exige também
+`TOOL_CALLING`. Structured output, temperatura e opções específicas de vendor
+continuam fora da construção automática.
 `ModelExecutionContext` transporta somente IDs de
 correlação e um `request_id` novo, sem metadata ou credenciais do consumidor.
 
@@ -163,8 +167,8 @@ diferente de `COMPLETED`. Sem resposta, nenhum uso é inventado. O contador de
 turnos é incrementado imediatamente antes de `generate()` ou da criação do
 stream; falha de seleção mantém zero, enquanto qualquer invocação do provider
 contabiliza um turno.
-`tool_call_count` representa ferramentas efetivamente executadas e permanece
-zero nesta versão.
+`tool_call_count` representa ferramentas efetivamente executadas. Solicitações
+desconhecidas, negadas, inválidas ou deduplicadas não incrementam o contador.
 
 Antes da invocação, o runtime verifica `max_turns`; somente depois incrementa o
 contador e chama o provider. Após receber a resposta, agrega usage e verifica,
@@ -176,7 +180,7 @@ Consulte [execution-limits.md](execution-limits.md).
 | --- | --- | --- |
 | `STOP` | `COMPLETED` | concatena conteúdo textual |
 | `LENGTH` | `COMPLETED` | aceita texto parcial e sinaliza no evento |
-| `TOOL_CALL` | `FAILED` | `unsupported_tool_call` |
+| `TOOL_CALL` | continua o loop | executa o batch sequencialmente e devolve resultados ao modelo |
 | `CONTENT_FILTER` | `REJECTED` | bloqueio informado pelo provider |
 | `CANCELLED` | `CANCELLED` | retorna resultado cancelado |
 | `ERROR` | `FAILED` | `model_error_finish_reason` |
@@ -208,8 +212,9 @@ repropagado.
 
 ## Limites desta versão
 
-Não há segunda chamada de modelo, retry, fallback, reconexão, loop ou execução
-de tools pelo runtime, RAG, memória, aprovação, guardrails, previsão de
-tokens/custo ou provider concreto. O registry de modelos pode ser compartilhado
-para leitura, mas não deve ser alterado durante uma execução. A execução isolada
-e segura de ferramentas está descrita em [tools.md](tools.md).
+Não há retry automático, fallback, reconexão, execução paralela de tools, RAG,
+memória, aprovação, guardrails, previsão de tokens/custo ou provider concreto.
+O registry de modelos pode ser compartilhado para leitura, mas não deve ser
+alterado durante uma execução. O loop e sua deduplicação por execução estão em
+[multi-turn-runtime.md](multi-turn-runtime.md), e a fronteira segura de
+ferramentas está em [tools.md](tools.md).

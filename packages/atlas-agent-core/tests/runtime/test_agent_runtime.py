@@ -269,7 +269,7 @@ async def test_finish_reason_matrix(
         assert result.error.code == expected_code
 
 
-async def test_tool_call_finish_fails_without_executing_tools() -> None:
+async def test_tool_call_finish_fails_when_agent_has_no_tools() -> None:
     provider = _provider(
         response=_response(
             FinishReason.TOOL_CALL,
@@ -281,7 +281,7 @@ async def test_tool_call_finish_fails_without_executing_tools() -> None:
 
     assert result.status is ExecutionStatus.FAILED
     assert result.error is not None
-    assert result.error.code == "unsupported_tool_call"
+    assert result.error.code == "unexpected_tool_call"
     assert provider.generate_calls == 1
 
 

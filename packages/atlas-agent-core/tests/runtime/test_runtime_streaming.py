@@ -291,9 +291,7 @@ async def test_rejects_empty_completed_text() -> None:
     assert error.code == "model_empty_text_response"
 
 
-async def test_tool_call_stream_is_reconstructed_then_rejected_by_current_policy() -> (
-    None
-):
+async def test_tool_call_stream_is_rejected_without_agent_tools() -> None:
     tool_call = ToolCall(
         tool_call_id="call-1",
         name="search",
@@ -327,7 +325,7 @@ async def test_tool_call_stream_is_reconstructed_then_rejected_by_current_policy
     error = _result(items).result.error
 
     assert error is not None
-    assert error.code == "unsupported_tool_call"
+    assert error.code == "unexpected_tool_call"
     assert AgentEventType.MODEL_TOOL_CALL_ARGUMENT_DELTA in {
         event.event_type for event in _events(items)
     }

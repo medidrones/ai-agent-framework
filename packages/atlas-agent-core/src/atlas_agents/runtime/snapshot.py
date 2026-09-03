@@ -16,6 +16,7 @@ from atlas_agents.agents.result import Usage
 from atlas_agents.agents.status import ExecutionStatus
 from atlas_agents.events import AgentEvent
 from atlas_agents.models import ModelMessage, ModelSelectionResult
+from atlas_agents.runtime.tool_calls import ToolCallRecord
 
 
 class ExecutionSnapshot(_FrozenModel):
@@ -29,6 +30,7 @@ class ExecutionSnapshot(_FrozenModel):
     usage: Usage = Usage()
     turn_count: int = Field(default=0, ge=0)
     tool_call_count: int = Field(default=0, ge=0)
+    tool_calls: tuple[ToolCallRecord, ...] = ()
     events: tuple[AgentEvent, ...] = ()
     output: object | None = None
     error: AgentErrorInfo | None = None
