@@ -41,6 +41,23 @@ from atlas_agents.exceptions import (
     ModelProviderRegistryError,
     ModelSelectionError,
 )
+from atlas_agents.memory import (
+    AgentMemoryError,
+    DefaultMemoryScopePolicy,
+    MemoryCandidate,
+    MemoryContextRenderer,
+    MemoryManager,
+    MemoryPolicyViolationError,
+    MemoryQuery,
+    MemoryScopePolicy,
+    MemoryScopeResolutionError,
+    MemorySearchResult,
+    MemoryStoreProtocolError,
+    MemoryWritePolicy,
+    MemoryWriteRequest,
+    NoMemoryWritePolicy,
+)
+from atlas_agents.memory.types import _MEMORY_TYPE_ORDER
 from atlas_agents.models import (
     FinishReason,
     MessageRole,
@@ -149,6 +166,10 @@ class AgentRuntime:
         approval_policy: ApprovalPolicy | None = None,
         approval_decision_validator: ApprovalDecisionValidator | None = None,
         checkpoint_store: CheckpointStore | None = None,
+        memory_manager: MemoryManager | None = None,
+        memory_scope_policy: MemoryScopePolicy | None = None,
+        memory_context_renderer: MemoryContextRenderer | None = None,
+        memory_write_policy: MemoryWritePolicy | None = None,
         clock: Callable[[], datetime] | None = None,
     ) -> None:
         """Initialize the runtime with explicit replaceable dependencies."""
@@ -180,6 +201,22 @@ class AgentRuntime:
             else DefaultApprovalDecisionValidator()
         )
         self._checkpoint_store = checkpoint_store
+        self._memory_manager = memory_manager
+        self._memory_scope_policy = (
+            memory_scope_policy
+            if memory_scope_policy is not None
+            else DefaultMemoryScopePolicy()
+        )
+        self._memory_context_renderer = (
+            memory_context_renderer
+            if memory_context_renderer is not None
+            else MemoryContextRenderer()
+        )
+        self._memory_write_policy = (
+            memory_write_policy
+            if memory_write_policy is not None
+            else NoMemoryWritePolicy()
+        )
         self._clock = clock if clock is not None else lambda: datetime.now(UTC)
         self._state_restorer = ExecutionStateRestorer()
 
@@ -471,6 +508,22 @@ class AgentRuntime:
         if selection is None:
             self._fail(state, factory, self._runtime_error())
             return state.to_result()
+        if (
+            state.agent.memory is not None
+            and state.agent.memory.enabled
+            and self._memory_manager is None
+        ):
+            self._fail(
+                state,
+                factory,
+                AgentErrorInfo(
+                    code="memory_manager_required",
+                    message=(
+                        "A retomada exige o MemoryManager configurado na execução."
+                    ),
+                ),
+            )
+            return state.to_result()
         try:
             provider = self._model_registry.get(selection.provider_name)
             tools = tuple(
@@ -631,7 +684,7 @@ class AgentRuntime:
             )
             self._transition(state, factory, ExecutionStatus.VALIDATING_OUTPUT)
             self._record(state, factory, AgentEventType.OUTPUT_VALIDATION_STARTED)
-            return self._finish_response(state, factory, response)
+            return await self._finish_response(state, factory, response, policies)
 
     async def stream(
         self,
@@ -821,7 +874,12 @@ class AgentRuntime:
                             factory,
                             AgentEventType.OUTPUT_VALIDATION_STARTED,
                         )
-                        result = self._finish_response(state, factory, response)
+                        result = await self._finish_response(
+                            state,
+                            factory,
+                            response,
+                            policies,
+                        )
         except ExecutionDeadlineExpiredError:
             if not state.is_terminal and not suspended:
                 if self._model_invocation_open(state):
@@ -1017,7 +1075,12 @@ class AgentRuntime:
                     factory,
                     AgentEventType.OUTPUT_VALIDATION_STARTED,
                 )
-                result = self._finish_response(state, factory, response)
+                result = await self._finish_response(
+                    state,
+                    factory,
+                    response,
+                    policies,
+                )
 
             for event in state.events[emitted_events:]:
                 yield RuntimeEventItem(event=event)
@@ -1063,8 +1126,88 @@ class AgentRuntime:
 
         self._transition(state, factory, ExecutionStatus.LOADING_CONTEXT)
         self._record(state, factory, AgentEventType.CONTEXT_LOADING_STARTED)
+        memory_config = agent.memory
+        if (
+            memory_config is not None
+            and memory_config.enabled
+            and self._memory_manager is None
+        ):
+            self._fail_preparation(
+                state,
+                factory,
+                AgentErrorInfo(
+                    code="memory_manager_required",
+                    message=(
+                        "O agente habilitou memória, mas o runtime não possui um "
+                        "MemoryManager."
+                    ),
+                ),
+            )
+            return state.to_result()
         messages = self._request_builder.build_initial_messages(agent, input_data)
-        for message in messages:
+        state.add_message(messages[0])
+        try:
+            memory_message = await self._load_memory_context(
+                state=state,
+                factory=factory,
+                agent=agent,
+                input_data=input_data,
+            )
+        except MemoryScopeResolutionError:
+            self._fail_preparation(
+                state,
+                factory,
+                AgentErrorInfo(
+                    code="memory_scope_unavailable",
+                    message=(
+                        "Não foi possível determinar um escopo seguro para a memória."
+                    ),
+                ),
+            )
+            return state.to_result()
+        except MemoryStoreProtocolError as error:
+            self._fail_preparation(
+                state,
+                factory,
+                AgentErrorInfo(
+                    code=error.code,
+                    message="O armazenamento retornou memória incompatível.",
+                ),
+            )
+            return state.to_result()
+        except MemoryPolicyViolationError:
+            self._fail_preparation(
+                state,
+                factory,
+                AgentErrorInfo(
+                    code="memory_policy_violation",
+                    message="A política de seleção de memória é inválida.",
+                ),
+            )
+            return state.to_result()
+        except AgentMemoryError:
+            self._fail_preparation(
+                state,
+                factory,
+                AgentErrorInfo(
+                    code="memory_read_failed",
+                    message="Não foi possível recuperar a memória configurada.",
+                ),
+            )
+            return state.to_result()
+        except Exception:
+            self._fail_preparation(
+                state,
+                factory,
+                AgentErrorInfo(
+                    code="memory_read_failed",
+                    message="Não foi possível recuperar a memória configurada.",
+                ),
+            )
+            return state.to_result()
+        if memory_message is not None:
+            state.add_message(memory_message)
+        for message in messages[1:]:
             state.add_message(message)
         try:
             tools = tuple(self._tool_registry.get(name) for name in agent.tool_names)
@@ -1136,6 +1279,78 @@ class AgentRuntime:
             selection=selection,
             tool_definitions=tool_definitions,
         )
+
+    async def _load_memory_context(
+        self,
+        *,
+        state: ExecutionState,
+        factory: AgentEventFactory,
+        agent: AgentDefinition,
+        input_data: AgentInput,
+    ) -> ModelMessage | None:
+        """Retrieve configured memory once and render one contextual message."""
+        config = agent.memory
+        manager = self._memory_manager
+        if config is None or not config.read_types or manager is None:
+            return None
+        results: list[MemorySearchResult] = []
+        seen_ids: set[str] = set()
+        query_text = input_data.message if input_data.message.strip() else None
+        for memory_type in _MEMORY_TYPE_ORDER:
+            if memory_type not in config.read_types:
+                continue
+            self._record(
+                state,
+                factory,
+                AgentEventType.MEMORY_RETRIEVAL_STARTED,
+                {"memory_type": memory_type.value},
+            )
+            try:
+                scope = self._memory_scope_policy.scope_for(
+                    memory_type=memory_type,
+                    agent=agent,
+                    context=state.context,
+                )
+                retrieved = await manager.retrieve(
+                    query=MemoryQuery(
+                        scope=scope,
+                        memory_type=memory_type,
+                        text=query_text,
+                        limit=config.max_records_per_type,
+                    )
+                )
+                if any(result.record.memory_id in seen_ids for result in retrieved):
+                    raise MemoryStoreProtocolError(
+                        "O armazenamento repetiu uma memória entre consultas."
+                    )
+                seen_ids.update(result.record.memory_id for result in retrieved)
+            except Exception:
+                self._record(
+                    state,
+                    factory,
+                    AgentEventType.MEMORY_RETRIEVAL_COMPLETED,
+                    {"memory_type": memory_type.value, "outcome": "failed"},
+                )
+                raise
+            self._record(
+                state,
+                factory,
+                AgentEventType.MEMORY_RETRIEVAL_COMPLETED,
+                {
+                    "memory_type": memory_type.value,
+                    "outcome": "completed",
+                    "records_count": len(retrieved),
+                },
+            )
+            results.extend(retrieved)
+        if not results:
+            return None
+        selected = manager.select(
+            results=tuple(results),
+            max_records=len(results),
+            max_characters=config.max_characters,
+        )
+        return self._memory_context_renderer.render(selected)
 
     @staticmethod
     def _model_context(
@@ -1534,11 +1749,12 @@ class AgentRuntime:
         state.record_event(factory.from_transition(validating_transition))
         self._record(state, factory, AgentEventType.INPUT_VALIDATION_STARTED)
 
-    def _finish_response(
+    async def _finish_response(
         self,
         state: ExecutionState,
         factory: AgentEventFactory,
         response: ModelResponse,
+        policies: _ExecutionPolicies,
     ) -> AgentResult[object]:
         if response.finish_reason in {FinishReason.STOP, FinishReason.LENGTH}:
             output = "".join(
@@ -1560,6 +1776,14 @@ class AgentRuntime:
                     "partial": response.finish_reason is FinishReason.LENGTH,
                 },
             )
+            write_failure = await self._write_memories(
+                state=state,
+                factory=factory,
+                output=output,
+                policies=policies,
+            )
+            if write_failure is not None:
+                return write_failure
             state.complete(output)
             state.record_event(factory.from_transition(state.transitions[-1]))
             self._record(state, factory, AgentEventType.EXECUTION_COMPLETED)
@@ -1610,6 +1834,154 @@ class AgentRuntime:
         }
         code, message = error_facts[response.finish_reason]
         return self._failed_output(state, factory, code=code, message=message)
+
+    async def _write_memories(
+        self,
+        *,
+        state: ExecutionState,
+        factory: AgentEventFactory,
+        output: object,
+        policies: _ExecutionPolicies,
+    ) -> AgentResult[object] | None:
+        """Select and write configured memories before successful completion."""
+        config = state.agent.memory
+        if config is None or not config.write_types:
+            return None
+        manager = self._memory_manager
+        if manager is None:
+            self._fail(
+                state,
+                factory,
+                AgentErrorInfo(
+                    code="memory_manager_required",
+                    message="A escrita de memória exige um MemoryManager.",
+                ),
+            )
+            return state.to_result()
+        try:
+            candidates = self._memory_write_policy.select(
+                agent=state.agent,
+                snapshot=state.snapshot(),
+                output=output,
+            )
+            if not isinstance(candidates, tuple) or any(
+                not isinstance(candidate, MemoryCandidate) for candidate in candidates
+            ):
+                raise MemoryPolicyViolationError(
+                    "A política deve retornar uma tupla de candidatas de memória."
+                )
+            requests: list[MemoryWriteRequest] = []
+            for candidate in candidates:
+                if candidate.memory_type not in config.write_types:
+                    raise MemoryPolicyViolationError(
+                        "A política selecionou um tipo não permitido pelo agente."
+                    )
+                scope = self._memory_scope_policy.scope_for(
+                    memory_type=candidate.memory_type,
+                    agent=state.agent,
+                    context=state.context,
+                )
+                requests.append(
+                    MemoryWriteRequest(
+                        memory_type=candidate.memory_type,
+                        scope=scope,
+                        content=candidate.content,
+                        expires_at=candidate.expires_at,
+                        metadata=candidate.metadata,
+                    )
+                )
+        except MemoryScopeResolutionError:
+            self._fail(
+                state,
+                factory,
+                AgentErrorInfo(
+                    code="memory_scope_unavailable",
+                    message=(
+                        "Não foi possível determinar um escopo seguro para a memória."
+                    ),
+                ),
+            )
+            return state.to_result()
+        except Exception:
+            self._fail(
+                state,
+                factory,
+                AgentErrorInfo(
+                    code="memory_policy_violation",
+                    message="A política de escrita de memória é inválida.",
+                ),
+            )
+            return state.to_result()
+        if not requests:
+            return None
+
+        self._transition(state, factory, ExecutionStatus.UPDATING_MEMORY)
+        self._record(
+            state,
+            factory,
+            AgentEventType.MEMORY_UPDATE_STARTED,
+            {"records_count": len(requests)},
+        )
+        written = 0
+        try:
+            for request in requests:
+                await policies.deadline.wait_for(partial(manager.remember, request))
+                written += 1
+        except ExecutionDeadlineExpiredError:
+            self._record(
+                state,
+                factory,
+                AgentEventType.MEMORY_UPDATE_COMPLETED,
+                {"outcome": "timed_out", "records_written": written},
+            )
+            raise
+        except AgentMemoryError:
+            self._record(
+                state,
+                factory,
+                AgentEventType.MEMORY_UPDATE_COMPLETED,
+                {"outcome": "failed", "records_written": written},
+            )
+            self._fail(
+                state,
+                factory,
+                AgentErrorInfo(
+                    code="memory_write_failed",
+                    message="Não foi possível persistir a memória selecionada.",
+                ),
+            )
+            return state.to_result()
+        except Exception:
+            self._record(
+                state,
+                factory,
+                AgentEventType.MEMORY_UPDATE_COMPLETED,
+                {"outcome": "failed", "records_written": written},
+            )
+            self._fail(
+                state,
+                factory,
+                AgentErrorInfo(
+                    code="memory_write_failed",
+                    message="Não foi possível persistir a memória selecionada.",
+                ),
+            )
+            return state.to_result()
+        self._record(
+            state,
+            factory,
+            AgentEventType.MEMORY_UPDATE_COMPLETED,
+            {
+                "outcome": "completed",
+                "records_written": written,
+                "memory_types": [
+                    memory_type.value
+                    for memory_type in _MEMORY_TYPE_ORDER
+                    if memory_type in {request.memory_type for request in requests}
+                ],
+            },
+        )
+        return None
 
     def _failed_output(
         self,

@@ -13,6 +13,8 @@ class AgentEventType(StrEnum):
     INPUT_VALIDATION_COMPLETED = "input_validation_completed"
     CONTEXT_LOADING_STARTED = "context_loading_started"
     CONTEXT_LOADING_COMPLETED = "context_loading_completed"
+    MEMORY_RETRIEVAL_STARTED = "memory_retrieval_started"
+    MEMORY_RETRIEVAL_COMPLETED = "memory_retrieval_completed"
     KNOWLEDGE_RETRIEVAL_STARTED = "knowledge_retrieval_started"
     KNOWLEDGE_RETRIEVAL_COMPLETED = "knowledge_retrieval_completed"
     MODEL_EXECUTION_STARTED = "model_execution_started"

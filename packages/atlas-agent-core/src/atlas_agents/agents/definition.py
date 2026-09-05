@@ -3,6 +3,7 @@
 from pydantic import Field, field_validator
 
 from atlas_agents._models import _FrozenModel, _json_mapping, _non_empty
+from atlas_agents.memory.config import AgentMemoryConfig
 
 
 class AgentDefinition(_FrozenModel):
@@ -13,6 +14,7 @@ class AgentDefinition(_FrozenModel):
     description: str = ""
     instructions: str
     tool_names: tuple[str, ...] = ()
+    memory: AgentMemoryConfig | None = None
     metadata: dict[str, object] = Field(default_factory=dict)
 
     @field_validator("agent_id", "name", "instructions")

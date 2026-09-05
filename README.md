@@ -53,8 +53,10 @@ Agentes declaram uma allowlist ordenada de ferramentas. O runtime executa o loop
 chamadas duplicadas dentro da execução e suporta múltiplos model turns nos modos
 completo e streaming. Ferramentas sensíveis podem suspender a execução para
 aprovação humana, salvar um checkpoint por contrato injetado e retomar com token
-opaco de uso único, inclusive no modo streaming. Ainda não existem retries
-automáticos, fallback, memória, RAG ou integração concreta com modelos.
+opaco de uso único, inclusive no modo streaming. Agentes também podem habilitar
+memória de trabalho, conversa e longo prazo por escopos seguros, store abstrato
+e policies explícitas de leitura e escrita. Ainda não existem retries
+automáticos, fallback, Knowledge/RAG ou integração concreta com modelos.
 
 ## Requisitos
 
@@ -134,6 +136,10 @@ A suspensão para decisão humana está em
 [docs/reference/human-approval.md](docs/reference/human-approval.md), e a
 persistência abstrata para retomada em
 [docs/reference/checkpoint-resume.md](docs/reference/checkpoint-resume.md).
+A camada de memória está descrita em
+[docs/reference/memory.md](docs/reference/memory.md), e sua separação de
+Knowledge/RAG em
+[docs/architecture/memory-vs-knowledge.md](docs/architecture/memory-vs-knowledge.md).
 
 Consulte [ARCHITECTURE.md](ARCHITECTURE.md) para conhecer o desenho de alto
 nível e

@@ -109,6 +109,11 @@ Portanto, o valor nunca sugere um custo total que não possa ser comprovado.
 journal pertence somente à execução e permite deduplicar solicitações repetidas
 sem criar estado global.
 
+O contexto de memória selecionado entra como uma única `ModelMessage` de papel
+`DEVELOPER`. Por isso, snapshots e checkpoints preservam exatamente o contexto
+já apresentado ao modelo. Loops multi-turn e retomadas não consultam o store
+novamente nem duplicam essa mensagem.
+
 `snapshot()` produz cópias lógicas das coleções, metadados e output. Alterações
 posteriores no estado não modificam snapshots anteriores. O snapshot contém
 somente dados e não inclui lifecycle, provider, registry, clock, locks ou
@@ -123,8 +128,9 @@ journal de chamadas de ferramenta também integra o snapshot.
 
 ## Fora do escopo
 
-Esta classe não executa providers ou ferramentas, não acessa rede e não contém
-registry, service locator, retry, fallback, RAG, memória persistente, event bus
-nem mecanismo de concorrência. Sua restauração é controlada e recebe somente
-fatos previamente validados do checkpoint. A orquestração externa está
-documentada em [`agent-runtime.md`](agent-runtime.md).
+Esta classe não executa providers, ferramentas ou operações de memória, não
+acessa rede e não contém registry, service locator, retry, fallback,
+Knowledge/RAG, store persistente, event bus nem mecanismo de concorrência. Sua
+restauração é controlada e recebe somente fatos previamente validados do
+checkpoint. A orquestração externa está documentada em
+[`agent-runtime.md`](agent-runtime.md).

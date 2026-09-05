@@ -8,10 +8,9 @@ registra o histórico.
 ## Estados
 
 Toda nova instância de `ExecutionLifecycle` inicia em `CREATED`. O construtor
-não aceita outro estado inicial; restauração e checkpoints exigirão uma API
-explícita em uma tarefa futura. Estados de processamento representam as
-fases previstas do protocolo, mesmo quando a funcionalidade correspondente
-ainda não foi implementada:
+não aceita outro estado inicial. Estados de processamento representam as fases
+previstas do protocolo. Alguns, como `RETRIEVING_KNOWLEDGE`, ainda reservam
+evolução futura:
 
 ```text
 VALIDATING_INPUT
@@ -139,9 +138,12 @@ retomada de checkpoints, sem criar bypass para transições inválidas.
 Os retornos para `RUNNING` representam continuação controlada após ferramenta
 indisponível ou reparo de saída. Aprovação válida segue
 `WAITING_FOR_APPROVAL → EXECUTING_TOOL`; rejeição segue
-`WAITING_FOR_APPROVAL → REJECTED`. `EXECUTING_TOOL → WAITING_FOR_TOOL` representa processamento
-sequencial de tool calls pendentes. `VALIDATING_OUTPUT → REJECTED` é reservado
-a bloqueio terminal por política.
+`WAITING_FOR_APPROVAL → REJECTED`. `EXECUTING_TOOL → WAITING_FOR_TOOL`
+representa processamento sequencial de tool calls pendentes.
+`VALIDATING_OUTPUT → REJECTED` é reservado a bloqueio terminal por política.
+Se uma policy produzir candidatas de memória, o fechamento segue
+`VALIDATING_OUTPUT → UPDATING_MEMORY → COMPLETED`; sem candidatas, segue
+diretamente para `COMPLETED`.
 
 Uma tentativa inválida gera `InvalidExecutionTransitionError`, que expõe
 `current_status` e `requested_status`. O estado e o histórico permanecem
@@ -195,9 +197,9 @@ tarefa não introduz sincronização, event bus ou mecanismo de entrega.
 - validação de entrada e saída;
 - carregamento de contexto e recuperação de conhecimento;
 - execução de modelo e ferramentas;
-- aprovação e atualização de memória;
+- aprovação, recuperação e atualização de memória;
 - todos os encerramentos terminais.
 
-Esses eventos definem um protocolo. Modelo, ferramentas e aprovação humana já
-são coordenados pelo runtime; conhecimento e memória permanecem contratos para
-evolução futura.
+Esses eventos definem um protocolo. Modelo, ferramentas, aprovação humana e
+memória já são coordenados pelo runtime; conhecimento permanece uma fronteira
+para evolução futura.

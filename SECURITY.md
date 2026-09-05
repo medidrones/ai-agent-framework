@@ -36,6 +36,11 @@ atualizações enquanto o relato estiver sob investigação.
   eventos ou checkpoints.
 - Checkpoints não contêm providers, ferramentas, credenciais, locks ou objetos
   de infraestrutura; o store é um adapter explicitamente injetado.
+- Escopos de memória vazios, globais ou com wildcard são rejeitados.
+- Resultados de memória com tipo ou escopo divergente encerram a execução, sem
+  contaminar o contexto do modelo.
+- Memória é apresentada como dado contextual não confiável; conteúdo, IDs,
+  metadados e scores não são registrados em eventos.
 
 ## Providers e ferramentas
 
@@ -59,3 +64,10 @@ Ferramentas em modo `REQUIRED` ou aprovadas por policy são suspensas antes do
 contador e da execução. O `CheckpointStore.consume()` deve ser atômico para
 impedir replay e retomadas concorrentes. O core não fornece UI, autoaprovação,
 persistência concreta nem espera bloqueante por decisão humana.
+
+Memória não é habilitada pela mera presença de um store. Cada agente declara os
+tipos permitidos, e uma policy de escrita não pode ampliar essa allowlist.
+Adapters devem garantir o isolamento exato de `MemoryScope` em `get`, `search`,
+`write` e `delete`. O core não detecta automaticamente segredos no conteúdo;
+policies e aplicações devem aplicar classificação, consentimento, retenção e
+redação adequados antes de persistir dados sensíveis.

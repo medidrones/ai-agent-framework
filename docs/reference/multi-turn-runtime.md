@@ -181,9 +181,23 @@ aprovação válida, o runtime revalida a ferramenta e o limite, executa a chama
 original e continua o mesmo batch. Chamadas sensíveis subsequentes geram novas
 suspensões. Consulte [aprovação humana](human-approval.md).
 
+## Memória no loop
+
+A recuperação acontece uma única vez durante `LOADING_CONTEXT`, antes da
+primeira chamada ao modelo. A mensagem `DEVELOPER` resultante permanece no
+histórico da execução e é reutilizada em todos os turns completos ou
+incrementais. Uma retomada por aprovação restaura essa mensagem do checkpoint e
+não consulta o store novamente.
+
+Depois de uma resposta final válida, uma `MemoryWritePolicy` pode produzir
+candidatas. O runtime restringe essas candidatas aos tipos declarados em
+`AgentDefinition.memory.write_types` e realiza escritas sequenciais antes de
+concluir. Consulte [memória](memory.md).
+
 ## Fora do escopo
 
 Não existem execução paralela de tools, retry, fallback, timeout específico de
-tool, idempotência distribuída, storage concreto de checkpoint, RAG, memória ou
-guardrails. Dependências concretas continuam sendo injetadas nos construtores
-das implementações de `Tool` e de `CheckpointStore`.
+tool, idempotência distribuída, storage concreto de checkpoint ou memória,
+Knowledge/RAG ou guardrails. Dependências concretas continuam sendo injetadas
+nos construtores das implementações de `Tool`, `CheckpointStore` e
+`MemoryStore`.

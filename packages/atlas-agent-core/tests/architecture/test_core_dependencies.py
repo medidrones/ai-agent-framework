@@ -13,8 +13,10 @@ FORBIDDEN_IMPORTS = frozenset(
         "azure",
         "confluent_kafka",
         "crewai",
+        "chromadb",
         "django",
         "fastapi",
+        "faiss",
         "flask",
         "google",
         "grpc",
@@ -24,12 +26,14 @@ FORBIDDEN_IMPORTS = frozenset(
         "langgraph",
         "openai",
         "opensearch",
+        "pinecone",
         "pika",
         "psycopg",
         "qdrant",
         "redis",
         "requests",
         "sqlalchemy",
+        "weaviate",
     }
 )
 
@@ -214,3 +218,31 @@ def test_human_approval_has_no_ui_or_concrete_persistence() -> None:
 
         assert forbidden_imports.isdisjoint(_import_roots(path))
         assert forbidden_calls.isdisjoint(called_names)
+
+
+def test_memory_contracts_have_no_knowledge_or_infrastructure_coupling() -> None:
+    source_root = Path(__file__).parents[2] / "src" / "atlas_agents"
+    memory_root = source_root / "memory"
+    forbidden_names = {
+        "EmbeddingProvider",
+        "KnowledgeBase",
+        "Retriever",
+        "ServiceContainer",
+        "VectorStore",
+        "get_service",
+        "require_service",
+    }
+
+    for path in memory_root.rglob("*.py"):
+        source = path.read_text(encoding="utf-8")
+        tree = ast.parse(source, filename=str(path))
+        names = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}
+        attributes = {
+            node.attr for node in ast.walk(tree) if isinstance(node, ast.Attribute)
+        }
+
+        assert _import_roots(path) & FORBIDDEN_IMPORTS == set()
+        assert forbidden_names.isdisjoint(names | attributes)
+
+    tool_context = (source_root / "tools" / "context.py").read_text(encoding="utf-8")
+    assert "MemoryManager" not in tool_context

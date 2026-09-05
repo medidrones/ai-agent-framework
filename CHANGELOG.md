@@ -60,6 +60,15 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Tokens opacos de uso único e validação explícita de decisões.
 - Restauração de lifecycle, eventos, seleção, uso, contadores, limites e timeout.
 - Retomada completa e incremental sem nova seleção ou mistura de transportes.
+- Contratos imutáveis para tipos, escopos, registros, consultas e escritas de
+  memória.
+- `MemoryStore` assíncrono e `MemoryManager` com validação defensiva de escopo,
+  tipo, duplicidade e expiração.
+- Configuração explícita de memória por agente e resolução segura de escopos.
+- Seleção determinística por quantidade e caracteres, sem truncamento ou LLM.
+- Renderização de memória como contexto não autoritativo no prompt.
+- Recuperação única compatível com multi-turn, streaming e retomada HITL.
+- Policy explícita de escrita e integração do lifecycle `UPDATING_MEMORY`.
 
 ### Alterado
 

@@ -151,6 +151,24 @@ eventos, seleção, mensagens, contadores, uso, limites, budget e timeout
 restante. Providers, ferramentas, registries e deadlines monotônicos absolutos
 não são persistidos.
 
+## Memória
+
+Contratos necessários à integração do runtime ficam em `atlas_agents.memory`.
+Adapters concretos de persistência ficam em pacotes opcionais e dependem do
+core. `AgentDefinition.memory` exige opt-in explícito; injetar um
+`MemoryManager` isoladamente não habilita leitura ou escrita.
+
+Durante `LOADING_CONTEXT`, o runtime resolve escopos exatos, recupera os tipos
+na ordem `WORKING`, `CONVERSATION`, `LONG_TERM` e acrescenta uma única mensagem
+`DEVELOPER` que enquadra memória como dado contextual não confiável. Após output
+válido, uma `MemoryWritePolicy` pode selecionar candidatas permitidas. Somente
+então o lifecycle passa por `UPDATING_MEMORY` e executa escritas sequenciais.
+
+Memória representa experiência ou histórico associado a execução, conversa,
+agente ou usuário. Knowledge/RAG representa fontes externas e permanece uma
+fronteira separada; consulte
+[`memory-vs-knowledge.md`](docs/architecture/memory-vs-knowledge.md).
+
 ## Independência de infraestrutura
 
 O core não depende de SDKs de modelos, frameworks web, bancos de dados,
@@ -185,9 +203,10 @@ timestamps com fuso horário.
 O core já oferece execução multi-turn completa ou incremental por
 `ModelProvider`, sem provider concreto, com limites, budget e timeout opcionais.
 Também oferece contratos, registro e execução integrada de ferramentas.
-Também oferece aprovação humana, checkpoints versionados e retomada segura por
-storage abstrato. Retries, fallback, memória e integrações concretas de
-armazenamento serão introduzidos incrementalmente em tarefas posteriores.
+Também oferece aprovação humana, checkpoints versionados, retomada segura e
+memória com escopo por storage abstrato. Retries, fallback, Knowledge/RAG e
+integrações concretas de armazenamento serão introduzidos incrementalmente em
+tarefas posteriores.
 
 ## Evolução prevista
 

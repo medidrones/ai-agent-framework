@@ -67,6 +67,12 @@ restaura journal, mensagens, uso, contadores, seleção e aprovação pendente. 
 factory de eventos começa na sequência seguinte. Versões desconhecidas e
 checkpoints inconsistentes geram erros explícitos.
 
+Quando o agente habilita memória, o checkpoint preserva tanto
+`AgentMemoryConfig` quanto a mensagem de contexto já selecionada. A retomada
+exige novamente um `MemoryManager` para manter a configuração operacional
+explícita, mas não relê o store. Escritas continuam adiadas até existir uma
+resposta final válida após a decisão humana.
+
 Não há nova seleção de modelo. Se o provider ou uma ferramenta declarada pelo
 agente não estiver mais registrada, a retomada falha sem fallback.
 

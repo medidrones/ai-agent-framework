@@ -91,6 +91,9 @@ sequenceDiagram
     R->>S: add_model_usage()
     R->>S: add assistant message
     R->>S: VALIDATING_OUTPUT
+    opt há candidatas de memória
+        R->>S: UPDATING_MEMORY
+    end
     R->>S: COMPLETED
     R->>S: to_result()
     S-->>R: AgentResult
@@ -109,7 +112,12 @@ CREATED → VALIDATING_INPUT → LOADING_CONTEXT → RUNNING
 `ModelRequestBuilder` cria as mensagens iniciais nesta ordem:
 
 1. `SYSTEM`, com `AgentDefinition.instructions`;
-2. `USER`, com `AgentInput.message` e attachments suportados.
+2. `DEVELOPER`, com memória selecionada, quando explicitamente habilitada;
+3. `USER`, com `AgentInput.message` e attachments suportados.
+
+A mensagem de memória é única, marcada como contexto não confiável e não
+expõe IDs, metadados ou scores. Sem memória habilitada, a ordem permanece
+`SYSTEM → USER`.
 
 Attachments `image/*` viram `ImageContent`; `audio/*` viram `AudioContent`.
 Outros media types são rejeitados explicitamente, sem descarte silencioso.
@@ -212,10 +220,13 @@ repropagado.
 
 ## Limites desta versão
 
-Não há retry automático, fallback, reconexão, execução paralela de tools, RAG,
-memória, guardrails, previsão de tokens/custo ou provider concreto. Aprovação
-humana pode interromper `run()` com `ExecutionSuspension` e ser continuada por
-`resume()`; veja [aprovação humana](human-approval.md).
+Não há retry automático, fallback, reconexão, execução paralela de tools,
+Knowledge/RAG, guardrails, previsão de tokens/custo, provider concreto ou
+adapter concreto de memória. Aprovação humana pode interromper `run()` com
+`ExecutionSuspension` e ser continuada por `resume()`; veja
+[aprovação humana](human-approval.md). A leitura e a escrita de memória são
+opcionais, usam contratos injetados e estão detalhadas em
+[memória](memory.md).
 O registry de modelos pode ser compartilhado para leitura, mas não deve ser
 alterado durante uma execução. O loop e sua deduplicação por execução estão em
 [multi-turn-runtime.md](multi-turn-runtime.md), e a fronteira segura de
