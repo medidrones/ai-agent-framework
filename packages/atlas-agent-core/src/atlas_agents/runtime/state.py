@@ -15,6 +15,7 @@ from atlas_agents.agents import (
     ExecutionStatus,
     Usage,
 )
+from atlas_agents.approvals import ApprovalDecision, ApprovalRequest
 from atlas_agents.events import AgentEvent
 from atlas_agents.execution import ExecutionLifecycle, ExecutionTransition, is_terminal
 from atlas_agents.models import ModelMessage, ModelSelectionResult, ModelUsage
@@ -89,6 +90,8 @@ class ExecutionState:
         self._tool_call_count = 0
         self._tool_calls: list[ToolCallRecord] = []
         self._tool_calls_by_id: dict[str, ToolCallRecord] = {}
+        self._pending_approval: ApprovalRequest | None = None
+        self._approval_history: list[ApprovalDecision] = []
         self._events: list[AgentEvent] = []
         self._output: object | None = None
         self._error: AgentErrorInfo | None = None
@@ -160,6 +163,21 @@ class ExecutionState:
     def tool_calls(self) -> tuple[ToolCallRecord, ...]:
         """Return processed tool-call records in first-seen order."""
         return tuple(self._tool_calls)
+
+    @property
+    def pending_approval(self) -> ApprovalRequest | None:
+        """Return the single pending approval request, when suspended."""
+        return self._pending_approval
+
+    @property
+    def approval_history(self) -> tuple[ApprovalDecision, ...]:
+        """Return resolved approval decisions in chronological order."""
+        return tuple(self._approval_history)
+
+    @property
+    def has_model_usage(self) -> bool:
+        """Return whether at least one model response contributed usage."""
+        return self._has_usage
 
     @property
     def events(self) -> tuple[AgentEvent, ...]:
@@ -272,6 +290,42 @@ class ExecutionState:
             ) from exc
         return self._tool_calls_by_id.get(validated_id)
 
+    def set_pending_approval(self, request: ApprovalRequest) -> None:
+        """Store exactly one approval request before suspending execution."""
+        self._ensure_active()
+        if self._pending_approval is not None:
+            raise ExecutionStateInvariantError(
+                "A execução já possui uma aprovação pendente."
+            )
+        if request.execution_id != self._execution_id:
+            raise ExecutionStateInvariantError(
+                "A aprovação deve pertencer à mesma execução."
+            )
+        if request.agent_id != self._agent.agent_id:
+            raise ExecutionStateInvariantError(
+                "A aprovação deve pertencer ao mesmo agente."
+            )
+        mutation_time = self._mutation_timestamp()
+        self._pending_approval = request
+        self._updated_at = mutation_time
+
+    def resolve_approval(self, decision: ApprovalDecision) -> None:
+        """Record a decision and clear the matching pending request."""
+        self._ensure_active()
+        pending = self._pending_approval
+        if pending is None:
+            raise ExecutionStateInvariantError(
+                "A execução não possui aprovação pendente."
+            )
+        if decision.approval_request_id != pending.approval_request_id:
+            raise ExecutionStateInvariantError(
+                "A decisão não corresponde à aprovação pendente."
+            )
+        mutation_time = self._mutation_timestamp()
+        self._approval_history.append(decision)
+        self._pending_approval = None
+        self._updated_at = mutation_time
+
     def add_model_usage(self, usage: ModelUsage) -> None:
         """Aggregate provider usage, propagating an unknown monetary cost."""
         self._ensure_active()
@@ -362,6 +416,80 @@ class ExecutionState:
         """Transition to budget exceeded and retain structured violation details."""
         self._terminate_by_policy(ExecutionStatus.BUDGET_EXCEEDED, error)
 
+    def reject(self, *, error: AgentErrorInfo, reason: str) -> None:
+        """Reject execution while retaining a structured governance error."""
+        self._ensure_active()
+        mutation_time = self._mutation_timestamp()
+        transition = self._lifecycle.transition_to(
+            ExecutionStatus.REJECTED,
+            reason=reason,
+            timestamp=mutation_time,
+        )
+        self._error = error
+        self._updated_at = transition.timestamp
+
+    @classmethod
+    def restore(
+        cls,
+        *,
+        execution_id: str,
+        agent: AgentDefinition,
+        input_data: AgentInput,
+        context: AgentContext,
+        messages: tuple[ModelMessage, ...],
+        model_selection: ModelSelectionResult,
+        usage: Usage,
+        has_model_usage: bool,
+        turn_count: int,
+        tool_call_count: int,
+        tool_calls: tuple[ToolCallRecord, ...],
+        events: tuple[AgentEvent, ...],
+        transitions: tuple[ExecutionTransition, ...],
+        pending_approval: ApprovalRequest,
+        approval_history: tuple[ApprovalDecision, ...],
+        created_at: datetime,
+        updated_at: datetime,
+        metadata: Mapping[str, object],
+        clock: Clock | None = None,
+    ) -> "ExecutionState":
+        """Restore validated mutable state exclusively from checkpoint facts."""
+        lifecycle = ExecutionLifecycle.restore(transitions)
+        if lifecycle.status is not ExecutionStatus.WAITING_FOR_APPROVAL:
+            raise ExecutionStateInvariantError(
+                "O estado restaurado deve aguardar aprovação."
+            )
+        state = cls(
+            execution_id=execution_id,
+            agent=agent,
+            input_data=input_data,
+            context=context,
+            metadata=metadata,
+            clock=clock,
+        )
+        if updated_at < created_at:
+            raise ExecutionStateInvariantError(
+                "A atualização restaurada não pode anteceder a criação."
+            )
+        state._lifecycle = lifecycle
+        state._messages = list(messages)
+        state._model_selection = model_selection
+        state._usage = usage
+        state._has_usage = has_model_usage
+        state._turn_count = turn_count
+        state._tool_call_count = tool_call_count
+        state._tool_calls = list(tool_calls)
+        state._tool_calls_by_id = {record.tool_call_id: record for record in tool_calls}
+        if len(state._tool_calls_by_id) != len(tool_calls):
+            raise ExecutionStateInvariantError(
+                "O checkpoint contém IDs duplicados de chamadas de ferramenta."
+            )
+        state._events = list(events)
+        state._pending_approval = pending_approval
+        state._approval_history = list(approval_history)
+        state._created_at = created_at
+        state._updated_at = updated_at
+        return state
+
     def snapshot(self) -> ExecutionSnapshot:
         """Create an isolated immutable observation of the current state."""
         return ExecutionSnapshot(
@@ -374,6 +502,8 @@ class ExecutionState:
             turn_count=self._turn_count,
             tool_call_count=self._tool_call_count,
             tool_calls=self.tool_calls,
+            pending_approval=self._pending_approval,
+            approval_history=self.approval_history,
             events=self.events,
             output=deepcopy(self._output),
             error=self._error,

@@ -213,7 +213,9 @@ repropagado.
 ## Limites desta versão
 
 Não há retry automático, fallback, reconexão, execução paralela de tools, RAG,
-memória, aprovação, guardrails, previsão de tokens/custo ou provider concreto.
+memória, guardrails, previsão de tokens/custo ou provider concreto. Aprovação
+humana pode interromper `run()` com `ExecutionSuspension` e ser continuada por
+`resume()`; veja [aprovação humana](human-approval.md).
 O registry de modelos pode ser compartilhado para leitura, mas não deve ser
 alterado durante uma execução. O loop e sua deduplicação por execução estão em
 [multi-turn-runtime.md](multi-turn-runtime.md), e a fronteira segura de

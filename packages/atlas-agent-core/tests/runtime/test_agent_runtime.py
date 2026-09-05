@@ -137,7 +137,7 @@ async def _run(
     limits: ExecutionLimits | None = None,
     budget: ExecutionBudget | None = None,
 ) -> AgentResult[object]:
-    return await runtime.run(
+    result = await runtime.run(
         agent=_agent(),
         input_data=input_data or AgentInput(message="Explain dependency inversion."),
         context=context or _context(),
@@ -145,6 +145,8 @@ async def _run(
         limits=limits,
         budget=budget,
     )
+    assert isinstance(result, AgentResult)
+    return result
 
 
 async def test_runtime_executes_one_complete_text_turn() -> None:

@@ -51,8 +51,10 @@ determinístico, autorização, validação JSON Schema e execução assíncrona
 Agentes declaram uma allowlist ordenada de ferramentas. O runtime executa o loop
 `modelo → ferramenta → modelo`, preserva o histórico provider-neutral, protege
 chamadas duplicadas dentro da execução e suporta múltiplos model turns nos modos
-completo e streaming. Ainda não existem retries automáticos, fallback, memória,
-RAG, approval ou integração concreta com modelos.
+completo e streaming. Ferramentas sensíveis podem suspender a execução para
+aprovação humana, salvar um checkpoint por contrato injetado e retomar com token
+opaco de uso único, inclusive no modo streaming. Ainda não existem retries
+automáticos, fallback, memória, RAG ou integração concreta com modelos.
 
 ## Requisitos
 
@@ -128,6 +130,10 @@ As políticas operacionais estão descritas em
 infraestrutura segura de ferramentas em
 [docs/reference/tools.md](docs/reference/tools.md). O loop agentic completo está
 em [docs/reference/multi-turn-runtime.md](docs/reference/multi-turn-runtime.md).
+A suspensão para decisão humana está em
+[docs/reference/human-approval.md](docs/reference/human-approval.md), e a
+persistência abstrata para retomada em
+[docs/reference/checkpoint-resume.md](docs/reference/checkpoint-resume.md).
 
 Consulte [ARCHITECTURE.md](ARCHITECTURE.md) para conhecer o desenho de alto
 nível e

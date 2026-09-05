@@ -53,6 +53,13 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Allowlist ordenada de ferramentas por agente e requisito `TOOL_CALLING`.
 - Journal de chamadas de ferramentas e deduplicação por execução.
 - Mensagens de resultado de ferramenta seguras e determinísticas.
+- Contratos imutáveis para solicitação, requisito e decisão de aprovação humana.
+- Modos formais de aprovação em `ToolDefinition` e policy injetável.
+- Suspensão retomável em `run()` e `stream()` sem espera bloqueante.
+- Checkpoint versionado e serializável com storage abstrato e consumo atômico.
+- Tokens opacos de uso único e validação explícita de decisões.
+- Restauração de lifecycle, eventos, seleção, uso, contadores, limites e timeout.
+- Retomada completa e incremental sem nova seleção ou mistura de transportes.
 
 ### Alterado
 

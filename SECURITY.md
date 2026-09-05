@@ -30,6 +30,12 @@ atualizações enquanto o relato estiver sob investigação.
 - O runtime oferece ao modelo somente a allowlist declarada pelo agente e
   rejeita ferramentas registradas que estejam fora dela.
 - Nomes de ferramentas nunca disparam import dinâmico, shell, `eval` ou `exec`.
+- Solicitações de aprovação expõem apenas nome, ID e chaves dos argumentos da
+  ferramenta, sem seus valores completos.
+- Tokens de retomada são opacos, imprevisíveis, de uso único e não entram em
+  eventos ou checkpoints.
+- Checkpoints não contêm providers, ferramentas, credenciais, locks ou objetos
+  de infraestrutura; o store é um adapter explicitamente injetado.
 
 ## Providers e ferramentas
 
@@ -48,3 +54,8 @@ semântica de idempotência permanece declarativa e não oferece garantia
 distribuída. O runtime deduplica apenas `tool_call_id` dentro de uma execução:
 payload idêntico reutiliza o resultado já registrado, enquanto payload
 conflitante encerra a execução com segurança.
+
+Ferramentas em modo `REQUIRED` ou aprovadas por policy são suspensas antes do
+contador e da execução. O `CheckpointStore.consume()` deve ser atômico para
+impedir replay e retomadas concorrentes. O core não fornece UI, autoaprovação,
+persistência concreta nem espera bloqueante por decisão humana.

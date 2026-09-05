@@ -100,6 +100,30 @@ def test_runtime_state_contracts_are_intentionally_public() -> None:
     assert expected <= set(atlas_agents.__all__)
 
 
+def test_human_approval_contracts_are_intentionally_public() -> None:
+    expected = {
+        "ApprovalContext",
+        "ApprovalDecision",
+        "ApprovalDecisionType",
+        "ApprovalDecisionValidator",
+        "ApprovalNotRequired",
+        "ApprovalPolicy",
+        "ApprovalRequest",
+        "ApprovalRequired",
+        "ApprovalRequirement",
+        "CheckpointStore",
+        "ExecutionCheckpoint",
+        "ExecutionStateRestorer",
+        "ExecutionSuspension",
+        "ResumeToken",
+        "RuntimeOutcome",
+        "RuntimeSuspensionItem",
+        "ToolApprovalMode",
+    }
+
+    assert expected <= set(atlas_agents.__all__)
+
+
 def test_tool_contracts_are_intentionally_public() -> None:
     expected = {
         "DuplicateToolError",

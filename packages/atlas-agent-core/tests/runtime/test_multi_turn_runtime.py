@@ -278,13 +278,15 @@ async def _run(
     limits: ExecutionLimits | None = None,
     budget: ExecutionBudget | None = None,
 ) -> AgentResult[object]:
-    return await runtime.run(
+    result = await runtime.run(
         agent=agent,
         input_data=AgentInput(message="Consulte o cliente."),
         context=context or _context(),
         limits=limits,
         budget=budget,
     )
+    assert isinstance(result, AgentResult)
+    return result
 
 
 def _tool_payload(message: ModelMessage) -> dict[str, object]:

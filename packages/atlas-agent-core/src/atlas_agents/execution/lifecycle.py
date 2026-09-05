@@ -120,6 +120,27 @@ class ExecutionLifecycle:
         self._status = ExecutionStatus.CREATED
         self._history: list[ExecutionTransition] = []
 
+    @classmethod
+    def restore(
+        cls,
+        history: tuple[ExecutionTransition, ...],
+    ) -> "ExecutionLifecycle":
+        """Rebuild a lifecycle by replaying its validated transition history."""
+        lifecycle = cls()
+        for transition in history:
+            if transition.from_status is not lifecycle.status:
+                raise InvalidExecutionTransitionError(
+                    lifecycle.status,
+                    transition.to_status,
+                )
+            lifecycle.transition_to(
+                transition.to_status,
+                reason=transition.reason,
+                metadata=transition.metadata,
+                timestamp=transition.timestamp,
+            )
+        return lifecycle
+
     @property
     def status(self) -> ExecutionStatus:
         """Return the current execution status without exposing a setter."""

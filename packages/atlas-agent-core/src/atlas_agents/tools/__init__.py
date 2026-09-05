@@ -1,5 +1,6 @@
 """Provider-neutral contracts and secure execution boundary for tools."""
 
+from atlas_agents.approvals.types import ToolApprovalMode
 from atlas_agents.tools.context import ToolExecutionContext
 from atlas_agents.tools.definition import ToolDefinition
 from atlas_agents.tools.errors import (
@@ -37,6 +38,7 @@ __all__ = [
     "DuplicateToolError",
     "JsonSchemaToolArgumentValidator",
     "Tool",
+    "ToolApprovalMode",
     "ToolArgumentValidationIssue",
     "ToolArgumentValidationResult",
     "ToolArgumentValidator",

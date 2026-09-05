@@ -188,3 +188,29 @@ def test_agent_runtime_owns_tool_loop_without_infrastructure_dependencies() -> N
     assert "ToolRegistry" in source
     assert _import_roots(runtime_path) & FORBIDDEN_IMPORTS == set()
     assert "get_service" not in source
+
+
+def test_human_approval_has_no_ui_or_concrete_persistence() -> None:
+    source_root = Path(__file__).parents[2] / "src" / "atlas_agents"
+    paths = tuple((source_root / "approvals").rglob("*.py")) + tuple(
+        (source_root / "runtime").glob("*.py")
+    )
+    forbidden_imports = {
+        "pickle",
+        "shelve",
+        "sqlite3",
+        "subprocess",
+        "tkinter",
+    }
+    forbidden_calls = {"input", "eval", "exec", "__import__"}
+
+    for path in paths:
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        called_names = {
+            node.func.id
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+        }
+
+        assert forbidden_imports.isdisjoint(_import_roots(path))
+        assert forbidden_calls.isdisjoint(called_names)

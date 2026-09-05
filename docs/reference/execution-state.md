@@ -102,6 +102,7 @@ Portanto, o valor nunca sugere um custo total que não possa ser comprovado.
 | --- | --- | --- |
 | `ExecutionState` | controlada por métodos | estado interno do runtime |
 | `ExecutionSnapshot` | frozen | observação serializável |
+| `ExecutionCheckpoint` | frozen | persistência para retomada |
 | `AgentResult` | frozen | resultado público terminal |
 
 `ToolCallRecord` preserva ID, nome, argumentos e resultado normalizado. Esse
@@ -111,7 +112,9 @@ sem criar estado global.
 `snapshot()` produz cópias lógicas das coleções, metadados e output. Alterações
 posteriores no estado não modificam snapshots anteriores. O snapshot contém
 somente dados e não inclui lifecycle, provider, registry, clock, locks ou
-callbacks. Restauração ainda não é suportada.
+callbacks. Ele não deve ser usado para retomada. `ExecutionCheckpoint` é criado
+separadamente, validado por versão e restaurado por `ExecutionStateRestorer`;
+veja [checkpoint e retomada](checkpoint-resume.md).
 
 `to_result()` só funciona em estados terminais e mapeia `execution_id`, status,
 output, uso, eventos e erro. Mensagens e seleção permanecem no estado e no
@@ -121,6 +124,7 @@ journal de chamadas de ferramenta também integra o snapshot.
 ## Fora do escopo
 
 Esta classe não executa providers ou ferramentas, não acessa rede e não contém
-registry, service locator, retry, fallback, RAG, memória persistente, event bus,
-checkpoint/restore nem mecanismo de concorrência. A orquestração externa está
+registry, service locator, retry, fallback, RAG, memória persistente, event bus
+nem mecanismo de concorrência. Sua restauração é controlada e recebe somente
+fatos previamente validados do checkpoint. A orquestração externa está
 documentada em [`agent-runtime.md`](agent-runtime.md).

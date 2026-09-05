@@ -165,6 +165,10 @@ avaliar todas as permissões
         ↓
 validar argumentos pelo JSON Schema
         ↓
+avaliar aprovação no AgentRuntime
+        ↓
+verificar limite e incrementar contador
+        ↓
 executar a implementação async conhecida
         ↓
 normalizar ToolOutput ou erro
@@ -175,8 +179,10 @@ ToolExecutionResult
 `prepare()` executa resolução, identidade, autorização e validação. Quando a
 chamada pode alcançar a implementação, ele devolve uma preparação opaca;
 `execute_prepared()` efetiva essa chamada. Essa separação permite ao runtime
-verificar `max_tool_calls` depois dos controles e antes de executar. O método
-`execute()` permanece como a API conveniente que encadeia as duas etapas.
+avaliar `ToolApprovalMode`, suspender quando necessário e verificar
+`max_tool_calls` depois dos controles e antes de executar. O método `execute()`
+permanece como a API conveniente que encadeia as duas etapas sem governança do
+runtime.
 
 Uma ferramenta desconhecida vira `FAILED/tool_not_found`. `ToolError` preserva
 seu código seguro, detalhes e retryability, sem disparar retry. Exceções
@@ -196,7 +202,7 @@ chamadas diretas de `execute()` com o mesmo ID ou chave executam duas vezes. O
 runtime mantém deduplicação local por `tool_call_id` durante cada execução.
 
 Não existem cache local, store distribuído, auto retry, fallback, timeout
-específico, approval, import dinâmico, shell, `eval`, `exec`, ferramenta genérica
+específico, autoaprovação, import dinâmico, shell, `eval`, `exec`, ferramenta genérica
 de filesystem ou acesso à rede no core. Não existe store distribuído que estenda
 a deduplicação entre processos ou execuções. Consulte
 [multi-turn-runtime.md](multi-turn-runtime.md).

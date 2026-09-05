@@ -3,6 +3,7 @@
 from pydantic import Field, field_validator
 
 from atlas_agents._models import _FrozenModel, _json_mapping, _non_empty
+from atlas_agents.approvals.types import ToolApprovalMode
 from atlas_agents.models import ModelToolDefinition
 from atlas_agents.tools.idempotency import ToolIdempotency
 
@@ -15,6 +16,7 @@ class ToolDefinition(_FrozenModel):
     parameters: dict[str, object]
     required_permissions: frozenset[str] = frozenset()
     idempotency: ToolIdempotency = ToolIdempotency.UNSPECIFIED
+    approval_mode: ToolApprovalMode = ToolApprovalMode.NOT_REQUIRED
     metadata: dict[str, object] = Field(default_factory=dict)
 
     @field_validator("name", "description")

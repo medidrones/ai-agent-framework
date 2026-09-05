@@ -3,7 +3,13 @@
 import asyncio
 from collections.abc import Callable
 
-from atlas_agents import Tool, ToolDefinition, ToolExecutionContext, ToolOutput
+from atlas_agents import (
+    Tool,
+    ToolApprovalMode,
+    ToolDefinition,
+    ToolExecutionContext,
+    ToolOutput,
+)
 
 
 class FakeTool(Tool):
@@ -50,6 +56,7 @@ def tool_definition(
     *,
     name: str = "get_customer",
     permissions: frozenset[str] = frozenset(),
+    approval_mode: ToolApprovalMode = ToolApprovalMode.NOT_REQUIRED,
 ) -> ToolDefinition:
     return ToolDefinition(
         name=name,
@@ -61,4 +68,5 @@ def tool_definition(
             "additionalProperties": False,
         },
         required_permissions=permissions,
+        approval_mode=approval_mode,
     )

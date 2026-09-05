@@ -173,9 +173,17 @@ entre streams e seus eventos entram no mesmo journal. `generate()` nunca é
 usado como fallback. O consumidor recebe deltas do turn final e um único
 `RuntimeResultItem` terminal.
 
+## Aprovação no loop
+
+Depois da permissão e da validação dos argumentos, cada chamada pode produzir
+uma suspensão. A chamada ainda não incrementa `tool_call_count`; após uma
+aprovação válida, o runtime revalida a ferramenta e o limite, executa a chamada
+original e continua o mesmo batch. Chamadas sensíveis subsequentes geram novas
+suspensões. Consulte [aprovação humana](human-approval.md).
+
 ## Fora do escopo
 
 Não existem execução paralela de tools, retry, fallback, timeout específico de
-tool, idempotência distribuída, checkpoint persistente, approval humano, RAG,
-memória ou guardrails. Dependências concretas continuam sendo injetadas nos
-construtores das implementações de `Tool`.
+tool, idempotência distribuída, storage concreto de checkpoint, RAG, memória ou
+guardrails. Dependências concretas continuam sendo injetadas nos construtores
+das implementações de `Tool` e de `CheckpointStore`.

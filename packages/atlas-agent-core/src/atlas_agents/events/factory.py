@@ -17,10 +17,16 @@ class AgentEventFactory:
     across executions.
     """
 
-    def __init__(self, execution_id: str) -> None:
+    def __init__(self, execution_id: str, *, initial_sequence: int = 0) -> None:
         """Initialize an independent sequence for one opaque execution ID."""
         self._execution_id = _non_empty(execution_id)
-        self._sequence = 0
+        if (
+            isinstance(initial_sequence, bool)
+            or not isinstance(initial_sequence, int)
+            or initial_sequence < 0
+        ):
+            raise ValueError("A sequência inicial deve ser um inteiro não negativo")
+        self._sequence = initial_sequence
 
     @property
     def execution_id(self) -> str:

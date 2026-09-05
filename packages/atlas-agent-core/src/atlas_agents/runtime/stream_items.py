@@ -6,6 +6,7 @@ from pydantic import Field
 
 from atlas_agents._models import _FrozenModel
 from atlas_agents.agents import AgentResult
+from atlas_agents.approvals import ExecutionSuspension
 from atlas_agents.events import AgentEvent
 
 
@@ -23,7 +24,14 @@ class RuntimeResultItem(_FrozenModel):
     result: AgentResult[object]
 
 
+class RuntimeSuspensionItem(_FrozenModel):
+    """Wrap a resumable suspension as the final item of one stream invocation."""
+
+    type: Literal["suspension"] = "suspension"
+    suspension: ExecutionSuspension
+
+
 RuntimeStreamItem = Annotated[
-    RuntimeEventItem | RuntimeResultItem,
+    RuntimeEventItem | RuntimeResultItem | RuntimeSuspensionItem,
     Field(discriminator="type"),
 ]

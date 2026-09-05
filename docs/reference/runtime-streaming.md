@@ -149,7 +149,15 @@ batch sequencialmente, acrescenta as mensagens `ASSISTANT` e `TOOL` ao históric
 e abre outro stream. Eventos de ferramentas e de modelo compartilham o mesmo
 journal. Consulte [multi-turn-runtime.md](multi-turn-runtime.md).
 
+## Suspensão e retomada
+
+Quando uma tool exige decisão humana, `RuntimeSuspensionItem` encerra a
+invocação atual sem `RuntimeResultItem`. `resume_stream()` consome o checkpoint
+e continua somente com `ModelProvider.stream()`, mantendo a sequência de
+eventos; checkpoints incrementais não podem ser retomados por `resume()`.
+Consulte [aprovação humana](human-approval.md).
+
 ## Limites
 
 Esta versão não oferece retry, fallback, reconexão, tools paralelas, memória,
-RAG, aprovação, guardrails ou provider concreto.
+RAG, guardrails ou provider concreto.

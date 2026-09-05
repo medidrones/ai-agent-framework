@@ -14,6 +14,7 @@ from atlas_agents._models import (
 from atlas_agents.agents.errors import AgentErrorInfo
 from atlas_agents.agents.result import Usage
 from atlas_agents.agents.status import ExecutionStatus
+from atlas_agents.approvals import ApprovalDecision, ApprovalRequest
 from atlas_agents.events import AgentEvent
 from atlas_agents.models import ModelMessage, ModelSelectionResult
 from atlas_agents.runtime.tool_calls import ToolCallRecord
@@ -31,6 +32,8 @@ class ExecutionSnapshot(_FrozenModel):
     turn_count: int = Field(default=0, ge=0)
     tool_call_count: int = Field(default=0, ge=0)
     tool_calls: tuple[ToolCallRecord, ...] = ()
+    pending_approval: ApprovalRequest | None = None
+    approval_history: tuple[ApprovalDecision, ...] = ()
     events: tuple[AgentEvent, ...] = ()
     output: object | None = None
     error: AgentErrorInfo | None = None

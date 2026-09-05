@@ -132,12 +132,14 @@ stateDiagram-v2
 retorna uma tupla com snapshots imutáveis na ordem de inserção.
 
 O construtor não oferece atalho para iniciar em outro estado. Isso impede a
-criação de lifecycles que ignorem a validação de entrada; restauração de
-histórico e checkpoints pertence a uma tarefa futura.
+criação de lifecycles que ignorem a validação de entrada. A API
+`ExecutionLifecycle.restore()` reproduz um histórico validado e é usada pela
+retomada de checkpoints, sem criar bypass para transições inválidas.
 
 Os retornos para `RUNNING` representam continuação controlada após ferramenta
-indisponível, aprovação de ferramenta negada sem encerrar a execução ou reparo
-de saída. `EXECUTING_TOOL → WAITING_FOR_TOOL` representa processamento
+indisponível ou reparo de saída. Aprovação válida segue
+`WAITING_FOR_APPROVAL → EXECUTING_TOOL`; rejeição segue
+`WAITING_FOR_APPROVAL → REJECTED`. `EXECUTING_TOOL → WAITING_FOR_TOOL` representa processamento
 sequencial de tool calls pendentes. `VALIDATING_OUTPUT → REJECTED` é reservado
 a bloqueio terminal por política.
 
@@ -196,5 +198,6 @@ tarefa não introduz sincronização, event bus ou mecanismo de entrega.
 - aprovação e atualização de memória;
 - todos os encerramentos terminais.
 
-Esses eventos definem um protocolo. Eles não significam que providers,
-ferramentas, aprovação, conhecimento ou memória já estejam implementados.
+Esses eventos definem um protocolo. Modelo, ferramentas e aprovação humana já
+são coordenados pelo runtime; conhecimento e memória permanecem contratos para
+evolução futura.

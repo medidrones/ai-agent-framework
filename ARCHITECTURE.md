@@ -39,10 +39,11 @@ podem ser oferecidos como conveniência, mas não definem os contratos primário
 ## Lifecycle de execução
 
 `ExecutionLifecycle` encapsula o status corrente. Não existe setter público:
-toda alteração passa por um mapa declarativo, produz uma
+Toda alteração passa por um mapa declarativo, produz uma
 `ExecutionTransition` imutável e entra no histórico ordenado. Estados terminais
 são centralizados e não possuem transições de saída. Toda instância nova inicia
-em `CREATED`; restauração futura exigirá um contrato explícito.
+em `CREATED`; `ExecutionLifecycle.restore()` é usado exclusivamente pela
+restauração validada de checkpoints.
 
 O lifecycle não conhece event bus ou observabilidade. `AgentEventFactory`
 transforma transições em eventos separadamente, mantendo sequência local por
@@ -116,6 +117,40 @@ possui estado por execução, retry, deduplicação, descoberta dinâmica ou ace
 agente, mantém deduplicação estritamente local no `ExecutionState` e executa
 batches sequencialmente.
 
+## Aprovação humana e retomada
+
+`ToolDefinition.approval_mode` define se uma ferramenta dispensa aprovação, é
+governada por `ApprovalPolicy` ou sempre exige decisão humana. O runtime avalia
+aprovação somente depois de allowlist, permissão e validação, mas antes de
+limite, contador e execução.
+
+```text
+Model TOOL_CALL
+      ↓
+ApprovalPolicy
+  ├─ não → executar ferramenta
+  └─ sim → ApprovalRequest
+                ↓
+        WAITING_FOR_APPROVAL
+                ↓
+        ExecutionCheckpoint
+                ↓
+          CheckpointStore
+                ↓
+            ResumeToken
+                ↓
+     AgentRuntime.resume()
+       ├─ approve → executar e continuar
+       └─ reject  → REJECTED
+```
+
+`ExecutionCheckpoint` contém somente contratos serializáveis. A implementação
+de `CheckpointStore` é injetada pelo consumidor e deve consumir tokens
+atomicamente. `ExecutionStateRestorer` valida a versão e reconstrói lifecycle,
+eventos, seleção, mensagens, contadores, uso, limites, budget e timeout
+restante. Providers, ferramentas, registries e deadlines monotônicos absolutos
+não são persistidos.
+
 ## Independência de infraestrutura
 
 O core não depende de SDKs de modelos, frameworks web, bancos de dados,
@@ -150,8 +185,9 @@ timestamps com fuso horário.
 O core já oferece execução multi-turn completa ou incremental por
 `ModelProvider`, sem provider concreto, com limites, budget e timeout opcionais.
 Também oferece contratos, registro e execução integrada de ferramentas.
-Retries, fallback, memória, approval e armazenamento serão introduzidos
-incrementalmente em tarefas posteriores.
+Também oferece aprovação humana, checkpoints versionados e retomada segura por
+storage abstrato. Retries, fallback, memória e integrações concretas de
+armazenamento serão introduzidos incrementalmente em tarefas posteriores.
 
 ## Evolução prevista
 
