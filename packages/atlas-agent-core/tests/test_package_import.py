@@ -148,6 +148,30 @@ def test_memory_contracts_are_intentionally_public() -> None:
     assert expected <= set(atlas_agents.__all__)
 
 
+def test_knowledge_contracts_are_intentionally_public() -> None:
+    expected = {
+        "AgentKnowledgeConfig",
+        "Citation",
+        "DefaultKnowledgeQueryBuilder",
+        "DeterministicRetrievalPolicy",
+        "KnowledgeContext",
+        "KnowledgeContextRenderer",
+        "KnowledgeDocument",
+        "KnowledgeLocation",
+        "KnowledgeManager",
+        "KnowledgePassage",
+        "KnowledgeQuery",
+        "KnowledgeQueryBuilder",
+        "KnowledgeRetrievalContext",
+        "KnowledgeRetrievalResult",
+        "KnowledgeRetriever",
+        "KnowledgeSource",
+        "RetrievalPolicy",
+    }
+
+    assert expected <= set(atlas_agents.__all__)
+
+
 def test_tool_contracts_are_intentionally_public() -> None:
     expected = {
         "DuplicateToolError",

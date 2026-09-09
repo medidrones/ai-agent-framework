@@ -73,6 +73,10 @@ AUDIO_OUTPUT
 JSON_MODE
 ```
 
+Recuperar memória ou conhecimento externo não adiciona capabilities de modelo.
+Não existem `MEMORY` ou `RAG`: o runtime monta mensagens provider-neutral antes
+da chamada, e o provider continua recebendo apenas `ModelRequest`.
+
 `ModelDescriptor` contém `provider`, `model`, capabilities imutáveis, janela de
 contexto, limite de saída e metadata opaca. Os limites opcionais devem ser
 positivos. O identificador do provider remove somente whitespace externo; o

@@ -15,6 +15,7 @@ FORBIDDEN_IMPORTS = frozenset(
         "crewai",
         "chromadb",
         "django",
+        "elasticsearch",
         "fastapi",
         "faiss",
         "flask",
@@ -24,6 +25,7 @@ FORBIDDEN_IMPORTS = frozenset(
         "kafka",
         "langchain",
         "langgraph",
+        "llama_index",
         "openai",
         "opensearch",
         "pinecone",
@@ -246,3 +248,32 @@ def test_memory_contracts_have_no_knowledge_or_infrastructure_coupling() -> None
 
     tool_context = (source_root / "tools" / "context.py").read_text(encoding="utf-8")
     assert "MemoryManager" not in tool_context
+
+
+def test_knowledge_contracts_have_no_memory_or_backend_coupling() -> None:
+    source_root = Path(__file__).parents[2] / "src" / "atlas_agents"
+    knowledge_root = source_root / "knowledge"
+    forbidden_names = {
+        "EmbeddingProvider",
+        "MemoryStore",
+        "ModelProvider",
+        "ServiceContainer",
+        "ToolExecutor",
+        "VectorStore",
+        "get_service",
+        "require_service",
+    }
+
+    for path in knowledge_root.rglob("*.py"):
+        source = path.read_text(encoding="utf-8")
+        tree = ast.parse(source, filename=str(path))
+        names = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}
+        attributes = {
+            node.attr for node in ast.walk(tree) if isinstance(node, ast.Attribute)
+        }
+
+        assert _import_roots(path) & FORBIDDEN_IMPORTS == set()
+        assert forbidden_names.isdisjoint(names | attributes)
+
+    tool_context = (source_root / "tools" / "context.py").read_text(encoding="utf-8")
+    assert "KnowledgeManager" not in tool_context

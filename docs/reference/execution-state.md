@@ -114,6 +114,12 @@ O contexto de memória selecionado entra como uma única `ModelMessage` de papel
 já apresentado ao modelo. Loops multi-turn e retomadas não consultam o store
 novamente nem duplicam essa mensagem.
 
+`knowledge_context` registra no máximo uma vez os resultados externos
+selecionados e seu mapeamento de citações. A mensagem renderizada permanece no
+histórico, enquanto o contexto formal entra no snapshot e no checkpoint. Isso
+permite extrair do output final somente marcadores conhecidos e preserva o
+mapeamento durante retomadas.
+
 `snapshot()` produz cópias lógicas das coleções, metadados e output. Alterações
 posteriores no estado não modificam snapshots anteriores. O snapshot contém
 somente dados e não inclui lifecycle, provider, registry, clock, locks ou
@@ -122,15 +128,15 @@ separadamente, validado por versão e restaurado por `ExecutionStateRestorer`;
 veja [checkpoint e retomada](checkpoint-resume.md).
 
 `to_result()` só funciona em estados terminais e mapeia `execution_id`, status,
-output, uso, eventos e erro. Mensagens e seleção permanecem no estado e no
+output, uso, eventos, citações válidas e erro. Mensagens e seleção permanecem no
 snapshot porque não pertencem ao contrato público atual de `AgentResult`. O
 journal de chamadas de ferramenta também integra o snapshot.
 
 ## Fora do escopo
 
-Esta classe não executa providers, ferramentas ou operações de memória, não
-acessa rede e não contém registry, service locator, retry, fallback,
-Knowledge/RAG, store persistente, event bus nem mecanismo de concorrência. Sua
+Esta classe não executa providers, ferramentas, retrieval ou operações de
+memória, não acessa rede e não contém registry, service locator, retry,
+fallback, store persistente, event bus nem mecanismo de concorrência. Sua
 restauração é controlada e recebe somente fatos previamente validados do
 checkpoint. A orquestração externa está documentada em
 [`agent-runtime.md`](agent-runtime.md).

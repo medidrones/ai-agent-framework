@@ -69,6 +69,16 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Renderização de memória como contexto não autoritativo no prompt.
 - Recuperação única compatível com multi-turn, streaming e retomada HITL.
 - Policy explícita de escrita e integração do lifecycle `UPDATING_MEMORY`.
+- Contratos provider-neutral para documentos, passagens, fontes, consultas,
+  retrieval, contextos e citações de conhecimento externo.
+- `KnowledgeManager` stateless com validação de fonte, duplicidade, limite e
+  policy determinística por quantidade e caracteres.
+- Opt-in por agente com allowlist ordenada de fontes e query builder extensível
+  sem ampliação de acesso.
+- Integração do lifecycle `RETRIEVING_KNOWLEDGE` antes da execução do modelo.
+- Contexto de knowledge não autoritativo, recuperação única em multi-turn e
+  streaming e preservação formal em checkpoints HITL.
+- Extração final de marcadores válidos `K1`, `K2`… para `AgentResult.citations`.
 
 ### Alterado
 

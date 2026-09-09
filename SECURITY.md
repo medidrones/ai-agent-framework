@@ -41,6 +41,12 @@ atualizações enquanto o relato estiver sob investigação.
   contaminar o contexto do modelo.
 - Memória é apresentada como dado contextual não confiável; conteúdo, IDs,
   metadados e scores não são registrados em eventos.
+- Fontes de conhecimento exigem allowlist explícita por agente; query builders
+  não podem ampliar esse conjunto nem habilitar todas as fontes.
+- Passagens recuperadas são dados de referência não confiáveis. Conteúdo,
+  consulta, URIs, metadados, scores e credenciais não entram em eventos.
+- Resultados de fonte não solicitada, passagens duplicadas ou acima do limite
+  encerram a execução como violações de protocolo.
 
 ## Providers e ferramentas
 
@@ -71,3 +77,9 @@ Adapters devem garantir o isolamento exato de `MemoryScope` em `get`, `search`,
 `write` e `delete`. O core não detecta automaticamente segredos no conteúdo;
 policies e aplicações devem aplicar classificação, consentimento, retenção e
 redação adequados antes de persistir dados sensíveis.
+
+Retrievers recebem somente IDs formais, identidade e metadata segura
+explicitamente fornecida. Clientes e credenciais devem ser injetados no
+construtor do adapter. Filtros da consulta não constituem uma barreira de
+autorização: cada implementação continua responsável por ACLs da fonte. URIs de
+citação podem ser expostas no resultado e não devem conter tokens ou segredos.

@@ -9,8 +9,7 @@ registra o histórico.
 
 Toda nova instância de `ExecutionLifecycle` inicia em `CREATED`. O construtor
 não aceita outro estado inicial. Estados de processamento representam as fases
-previstas do protocolo. Alguns, como `RETRIEVING_KNOWLEDGE`, ainda reservam
-evolução futura:
+previstas do protocolo:
 
 ```text
 VALIDATING_INPUT
@@ -145,6 +144,11 @@ Se uma policy produzir candidatas de memória, o fechamento segue
 `VALIDATING_OUTPUT → UPDATING_MEMORY → COMPLETED`; sem candidatas, segue
 diretamente para `COMPLETED`.
 
+Quando o agente habilita fontes externas, a preparação segue
+`LOADING_CONTEXT → RETRIEVING_KNOWLEDGE → RUNNING`. Falha de retrieval termina
+em `FAILED`; deadline expirado termina em `TIMED_OUT`. Sem fontes habilitadas, o
+runtime continua diretamente de `LOADING_CONTEXT` para `RUNNING`.
+
 Uma tentativa inválida gera `InvalidExecutionTransitionError`, que expõe
 `current_status` e `requested_status`. O estado e o histórico permanecem
 inalterados quando a transição falha.
@@ -200,6 +204,5 @@ tarefa não introduz sincronização, event bus ou mecanismo de entrega.
 - aprovação, recuperação e atualização de memória;
 - todos os encerramentos terminais.
 
-Esses eventos definem um protocolo. Modelo, ferramentas, aprovação humana e
-memória já são coordenados pelo runtime; conhecimento permanece uma fronteira
-para evolução futura.
+Esses eventos definem um protocolo. Modelo, ferramentas, aprovação humana,
+memória e conhecimento externo já são coordenados pelo runtime.

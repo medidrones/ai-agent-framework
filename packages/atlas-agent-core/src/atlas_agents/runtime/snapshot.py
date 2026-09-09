@@ -16,6 +16,7 @@ from atlas_agents.agents.result import Usage
 from atlas_agents.agents.status import ExecutionStatus
 from atlas_agents.approvals import ApprovalDecision, ApprovalRequest
 from atlas_agents.events import AgentEvent
+from atlas_agents.knowledge import KnowledgeContext
 from atlas_agents.models import ModelMessage, ModelSelectionResult
 from atlas_agents.runtime.tool_calls import ToolCallRecord
 
@@ -27,6 +28,7 @@ class ExecutionSnapshot(_FrozenModel):
     agent_id: str
     status: ExecutionStatus
     messages: tuple[ModelMessage, ...] = ()
+    knowledge_context: KnowledgeContext | None = None
     model_selection: ModelSelectionResult | None = None
     usage: Usage = Usage()
     turn_count: int = Field(default=0, ge=0)

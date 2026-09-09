@@ -9,6 +9,7 @@ from atlas_agents._models import _FrozenModel, _non_empty
 from atlas_agents.agents.errors import AgentErrorInfo
 from atlas_agents.agents.status import ExecutionStatus
 from atlas_agents.events import AgentEvent
+from atlas_agents.knowledge.citations import Citation
 
 
 class Usage(_FrozenModel):
@@ -34,6 +35,7 @@ class AgentResult[TOutput](_FrozenModel):
     output: TOutput | None = None
     usage: Usage
     events: tuple[AgentEvent, ...] = ()
+    citations: tuple[Citation, ...] = ()
     error: AgentErrorInfo | None = None
 
     @field_validator("execution_id")

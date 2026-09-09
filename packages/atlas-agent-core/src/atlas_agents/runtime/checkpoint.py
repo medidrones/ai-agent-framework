@@ -23,6 +23,7 @@ from atlas_agents.agents import (
 from atlas_agents.approvals import ApprovalDecision, ApprovalRequest, ResumeToken
 from atlas_agents.events import AgentEvent
 from atlas_agents.execution import ExecutionTransition
+from atlas_agents.knowledge import KnowledgeContext
 from atlas_agents.models import ModelMessage, ModelSelectionResult, ToolCall
 from atlas_agents.runtime.budget import ExecutionBudget
 from atlas_agents.runtime.limits import ExecutionLimits
@@ -49,6 +50,7 @@ class ExecutionCheckpoint(_FrozenModel):
     context: AgentContext
     status: ExecutionStatus
     messages: tuple[ModelMessage, ...]
+    knowledge_context: KnowledgeContext | None = None
     model_selection: ModelSelectionResult
     usage: Usage
     has_model_usage: bool = False

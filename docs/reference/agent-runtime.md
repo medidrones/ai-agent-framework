@@ -113,11 +113,13 @@ CREATED → VALIDATING_INPUT → LOADING_CONTEXT → RUNNING
 
 1. `SYSTEM`, com `AgentDefinition.instructions`;
 2. `DEVELOPER`, com memória selecionada, quando explicitamente habilitada;
-3. `USER`, com `AgentInput.message` e attachments suportados.
+3. `DEVELOPER`, com conhecimento externo selecionado, quando disponível;
+4. `USER`, com `AgentInput.message` e attachments suportados.
 
 A mensagem de memória é única, marcada como contexto não confiável e não
 expõe IDs, metadados ou scores. Sem memória habilitada, a ordem permanece
-`SYSTEM → USER`.
+`SYSTEM → USER`. Conhecimento é recuperado em `RETRIEVING_KNOWLEDGE`, depois
+da memória, e também permanece em uma única mensagem não autoritativa.
 
 Attachments `image/*` viram `ImageContent`; `audio/*` viram `AudioContent`.
 Outros media types são rejeitados explicitamente, sem descarte silencioso.
@@ -221,12 +223,14 @@ repropagado.
 ## Limites desta versão
 
 Não há retry automático, fallback, reconexão, execução paralela de tools,
-Knowledge/RAG, guardrails, previsão de tokens/custo, provider concreto ou
-adapter concreto de memória. Aprovação humana pode interromper `run()` com
+guardrails, previsão de tokens/custo, provider concreto, adapter concreto de
+memória ou backend concreto de retrieval. Aprovação humana pode interromper `run()` com
 `ExecutionSuspension` e ser continuada por `resume()`; veja
 [aprovação humana](human-approval.md). A leitura e a escrita de memória são
 opcionais, usam contratos injetados e estão detalhadas em
 [memória](memory.md).
+Knowledge/RAG usa contratos injetados, allowlist por agente e está detalhado em
+[RAG no runtime](rag-runtime.md).
 O registry de modelos pode ser compartilhado para leitura, mas não deve ser
 alterado durante uma execução. O loop e sua deduplicação por execução estão em
 [multi-turn-runtime.md](multi-turn-runtime.md), e a fronteira segura de

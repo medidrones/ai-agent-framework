@@ -169,6 +169,20 @@ agente ou usuário. Knowledge/RAG representa fontes externas e permanece uma
 fronteira separada; consulte
 [`memory-vs-knowledge.md`](docs/architecture/memory-vs-knowledge.md).
 
+## Conhecimento e RAG
+
+Contratos runtime-facing ficam em `atlas_agents.knowledge`; implementações de
+busca futuras dependem desses contratos e permanecem em pacotes opcionais. Um
+agente declara uma allowlist ordenada de fontes. Durante
+`RETRIEVING_KNOWLEDGE`, o runtime monta uma consulta a partir do input, valida o
+resultado, aplica limites determinísticos e acrescenta uma mensagem
+`DEVELOPER` de referência não autoritativa.
+
+O `KnowledgeContext` preserva resultados e citações locais `K1`, `K2`… no
+estado, snapshot e checkpoint. Assim, loops multi-turn, streaming e retomada
+HITL não repetem a recuperação nem perdem o mapeamento de evidências. O core não
+implementa ingestão, embeddings, vector database, crawler ou backend de busca.
+
 ## Independência de infraestrutura
 
 O core não depende de SDKs de modelos, frameworks web, bancos de dados,
@@ -203,10 +217,10 @@ timestamps com fuso horário.
 O core já oferece execução multi-turn completa ou incremental por
 `ModelProvider`, sem provider concreto, com limites, budget e timeout opcionais.
 Também oferece contratos, registro e execução integrada de ferramentas.
-Também oferece aprovação humana, checkpoints versionados, retomada segura e
-memória com escopo por storage abstrato. Retries, fallback, Knowledge/RAG e
-integrações concretas de armazenamento serão introduzidos incrementalmente em
-tarefas posteriores.
+Também oferece aprovação humana, checkpoints versionados, retomada segura,
+memória com escopo e Knowledge/RAG provider-neutral. Retries, fallback e
+integrações concretas de armazenamento e retrieval serão introduzidos
+incrementalmente em tarefas posteriores.
 
 ## Evolução prevista
 

@@ -194,10 +194,18 @@ candidatas. O runtime restringe essas candidatas aos tipos declarados em
 `AgentDefinition.memory.write_types` e realiza escritas sequenciais antes de
 concluir. Consulte [memória](memory.md).
 
+## Conhecimento no loop
+
+Knowledge/RAG é recuperado uma única vez em `RETRIEVING_KNOWLEDGE`, depois da
+memória e antes do primeiro model turn. A mensagem e o `KnowledgeContext` são
+reutilizados em chamadas subsequentes. Marcadores de citação são interpretados
+somente no output final, nunca em conteúdo intermediário ou resultado de tool.
+Consulte [RAG no runtime](rag-runtime.md).
+
 ## Fora do escopo
 
 Não existem execução paralela de tools, retry, fallback, timeout específico de
 tool, idempotência distribuída, storage concreto de checkpoint ou memória,
-Knowledge/RAG ou guardrails. Dependências concretas continuam sendo injetadas
-nos construtores das implementações de `Tool`, `CheckpointStore` e
-`MemoryStore`.
+backend concreto de retrieval ou guardrails. Dependências concretas continuam
+sendo injetadas nos construtores das implementações de `Tool`,
+`CheckpointStore`, `MemoryStore` e `KnowledgeRetriever`.

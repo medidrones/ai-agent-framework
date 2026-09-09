@@ -16,17 +16,19 @@ acoplado.
           │                       │
  usuário/sessão/agente       documentos/corpora
           │                       │
-     MemoryStore            Retriever/KnowledgeStore
+     MemoryStore            KnowledgeRetriever
 ```
 
-Task 013 implementa somente o lado esquerdo. Memory contém informação associada
-a uma experiência anterior e exige um `MemoryScope` exato. Knowledge tratará
-fontes externas, documentos, trechos e citações em uma evolução independente.
+Memory contém informação associada a uma experiência anterior e exige um
+`MemoryScope` exato. Knowledge representa fontes externas, documentos, trechos
+e citações por uma allowlist explícita. Os dois contextos podem coexistir, mas
+mantêm contratos, validações e mensagens diferentes.
 
-Contratos necessários ao runtime, como `MemoryStore`, `MemoryManager` e as
-policies, pertencem ao `atlas-agent-core`. Implementações concretas futuras
-pertencerão a pacotes opcionais, por exemplo `atlas-agent-memory`, e dependerão
-dos contratos do core. O core nunca dependerá desses adapters.
+Contratos necessários ao runtime, como `MemoryStore`, `KnowledgeRetriever` e os
+managers e policies, pertencem ao `atlas-agent-core`. Implementações concretas
+futuras pertencerão a pacotes opcionais, por exemplo `atlas-agent-memory` e
+`atlas-agent-knowledge`, e dependerão dos contratos do core. O core nunca
+dependerá desses adapters.
 
 Esta fronteira proíbe na camada de memória:
 
@@ -36,5 +38,6 @@ Esta fronteira proíbe na camada de memória:
 - recuperação de corpus ou busca de conhecimento;
 - SDK obrigatório de banco, Redis ou mecanismo de busca.
 
-Consulte a [referência de memória](../reference/memory.md) para os contratos e
-o fluxo do runtime.
+Consulte as referências de [memória](../reference/memory.md),
+[conhecimento](../reference/knowledge.md) e
+[RAG no runtime](../reference/rag-runtime.md).

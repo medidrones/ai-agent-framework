@@ -7,7 +7,9 @@ explícita.
 
 Memória não é Knowledge/RAG. Registros de memória normalmente derivam da
 experiência do agente; documentos, corpora externos, embeddings e recuperação
-de conhecimento pertencem a outra camada.
+de conhecimento pertencem a outra camada. Consulte
+[conhecimento externo](knowledge.md) e
+[Memory versus Knowledge](../architecture/memory-vs-knowledge.md).
 
 ## Contratos
 

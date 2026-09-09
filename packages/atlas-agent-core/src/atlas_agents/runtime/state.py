@@ -18,6 +18,7 @@ from atlas_agents.agents import (
 from atlas_agents.approvals import ApprovalDecision, ApprovalRequest
 from atlas_agents.events import AgentEvent
 from atlas_agents.execution import ExecutionLifecycle, ExecutionTransition, is_terminal
+from atlas_agents.knowledge import KnowledgeContext, extract_citations
 from atlas_agents.models import ModelMessage, ModelSelectionResult, ModelUsage
 from atlas_agents.runtime.errors import (
     ExecutionAlreadyTerminalError,
@@ -83,6 +84,7 @@ class ExecutionState:
         self._context = context
         self._lifecycle = resolved_lifecycle
         self._messages: list[ModelMessage] = []
+        self._knowledge_context: KnowledgeContext | None = None
         self._model_selection: ModelSelectionResult | None = None
         self._usage = Usage()
         self._has_usage = False
@@ -138,6 +140,11 @@ class ExecutionState:
     def messages(self) -> tuple[ModelMessage, ...]:
         """Return messages in insertion order as an immutable tuple."""
         return tuple(self._messages)
+
+    @property
+    def knowledge_context(self) -> KnowledgeContext | None:
+        """Return the immutable selected external knowledge context."""
+        return self._knowledge_context
 
     @property
     def model_selection(self) -> ModelSelectionResult | None:
@@ -248,6 +255,17 @@ class ExecutionState:
             )
         mutation_time = self._mutation_timestamp()
         self._model_selection = selection
+        self._updated_at = mutation_time
+
+    def set_knowledge_context(self, context: KnowledgeContext) -> None:
+        """Record retrieved knowledge context exactly once per execution."""
+        self._ensure_active()
+        if self._knowledge_context is not None:
+            raise ExecutionStateInvariantError(
+                "O contexto de conhecimento não pode ser substituído."
+            )
+        mutation_time = self._mutation_timestamp()
+        self._knowledge_context = context
         self._updated_at = mutation_time
 
     def increment_turn(self) -> None:
@@ -437,6 +455,7 @@ class ExecutionState:
         input_data: AgentInput,
         context: AgentContext,
         messages: tuple[ModelMessage, ...],
+        knowledge_context: KnowledgeContext | None = None,
         model_selection: ModelSelectionResult,
         usage: Usage,
         has_model_usage: bool,
@@ -472,6 +491,7 @@ class ExecutionState:
             )
         state._lifecycle = lifecycle
         state._messages = list(messages)
+        state._knowledge_context = knowledge_context
         state._model_selection = model_selection
         state._usage = usage
         state._has_usage = has_model_usage
@@ -497,6 +517,7 @@ class ExecutionState:
             agent_id=self._agent.agent_id,
             status=self.status,
             messages=self.messages,
+            knowledge_context=self._knowledge_context,
             model_selection=self._model_selection,
             usage=self._usage,
             turn_count=self._turn_count,
@@ -528,6 +549,14 @@ class ExecutionState:
             output=deepcopy(self._output),
             usage=self._usage,
             events=self.events,
+            citations=extract_citations(
+                self._output,
+                (
+                    self._knowledge_context.citations
+                    if self._knowledge_context is not None
+                    else ()
+                ),
+            ),
             error=self._error,
         )
 

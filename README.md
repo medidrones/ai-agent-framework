@@ -55,8 +55,10 @@ completo e streaming. Ferramentas sensíveis podem suspender a execução para
 aprovação humana, salvar um checkpoint por contrato injetado e retomar com token
 opaco de uso único, inclusive no modo streaming. Agentes também podem habilitar
 memória de trabalho, conversa e longo prazo por escopos seguros, store abstrato
-e policies explícitas de leitura e escrita. Ainda não existem retries
-automáticos, fallback, Knowledge/RAG ou integração concreta com modelos.
+e policies explícitas de leitura e escrita. Também podem consultar uma
+allowlist de fontes externas por contratos Knowledge/RAG, com contexto não
+autoritativo e citações `K1`, `K2`… Ainda não existem retries automáticos,
+fallback, backends concretos de retrieval ou integração concreta com modelos.
 
 ## Requisitos
 
@@ -140,6 +142,9 @@ A camada de memória está descrita em
 [docs/reference/memory.md](docs/reference/memory.md), e sua separação de
 Knowledge/RAG em
 [docs/architecture/memory-vs-knowledge.md](docs/architecture/memory-vs-knowledge.md).
+A referência de conhecimento está em
+[docs/reference/knowledge.md](docs/reference/knowledge.md), e sua integração no
+runtime em [docs/reference/rag-runtime.md](docs/reference/rag-runtime.md).
 
 Consulte [ARCHITECTURE.md](ARCHITECTURE.md) para conhecer o desenho de alto
 nível e

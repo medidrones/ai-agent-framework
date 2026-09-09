@@ -73,6 +73,12 @@ exige novamente um `MemoryManager` para manter a configuração operacional
 explícita, mas não relê o store. Escritas continuam adiadas até existir uma
 resposta final válida após a decisão humana.
 
+Quando Knowledge/RAG está habilitado, o checkpoint também preserva formalmente
+o `KnowledgeContext`, além da mensagem renderizada. Resultados selecionados e o
+mapeamento `K1`, `K2`… permanecem disponíveis para extração das citações finais
+sem nova consulta ao retriever. A retomada exige o `KnowledgeManager` configurado
+para preservar a dependência operacional explícita, embora não realize retrieval.
+
 Não há nova seleção de modelo. Se o provider ou uma ferramenta declarada pelo
 agente não estiver mais registrada, a retomada falha sem fallback.
 

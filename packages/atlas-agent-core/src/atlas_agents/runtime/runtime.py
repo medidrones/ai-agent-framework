@@ -41,6 +41,20 @@ from atlas_agents.exceptions import (
     ModelProviderRegistryError,
     ModelSelectionError,
 )
+from atlas_agents.knowledge import (
+    DefaultKnowledgeQueryBuilder,
+    KnowledgeContextError,
+    KnowledgeContextRenderer,
+    KnowledgeError,
+    KnowledgeManager,
+    KnowledgePolicyError,
+    KnowledgeProtocolError,
+    KnowledgeQuery,
+    KnowledgeQueryBuilder,
+    KnowledgeRetrievalContext,
+    KnowledgeRetrievalError,
+    KnowledgeSourceNotFoundError,
+)
 from atlas_agents.memory import (
     AgentMemoryError,
     DefaultMemoryScopePolicy,
@@ -170,6 +184,9 @@ class AgentRuntime:
         memory_scope_policy: MemoryScopePolicy | None = None,
         memory_context_renderer: MemoryContextRenderer | None = None,
         memory_write_policy: MemoryWritePolicy | None = None,
+        knowledge_manager: KnowledgeManager | None = None,
+        knowledge_query_builder: KnowledgeQueryBuilder | None = None,
+        knowledge_context_renderer: KnowledgeContextRenderer | None = None,
         clock: Callable[[], datetime] | None = None,
     ) -> None:
         """Initialize the runtime with explicit replaceable dependencies."""
@@ -216,6 +233,17 @@ class AgentRuntime:
             memory_write_policy
             if memory_write_policy is not None
             else NoMemoryWritePolicy()
+        )
+        self._knowledge_manager = knowledge_manager
+        self._knowledge_query_builder = (
+            knowledge_query_builder
+            if knowledge_query_builder is not None
+            else DefaultKnowledgeQueryBuilder()
+        )
+        self._knowledge_context_renderer = (
+            knowledge_context_renderer
+            if knowledge_context_renderer is not None
+            else KnowledgeContextRenderer()
         )
         self._clock = clock if clock is not None else lambda: datetime.now(UTC)
         self._state_restorer = ExecutionStateRestorer()
@@ -520,6 +548,22 @@ class AgentRuntime:
                     code="memory_manager_required",
                     message=(
                         "A retomada exige o MemoryManager configurado na execução."
+                    ),
+                ),
+            )
+            return state.to_result()
+        if (
+            state.agent.knowledge is not None
+            and state.agent.knowledge.enabled
+            and self._knowledge_manager is None
+        ):
+            self._fail(
+                state,
+                factory,
+                AgentErrorInfo(
+                    code="knowledge_manager_required",
+                    message=(
+                        "A retomada exige o KnowledgeManager configurado na execução."
                     ),
                 ),
             )
@@ -1144,6 +1188,24 @@ class AgentRuntime:
                 ),
             )
             return state.to_result()
+        knowledge_config = agent.knowledge
+        if (
+            knowledge_config is not None
+            and knowledge_config.enabled
+            and self._knowledge_manager is None
+        ):
+            self._fail_preparation(
+                state,
+                factory,
+                AgentErrorInfo(
+                    code="knowledge_manager_required",
+                    message=(
+                        "O agente habilitou conhecimento, mas o runtime não possui "
+                        "um KnowledgeManager."
+                    ),
+                ),
+            )
+            return state.to_result()
         messages = self._request_builder.build_initial_messages(agent, input_data)
         state.add_message(messages[0])
         try:
@@ -1207,8 +1269,29 @@ class AgentRuntime:
             return state.to_result()
         if memory_message is not None:
             state.add_message(memory_message)
-        for message in messages[1:]:
-            state.add_message(message)
+        self._record(
+            state,
+            factory,
+            AgentEventType.CONTEXT_LOADING_COMPLETED,
+            {"outcome": "completed"},
+        )
+        if knowledge_config is not None and knowledge_config.enabled:
+            self._transition(
+                state,
+                factory,
+                ExecutionStatus.RETRIEVING_KNOWLEDGE,
+            )
+            knowledge_result = await self._load_knowledge_context(
+                state=state,
+                factory=factory,
+                agent=agent,
+                input_data=input_data,
+            )
+            if isinstance(knowledge_result, AgentResult):
+                return knowledge_result
+            if knowledge_result is not None:
+                state.add_message(knowledge_result)
+        state.add_message(messages[-1])
         try:
             tools = tuple(self._tool_registry.get(name) for name in agent.tool_names)
         except ToolNotRegisteredError as error:
@@ -1265,12 +1348,6 @@ class AgentRuntime:
             self._fail_preparation(state, factory, self._runtime_error())
             return state.to_result()
 
-        self._record(
-            state,
-            factory,
-            AgentEventType.CONTEXT_LOADING_COMPLETED,
-            {"outcome": "completed"},
-        )
         self._transition(state, factory, ExecutionStatus.RUNNING)
         return _PreparedExecution(
             state=state,
@@ -1351,6 +1428,137 @@ class AgentRuntime:
             max_characters=config.max_characters,
         )
         return self._memory_context_renderer.render(selected)
+
+    async def _load_knowledge_context(
+        self,
+        *,
+        state: ExecutionState,
+        factory: AgentEventFactory,
+        agent: AgentDefinition,
+        input_data: AgentInput,
+    ) -> ModelMessage | AgentResult[object] | None:
+        """Retrieve external knowledge once and preserve its citation mapping."""
+        config = agent.knowledge
+        manager = self._knowledge_manager
+        if config is None or not config.enabled or manager is None:
+            raise KnowledgeContextError(
+                "A recuperação de conhecimento não foi configurada corretamente."
+            )
+        self._record(
+            state,
+            factory,
+            AgentEventType.KNOWLEDGE_RETRIEVAL_STARTED,
+            {
+                "sources_count": len(config.source_ids),
+                "query_length": len(input_data.message),
+            },
+        )
+        try:
+            query = self._knowledge_query_builder.build(
+                agent=agent,
+                input_data=input_data,
+                context=state.context,
+            )
+            self._validate_knowledge_query(query, config.source_ids, config.max_results)
+            knowledge_context = await manager.retrieve(
+                query=query,
+                context=KnowledgeRetrievalContext(
+                    execution_id=state.execution_id,
+                    agent_id=agent.agent_id,
+                    identity=state.context.identity,
+                ),
+                max_results=config.max_results,
+                max_characters=config.max_characters,
+            )
+            state.set_knowledge_context(knowledge_context)
+            knowledge_message = self._knowledge_context_renderer.render(
+                knowledge_context
+            )
+        except KnowledgeSourceNotFoundError:
+            return self._fail_knowledge_retrieval(
+                state,
+                factory,
+                code="knowledge_source_not_found",
+                message="Uma fonte de conhecimento configurada não está disponível.",
+            )
+        except KnowledgeProtocolError:
+            return self._fail_knowledge_retrieval(
+                state,
+                factory,
+                code="knowledge_protocol_violation",
+                message="O retriever retornou conhecimento incompatível.",
+            )
+        except (KnowledgeContextError, KnowledgePolicyError):
+            return self._fail_knowledge_retrieval(
+                state,
+                factory,
+                code="knowledge_context_error",
+                message="Não foi possível montar o contexto de conhecimento.",
+            )
+        except (KnowledgeRetrievalError, KnowledgeError):
+            return self._fail_knowledge_retrieval(
+                state,
+                factory,
+                code="knowledge_retrieval_failed",
+                message="Não foi possível recuperar o conhecimento configurado.",
+            )
+        except Exception:
+            return self._fail_knowledge_retrieval(
+                state,
+                factory,
+                code="knowledge_context_error",
+                message="Não foi possível montar o contexto de conhecimento.",
+            )
+        self._record(
+            state,
+            factory,
+            AgentEventType.KNOWLEDGE_RETRIEVAL_COMPLETED,
+            {
+                "outcome": "completed",
+                "selected_count": len(knowledge_context.results),
+            },
+        )
+        return knowledge_message
+
+    @staticmethod
+    def _validate_knowledge_query(
+        query: object,
+        allowed_source_ids: tuple[str, ...],
+        max_results: int,
+    ) -> None:
+        if not isinstance(query, KnowledgeQuery):
+            raise KnowledgeContextError(
+                "O query builder deve retornar uma KnowledgeQuery."
+            )
+        if not query.source_ids:
+            raise KnowledgeContextError(
+                "A consulta não pode ampliar o acesso para todas as fontes."
+            )
+        if not set(query.source_ids).issubset(allowed_source_ids):
+            raise KnowledgeContextError(
+                "A consulta contém fonte fora da allowlist do agente."
+            )
+        if query.limit > max_results:
+            raise KnowledgeContextError(
+                "A consulta excede o limite de resultados do agente."
+            )
+
+    def _fail_knowledge_retrieval(
+        self,
+        state: ExecutionState,
+        factory: AgentEventFactory,
+        *,
+        code: str,
+        message: str,
+    ) -> AgentResult[object]:
+        self._record(
+            state,
+            factory,
+            AgentEventType.KNOWLEDGE_RETRIEVAL_COMPLETED,
+            {"outcome": "failed", "code": code},
+        )
+        self._fail(state, factory, AgentErrorInfo(code=code, message=message))
+        return state.to_result()
 
     @staticmethod
     def _model_context(
@@ -2223,12 +2431,13 @@ class AgentRuntime:
         factory: AgentEventFactory,
         error: AgentErrorInfo,
     ) -> None:
-        self._record(
-            state,
-            factory,
-            AgentEventType.CONTEXT_LOADING_COMPLETED,
-            {"outcome": "failed", "code": error.code},
-        )
+        if state.status is ExecutionStatus.LOADING_CONTEXT:
+            self._record(
+                state,
+                factory,
+                AgentEventType.CONTEXT_LOADING_COMPLETED,
+                {"outcome": "failed", "code": error.code},
+            )
         self._fail(state, factory, error)
 
     def _reject(

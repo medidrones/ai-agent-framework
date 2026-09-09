@@ -157,7 +157,13 @@ e continua somente com `ModelProvider.stream()`, mantendo a sequência de
 eventos; checkpoints incrementais não podem ser retomados por `resume()`.
 Consulte [aprovação humana](human-approval.md).
 
+Memória e conhecimento externo são recuperados antes do primeiro stream e
+reutilizados nos turns seguintes. O `KnowledgeContext` completo é preservado no
+checkpoint; `resume_stream()` não chama novamente o retriever. Marcadores de
+citação são extraídos somente depois da acumulação da resposta final, inclusive
+quando `[K1]` estiver dividido entre deltas.
+
 ## Limites
 
-Esta versão não oferece retry, fallback, reconexão, tools paralelas, memória,
-RAG, guardrails ou provider concreto.
+Esta versão não oferece retry, fallback, reconexão, tools paralelas, guardrails,
+provider concreto, store de memória ou backend concreto de retrieval.
