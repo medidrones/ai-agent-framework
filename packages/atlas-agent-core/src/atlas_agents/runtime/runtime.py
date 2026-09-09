@@ -41,6 +41,27 @@ from atlas_agents.exceptions import (
     ModelProviderRegistryError,
     ModelSelectionError,
 )
+from atlas_agents.guardrails import (
+    GuardrailContext,
+    GuardrailDecision,
+    GuardrailEnforcement,
+    GuardrailError,
+    GuardrailEvaluationError,
+    GuardrailManager,
+    GuardrailNotRegisteredError,
+    GuardrailPipelineResult,
+    GuardrailProtocolError,
+    GuardrailRecord,
+    GuardrailStage,
+    GuardrailStageMismatchError,
+)
+from atlas_agents.guardrails.inputs import (
+    FinalOutputGuardrailInput,
+    InputGuardrailInput,
+    ModelOutputGuardrailInput,
+    ToolCallGuardrailInput,
+    ToolResultGuardrailInput,
+)
 from atlas_agents.knowledge import (
     DefaultKnowledgeQueryBuilder,
     KnowledgeContextError,
@@ -134,9 +155,11 @@ from atlas_agents.runtime.tool_results import ToolResultMessageMapper
 from atlas_agents.tools import (
     ToolDefinition,
     ToolExecutionContext,
+    ToolExecutionError,
     ToolExecutionInvariantError,
     ToolExecutionRequest,
     ToolExecutionResult,
+    ToolExecutionStatus,
     ToolExecutor,
     ToolNotRegisteredError,
     ToolRegistry,
@@ -187,6 +210,7 @@ class AgentRuntime:
         knowledge_manager: KnowledgeManager | None = None,
         knowledge_query_builder: KnowledgeQueryBuilder | None = None,
         knowledge_context_renderer: KnowledgeContextRenderer | None = None,
+        guardrail_manager: GuardrailManager | None = None,
         clock: Callable[[], datetime] | None = None,
     ) -> None:
         """Initialize the runtime with explicit replaceable dependencies."""
@@ -245,6 +269,7 @@ class AgentRuntime:
             if knowledge_context_renderer is not None
             else KnowledgeContextRenderer()
         )
+        self._guardrail_manager = guardrail_manager
         self._clock = clock if clock is not None else lambda: datetime.now(UTC)
         self._state_restorer = ExecutionStateRestorer()
 
@@ -568,6 +593,44 @@ class AgentRuntime:
                 ),
             )
             return state.to_result()
+        guardrail_config = state.agent.guardrails
+        if guardrail_config is not None and guardrail_config.enabled:
+            manager = self._guardrail_manager
+            if manager is None:
+                self._fail(
+                    state,
+                    factory,
+                    AgentErrorInfo(
+                        code="guardrail_manager_required",
+                        message=(
+                            "A retomada exige o GuardrailManager configurado na "
+                            "execução."
+                        ),
+                    ),
+                )
+                return state.to_result()
+            try:
+                manager.validate_config(guardrail_config)
+            except GuardrailNotRegisteredError:
+                self._fail(
+                    state,
+                    factory,
+                    AgentErrorInfo(
+                        code="guardrail_not_registered",
+                        message="Um guardrail da execução não está mais registrado.",
+                    ),
+                )
+                return state.to_result()
+            except GuardrailStageMismatchError:
+                self._fail(
+                    state,
+                    factory,
+                    AgentErrorInfo(
+                        code="guardrail_stage_mismatch",
+                        message="Um guardrail está registrado no estágio incorreto.",
+                    ),
+                )
+                return state.to_result()
         try:
             provider = self._model_registry.get(selection.provider_name)
             tools = tuple(
@@ -711,6 +774,14 @@ class AgentRuntime:
             policy_result = self._enforce_usage(state, factory, policies)
             if policy_result is not None:
                 return policy_result
+            guarded_response = await self._guard_model_response(
+                state=state,
+                factory=factory,
+                response=response,
+            )
+            if isinstance(guarded_response, AgentResult):
+                return guarded_response
+            response = guarded_response
             if response.finish_reason is FinishReason.TOOL_CALL:
                 tool_result = await self._process_tool_calls(
                     state=state,
@@ -875,7 +946,21 @@ class AgentRuntime:
                     policy_result = self._enforce_usage(state, factory, policies)
                     if policy_result is not None:
                         result = policy_result
-                    elif response.finish_reason is FinishReason.TOOL_CALL:
+                    else:
+                        guarded_response = await self._guard_model_response(
+                            state=state,
+                            factory=factory,
+                            response=response,
+                        )
+                        if isinstance(guarded_response, AgentResult):
+                            result = guarded_response
+                        else:
+                            response = guarded_response
+                    if (
+                        policy_result is None
+                        and not isinstance(guarded_response, AgentResult)
+                        and response.finish_reason is FinishReason.TOOL_CALL
+                    ):
                         tool_result = await self._process_tool_calls(
                             state=state,
                             factory=factory,
@@ -901,7 +986,9 @@ class AgentRuntime:
                                     suspended = True
                                 yield item
                             return
-                    else:
+                    elif policy_result is None and not isinstance(
+                        guarded_response, AgentResult
+                    ):
                         state.add_message(
                             ModelMessage(
                                 role=MessageRole.ASSISTANT,
@@ -1101,6 +1188,16 @@ class AgentRuntime:
             )
             state.add_model_usage(response.usage)
             result = self._enforce_usage(state, factory, policies)
+            if result is None:
+                guarded_response = await self._guard_model_response(
+                    state=state,
+                    factory=factory,
+                    response=response,
+                )
+                if isinstance(guarded_response, AgentResult):
+                    result = guarded_response
+                else:
+                    response = guarded_response
             if result is None and response.finish_reason is FinishReason.TOOL_CALL:
                 result = await self._process_tool_calls(
                     state=state,
@@ -1161,6 +1258,94 @@ class AgentRuntime:
             )
             self._reject(state, factory, code=error.code, reason=str(error))
             return state.to_result()
+        guardrail_config = agent.guardrails
+        if guardrail_config is not None and guardrail_config.enabled:
+            manager = self._guardrail_manager
+            if manager is None:
+                self._fail(
+                    state,
+                    factory,
+                    AgentErrorInfo(
+                        code="guardrail_manager_required",
+                        message=(
+                            "O agente configurou guardrails, mas o runtime não possui "
+                            "um GuardrailManager."
+                        ),
+                    ),
+                )
+                return state.to_result()
+            try:
+                manager.validate_config(guardrail_config)
+            except GuardrailNotRegisteredError:
+                self._fail(
+                    state,
+                    factory,
+                    AgentErrorInfo(
+                        code="guardrail_not_registered",
+                        message="Um guardrail configurado não está registrado.",
+                    ),
+                )
+                return state.to_result()
+            except GuardrailStageMismatchError:
+                self._fail(
+                    state,
+                    factory,
+                    AgentErrorInfo(
+                        code="guardrail_stage_mismatch",
+                        message="Um guardrail foi configurado no estágio incorreto.",
+                    ),
+                )
+                return state.to_result()
+            guarded = await self._evaluate_guardrails(
+                state=state,
+                factory=factory,
+                stage=GuardrailStage.INPUT,
+                value=InputGuardrailInput(agent=agent, input_data=input_data),
+            )
+            if isinstance(guarded, AgentResult):
+                return guarded
+            if guarded.decision is GuardrailDecision.REJECT:
+                self._record(
+                    state,
+                    factory,
+                    AgentEventType.INPUT_VALIDATION_COMPLETED,
+                    {"outcome": "rejected", "code": "input_guardrail_rejected"},
+                )
+                self._reject(
+                    state,
+                    factory,
+                    code="input_guardrail_rejected",
+                    reason="A entrada foi rejeitada pela política do agente.",
+                    retain_error=True,
+                )
+                return state.to_result()
+            if not isinstance(guarded.output, InputGuardrailInput):
+                self._fail(
+                    state,
+                    factory,
+                    AgentErrorInfo(
+                        code="guardrail_invalid_transformation",
+                        message="O guardrail produziu uma entrada incompatível.",
+                    ),
+                )
+                return state.to_result()
+            if guarded.output.agent != agent:
+                self._fail(
+                    state,
+                    factory,
+                    AgentErrorInfo(
+                        code="guardrail_invalid_transformation",
+                        message="O guardrail não pode alterar a definição do agente.",
+                    ),
+                )
+                return state.to_result()
+            if (
+                guarded.output.input_data.attachments != input_data.attachments
+                or guarded.output.input_data.metadata != input_data.metadata
+            ):
+                return self._invalid_guardrail_transformation(state, factory)
+            input_data = guarded.output.input_data
+            state.set_effective_input(input_data)
         self._record(
             state,
             factory,
@@ -1560,6 +1745,207 @@ class AgentRuntime:
         self._fail(state, factory, AgentErrorInfo(code=code, message=message))
         return state.to_result()
 
+    async def _guard_model_response(
+        self,
+        *,
+        state: ExecutionState,
+        factory: AgentEventFactory,
+        response: ModelResponse,
+    ) -> ModelResponse | AgentResult[object]:
+        guarded = await self._evaluate_guardrails(
+            state=state,
+            factory=factory,
+            stage=GuardrailStage.MODEL_OUTPUT,
+            value=ModelOutputGuardrailInput(
+                response=response,
+                turn_number=state.turn_count,
+            ),
+        )
+        if isinstance(guarded, AgentResult):
+            return guarded
+        if guarded.decision is GuardrailDecision.REJECT:
+            self._reject(
+                state,
+                factory,
+                code="model_output_guardrail_rejected",
+                reason="A saída do modelo foi rejeitada pela política do agente.",
+                retain_error=True,
+            )
+            return state.to_result()
+        output = guarded.output
+        if not isinstance(output, ModelOutputGuardrailInput):
+            return self._invalid_guardrail_transformation(state, factory)
+        transformed = output.response
+        if (
+            transformed.response_id != response.response_id
+            or transformed.model != response.model
+            or transformed.tool_calls != response.tool_calls
+            or transformed.finish_reason is not response.finish_reason
+            or transformed.usage != response.usage
+            or transformed.metadata != response.metadata
+        ):
+            return self._invalid_guardrail_transformation(state, factory)
+        return transformed
+
+    def _invalid_guardrail_transformation(
+        self,
+        state: ExecutionState,
+        factory: AgentEventFactory,
+    ) -> AgentResult[object]:
+        self._fail(
+            state,
+            factory,
+            AgentErrorInfo(
+                code="guardrail_invalid_transformation",
+                message="O guardrail produziu uma transformação não permitida.",
+            ),
+        )
+        return state.to_result()
+
+    async def _evaluate_guardrails[T](
+        self,
+        *,
+        state: ExecutionState,
+        factory: AgentEventFactory,
+        stage: GuardrailStage,
+        value: T,
+    ) -> GuardrailPipelineResult[T] | AgentResult[object]:
+        """Evaluate one configured stage and record only content-free facts."""
+        config = state.agent.guardrails
+        if config is None or not config.ids_for(stage):
+            return GuardrailPipelineResult(
+                decision=GuardrailDecision.ALLOW,
+                output=value,
+            )
+        manager = self._guardrail_manager
+        if manager is None:
+            self._fail(
+                state,
+                factory,
+                AgentErrorInfo(
+                    code="guardrail_manager_required",
+                    message="A avaliação exige um GuardrailManager configurado.",
+                ),
+            )
+            return state.to_result()
+        self._record(
+            state,
+            factory,
+            AgentEventType.GUARDRAIL_EVALUATION_STARTED,
+            {"stage": stage.value, "guardrails_count": len(config.ids_for(stage))},
+        )
+        try:
+            result = await manager.evaluate(
+                config=config,
+                stage=stage,
+                value=value,
+                context=self._guardrail_context(state, stage),
+            )
+        except asyncio.CancelledError:
+            raise
+        except GuardrailProtocolError:
+            self._fail_guardrail_evaluation(
+                state,
+                factory,
+                stage=stage,
+                code="guardrail_protocol_violation",
+                message="Um guardrail retornou um resultado incompatível.",
+            )
+            return state.to_result()
+        except (GuardrailEvaluationError, GuardrailError):
+            self._fail_guardrail_evaluation(
+                state,
+                factory,
+                stage=stage,
+                code="guardrail_evaluation_failed",
+                message="Não foi possível avaliar a política configurada.",
+            )
+            return state.to_result()
+        except Exception:
+            self._fail_guardrail_evaluation(
+                state,
+                factory,
+                stage=stage,
+                code="guardrail_evaluation_failed",
+                message="Não foi possível avaliar a política configurada.",
+            )
+            return state.to_result()
+        for item in result.guardrail_results:
+            state.record_guardrail(
+                GuardrailRecord(
+                    stage=stage,
+                    guardrail_id=item.guardrail_id,
+                    decision=item.decision,
+                    enforcement=item.enforcement,
+                    violation_codes=tuple(
+                        violation.code for violation in item.violations
+                    ),
+                    transformation_kinds=tuple(
+                        transformation.kind for transformation in item.transformations
+                    ),
+                    timestamp=state.updated_at,
+                )
+            )
+            event_data: dict[str, object] = {
+                "stage": stage.value,
+                "guardrail_id": item.guardrail_id,
+                "decision": item.decision.value,
+                "violation_codes": [violation.code for violation in item.violations],
+                "transformation_kinds": [
+                    transformation.kind for transformation in item.transformations
+                ],
+            }
+            if item.decision is GuardrailDecision.TRANSFORM:
+                self._record(
+                    state,
+                    factory,
+                    AgentEventType.GUARDRAIL_TRANSFORMED,
+                    event_data,
+                )
+            elif item.decision is GuardrailDecision.REJECT:
+                self._record(
+                    state,
+                    factory,
+                    AgentEventType.GUARDRAIL_REJECTED,
+                    event_data,
+                )
+        self._record(
+            state,
+            factory,
+            AgentEventType.GUARDRAIL_EVALUATION_COMPLETED,
+            {"stage": stage.value, "decision": result.decision.value},
+        )
+        return result
+
+    def _fail_guardrail_evaluation(
+        self,
+        state: ExecutionState,
+        factory: AgentEventFactory,
+        *,
+        stage: GuardrailStage,
+        code: str,
+        message: str,
+    ) -> None:
+        self._record(
+            state,
+            factory,
+            AgentEventType.GUARDRAIL_EVALUATION_COMPLETED,
+            {"stage": stage.value, "outcome": "failed", "code": code},
+        )
+        self._fail(state, factory, AgentErrorInfo(code=code, message=message))
+
+    @staticmethod
+    def _guardrail_context(
+        state: ExecutionState,
+        stage: GuardrailStage,
+    ) -> GuardrailContext:
+        return GuardrailContext(
+            execution_id=state.execution_id,
+            agent_id=state.agent.agent_id,
+            identity=state.context.identity,
+            stage=stage,
+        )
+
     @staticmethod
     def _model_context(
         state: ExecutionState,
@@ -1633,6 +2019,7 @@ class AgentRuntime:
     ) -> RuntimeOutcome | None:
         """Process calls sequentially, suspending before each required approval."""
         for index, call in enumerate(calls):
+            original_call = call
             previous = state.get_tool_call_record(call.tool_call_id)
             if previous is not None:
                 if (
@@ -1656,10 +2043,12 @@ class AgentRuntime:
                 self._record_tool_completion(
                     state,
                     factory,
-                    previous.result,
+                    previous.model_facing_result,
                     deduplicated=True,
                 )
-                state.add_message(self._tool_result_mapper.map(previous.result))
+                state.add_message(
+                    self._tool_result_mapper.map(previous.model_facing_result)
+                )
                 continue
 
             registered = self._tool_registry.try_get(call.name)
@@ -1707,7 +2096,13 @@ class AgentRuntime:
                 return state.to_result()
             if isinstance(prepared, ToolExecutionResult):
                 self._enter_tool_processing(state, factory)
-                self._record_processed_tool_call(state, call, prepared)
+                self._record_processed_tool_call(
+                    state,
+                    call,
+                    call,
+                    prepared,
+                    prepared,
+                )
                 self._record_tool_completion(state, factory, prepared)
                 state.add_message(self._tool_result_mapper.map(prepared))
                 continue
@@ -1715,7 +2110,73 @@ class AgentRuntime:
                 self._fail(state, factory, self._runtime_error())
                 return state.to_result()
 
-            if approved_call_id == call.tool_call_id:
+            already_guarded = approved_call_id == call.tool_call_id
+            if not already_guarded:
+                guarded_call = await self._evaluate_guardrails(
+                    state=state,
+                    factory=factory,
+                    stage=GuardrailStage.TOOL_CALL,
+                    value=ToolCallGuardrailInput(
+                        tool_call=call,
+                        tool_definition=registered.definition,
+                    ),
+                )
+                if isinstance(guarded_call, AgentResult):
+                    return guarded_call
+                if guarded_call.decision is GuardrailDecision.REJECT:
+                    if guarded_call.enforcement is GuardrailEnforcement.EXECUTION:
+                        self._reject(
+                            state,
+                            factory,
+                            code="tool_call_guardrail_rejected",
+                            reason=(
+                                "A chamada de ferramenta foi rejeitada pela política."
+                            ),
+                            retain_error=True,
+                        )
+                        return state.to_result()
+                    denied = self._guardrail_tool_denial(
+                        call,
+                        code="tool_call_guardrail_rejected",
+                    )
+                    self._enter_tool_processing(state, factory)
+                    self._record_processed_tool_call(
+                        state,
+                        original_call,
+                        call,
+                        denied,
+                        denied,
+                    )
+                    self._record_tool_completion(state, factory, denied)
+                    state.add_message(self._tool_result_mapper.map(denied))
+                    continue
+                guarded_value = guarded_call.output
+                if not isinstance(guarded_value, ToolCallGuardrailInput):
+                    return self._invalid_guardrail_transformation(state, factory)
+                effective_call = guarded_value.tool_call
+                if (
+                    effective_call.tool_call_id != call.tool_call_id
+                    or effective_call.name != call.name
+                    or guarded_value.tool_definition != registered.definition
+                ):
+                    return self._invalid_guardrail_transformation(state, factory)
+                call = effective_call
+                request = ToolExecutionRequest(
+                    tool_call_id=call.tool_call_id,
+                    tool_name=call.name,
+                    arguments=call.arguments,
+                )
+                context = ToolExecutionContext(
+                    execution_id=state.execution_id,
+                    agent_id=state.agent.agent_id,
+                    tool_call_id=call.tool_call_id,
+                    identity=state.context.identity,
+                )
+                prepared = self._tool_executor.prepare(request, context)
+                if isinstance(prepared, ToolExecutionResult):
+                    return self._invalid_guardrail_transformation(state, factory)
+
+            if already_guarded:
                 approved_call_id = None
             else:
                 requirement = self._approval_requirement(
@@ -1728,7 +2189,7 @@ class AgentRuntime:
                         state=state,
                         factory=factory,
                         call=call,
-                        pending_calls=calls[index:],
+                        pending_calls=(call, *calls[index + 1 :]),
                         requirement=requirement,
                         policies=policies,
                         execution_mode=execution_mode,
@@ -1769,13 +2230,86 @@ class AgentRuntime:
             except Exception:
                 self._fail(state, factory, self._runtime_error())
                 return state.to_result()
-            self._record_processed_tool_call(state, call, result)
-            self._record_tool_completion(state, factory, result)
-            state.add_message(self._tool_result_mapper.map(result))
+            guarded_result = await self._guard_tool_result(
+                state=state,
+                factory=factory,
+                call=call,
+                result=result,
+            )
+            if isinstance(guarded_result, AgentResult):
+                return guarded_result
+            self._record_processed_tool_call(
+                state,
+                original_call,
+                call,
+                result,
+                guarded_result,
+            )
+            self._record_tool_completion(state, factory, guarded_result)
+            state.add_message(self._tool_result_mapper.map(guarded_result))
 
         if state.status is not ExecutionStatus.RUNNING:
             self._transition(state, factory, ExecutionStatus.RUNNING)
         return None
+
+    async def _guard_tool_result(
+        self,
+        *,
+        state: ExecutionState,
+        factory: AgentEventFactory,
+        call: ToolCall,
+        result: ToolExecutionResult,
+    ) -> ToolExecutionResult | AgentResult[object]:
+        guarded = await self._evaluate_guardrails(
+            state=state,
+            factory=factory,
+            stage=GuardrailStage.TOOL_RESULT,
+            value=ToolResultGuardrailInput(tool_call=call, tool_result=result),
+        )
+        if isinstance(guarded, AgentResult):
+            return guarded
+        if guarded.decision is GuardrailDecision.REJECT:
+            if guarded.enforcement is GuardrailEnforcement.EXECUTION:
+                self._reject(
+                    state,
+                    factory,
+                    code="tool_result_guardrail_rejected",
+                    reason="O resultado da ferramenta foi rejeitado pela política.",
+                    retain_error=True,
+                )
+                return state.to_result()
+            return self._guardrail_tool_denial(
+                call,
+                code="tool_result_guardrail_rejected",
+            )
+        output = guarded.output
+        if not isinstance(output, ToolResultGuardrailInput):
+            return self._invalid_guardrail_transformation(state, factory)
+        if output.tool_call != call or (
+            output.tool_result.tool_call_id != result.tool_call_id
+            or output.tool_result.tool_name != result.tool_name
+        ):
+            return self._invalid_guardrail_transformation(state, factory)
+        return output.tool_result
+
+    def _guardrail_tool_denial(
+        self,
+        call: ToolCall,
+        *,
+        code: str,
+    ) -> ToolExecutionResult:
+        timestamp = self._clock()
+        return ToolExecutionResult(
+            tool_call_id=call.tool_call_id,
+            tool_name=call.name,
+            status=ToolExecutionStatus.DENIED,
+            error=ToolExecutionError(
+                code=code,
+                message="A política do agente bloqueou esta operação.",
+            ),
+            started_at=timestamp,
+            completed_at=timestamp,
+        )
 
     def _approval_requirement(
         self,
@@ -1910,15 +2444,19 @@ class AgentRuntime:
     @staticmethod
     def _record_processed_tool_call(
         state: ExecutionState,
-        call: ToolCall,
+        original_call: ToolCall,
+        effective_call: ToolCall,
         result: ToolExecutionResult,
+        effective_result: ToolExecutionResult,
     ) -> None:
         state.record_tool_call(
             ToolCallRecord(
-                tool_call_id=call.tool_call_id,
-                tool_name=call.name,
-                arguments=call.arguments,
+                tool_call_id=original_call.tool_call_id,
+                tool_name=original_call.name,
+                arguments=original_call.arguments,
                 result=result,
+                effective_arguments=effective_call.arguments,
+                effective_result=effective_result,
             )
         )
 
@@ -1975,6 +2513,38 @@ class AgentRuntime:
                     code="model_empty_text_response",
                     message="O modelo não retornou conteúdo textual utilizável.",
                 )
+            guarded_output = await self._evaluate_guardrails(
+                state=state,
+                factory=factory,
+                stage=GuardrailStage.FINAL_OUTPUT,
+                value=FinalOutputGuardrailInput(output=output),
+            )
+            if isinstance(guarded_output, AgentResult):
+                return guarded_output
+            if guarded_output.decision is GuardrailDecision.REJECT:
+                self._record(
+                    state,
+                    factory,
+                    AgentEventType.OUTPUT_VALIDATION_COMPLETED,
+                    {
+                        "outcome": "rejected",
+                        "code": "final_output_guardrail_rejected",
+                    },
+                )
+                self._reject(
+                    state,
+                    factory,
+                    code="final_output_guardrail_rejected",
+                    reason="A saída final foi rejeitada pela política do agente.",
+                    retain_error=True,
+                )
+                return state.to_result()
+            guarded_value = guarded_output.output
+            if not isinstance(guarded_value, FinalOutputGuardrailInput):
+                return self._invalid_guardrail_transformation(state, factory)
+            if guarded_value.citations:
+                return self._invalid_guardrail_transformation(state, factory)
+            effective_output = guarded_value.output
             self._record(
                 state,
                 factory,
@@ -1987,12 +2557,12 @@ class AgentRuntime:
             write_failure = await self._write_memories(
                 state=state,
                 factory=factory,
-                output=output,
+                output=effective_output,
                 policies=policies,
             )
             if write_failure is not None:
                 return write_failure
-            state.complete(output)
+            state.complete(effective_output)
             state.record_event(factory.from_transition(state.transitions[-1]))
             self._record(state, factory, AgentEventType.EXECUTION_COMPLETED)
             return state.to_result()

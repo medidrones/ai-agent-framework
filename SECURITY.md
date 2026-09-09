@@ -1,5 +1,17 @@
 # Política de segurança
 
+## Guardrails
+
+Guardrails são opt-in por agente e falham fechado quando uma avaliação não
+produz decisão válida. Transformações de input ocorrem antes de Memory e
+Knowledge; chamadas transformadas são revalidadas antes de aprovação ou
+execução; e a saída final é avaliada antes de citações e escrita de memória.
+
+Eventos e registros não incluem conteúdo avaliado, argumentos ou resultados.
+O core não lê credenciais, carrega módulos, executa shell nem inclui SDK de
+moderação. Em streaming, deltas emitidos antes da avaliação pós-acúmulo não
+podem ser retirados.
+
 ## Versões compatíveis
 
 O Atlas Agent Framework é um software em fase de pré-lançamento. Correções de

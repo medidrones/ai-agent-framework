@@ -62,6 +62,7 @@ ALLOWED_TRANSITIONS: Mapping[ExecutionStatus, frozenset[ExecutionStatus]] = (
                 {
                     ExecutionStatus.WAITING_FOR_TOOL,
                     ExecutionStatus.VALIDATING_OUTPUT,
+                    ExecutionStatus.REJECTED,
                     *_RESOURCE_TERMINATIONS,
                 }
             ),
@@ -70,6 +71,7 @@ ALLOWED_TRANSITIONS: Mapping[ExecutionStatus, frozenset[ExecutionStatus]] = (
                     ExecutionStatus.EXECUTING_TOOL,
                     ExecutionStatus.WAITING_FOR_APPROVAL,
                     ExecutionStatus.RUNNING,
+                    ExecutionStatus.REJECTED,
                     *_RESOURCE_TERMINATIONS,
                 }
             ),
@@ -77,6 +79,7 @@ ALLOWED_TRANSITIONS: Mapping[ExecutionStatus, frozenset[ExecutionStatus]] = (
                 {
                     ExecutionStatus.RUNNING,
                     ExecutionStatus.WAITING_FOR_TOOL,
+                    ExecutionStatus.REJECTED,
                     *_RESOURCE_TERMINATIONS,
                 }
             ),

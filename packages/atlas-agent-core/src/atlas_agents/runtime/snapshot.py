@@ -12,10 +12,12 @@ from atlas_agents._models import (
     _timezone_aware,
 )
 from atlas_agents.agents.errors import AgentErrorInfo
+from atlas_agents.agents.input import AgentInput
 from atlas_agents.agents.result import Usage
 from atlas_agents.agents.status import ExecutionStatus
 from atlas_agents.approvals import ApprovalDecision, ApprovalRequest
 from atlas_agents.events import AgentEvent
+from atlas_agents.guardrails import GuardrailRecord
 from atlas_agents.knowledge import KnowledgeContext
 from atlas_agents.models import ModelMessage, ModelSelectionResult
 from atlas_agents.runtime.tool_calls import ToolCallRecord
@@ -28,6 +30,8 @@ class ExecutionSnapshot(_FrozenModel):
     agent_id: str
     status: ExecutionStatus
     messages: tuple[ModelMessage, ...] = ()
+    effective_input: AgentInput | None = None
+    guardrail_records: tuple[GuardrailRecord, ...] = ()
     knowledge_context: KnowledgeContext | None = None
     model_selection: ModelSelectionResult | None = None
     usage: Usage = Usage()

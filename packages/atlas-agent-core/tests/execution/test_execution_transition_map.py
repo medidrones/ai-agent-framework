@@ -50,6 +50,7 @@ def test_allowed_transitions_match_the_public_protocol() -> None:
             {
                 ExecutionStatus.WAITING_FOR_TOOL,
                 ExecutionStatus.VALIDATING_OUTPUT,
+                ExecutionStatus.REJECTED,
                 *RESOURCE_TERMINATIONS,
             }
         ),
@@ -58,6 +59,7 @@ def test_allowed_transitions_match_the_public_protocol() -> None:
                 ExecutionStatus.EXECUTING_TOOL,
                 ExecutionStatus.WAITING_FOR_APPROVAL,
                 ExecutionStatus.RUNNING,
+                ExecutionStatus.REJECTED,
                 *RESOURCE_TERMINATIONS,
             }
         ),
@@ -65,6 +67,7 @@ def test_allowed_transitions_match_the_public_protocol() -> None:
             {
                 ExecutionStatus.RUNNING,
                 ExecutionStatus.WAITING_FOR_TOOL,
+                ExecutionStatus.REJECTED,
                 *RESOURCE_TERMINATIONS,
             }
         ),

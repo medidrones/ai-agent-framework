@@ -1,5 +1,12 @@
 # Streaming do runtime
 
+## Limitação de guardrails
+
+Guardrails de model output e saída final são avaliados somente após a resposta
+ser reconstruída. Deltas já emitidos não podem ser retirados após uma rejeição.
+Não há moderação por delta nem bloqueio garantido antes da divulgação nesta
+versão.
+
 `AgentRuntime.stream()` executa chamadas sucessivas a `ModelProvider.stream()`
 quando o modelo solicita ferramentas e expõe todo o progresso sem depender de
 um SDK concreto. O retorno é um
@@ -165,5 +172,5 @@ quando `[K1]` estiver dividido entre deltas.
 
 ## Limites
 
-Esta versão não oferece retry, fallback, reconexão, tools paralelas, guardrails,
-provider concreto, store de memória ou backend concreto de retrieval.
+Esta versão não oferece retry, fallback, reconexão, tools paralelas, moderação
+por delta, provider concreto, store de memória ou backend concreto de retrieval.

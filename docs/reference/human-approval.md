@@ -1,5 +1,9 @@
 # Aprovação humana
 
+O guardrail de tool call sempre precede a aprovação. O pedido reflete a chamada
+efetiva. O checkpoint preserva a decisão concluída e a retomada não repete o
+guardrail avaliado antes da suspensão.
+
 O Human-in-the-Loop (HITL) do Atlas permite interromper uma execução antes de
 uma ferramenta sensível, persistir seu estado e retomá-la após uma decisão
 externa. O core não apresenta interface, não consulta banco de dados e não

@@ -1,5 +1,9 @@
 # Checkpoint e retomada
 
+Checkpoints preservam o input efetivo, registros de guardrail e versões efetivas
+de chamadas e resultados. Guardrails concluídos antes de uma suspensão HITL não
+são reavaliados na retomada, evitando efeitos externos duplicados e drift.
+
 `ExecutionCheckpoint` é o contrato versionado e serializável usado para
 retomar uma execução. Ele é diferente de `ExecutionSnapshot`: snapshot serve à
 observabilidade; checkpoint contém fatos normativos para reconstrução.

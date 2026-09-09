@@ -1,5 +1,10 @@
 # Lifecycle de execução
 
+Rejeições de guardrail podem levar `VALIDATING_INPUT`, `RUNNING`,
+`WAITING_FOR_TOOL`, `EXECUTING_TOOL` ou `VALIDATING_OUTPUT` a `REJECTED`.
+Rejeições com enforcement `OPERATION` em ferramentas não alteram o lifecycle e
+produzem um resultado controlado para o próximo turno.
+
 O lifecycle formaliza como uma execução muda de estado sem implementar um
 runtime. Todas as mudanças passam por `ExecutionLifecycle.transition_to`, que
 valida o mapa declarativo, cria uma `ExecutionTransition`, atualiza o estado e

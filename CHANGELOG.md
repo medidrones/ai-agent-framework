@@ -9,6 +9,11 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ### Adicionado
 
+- Contratos provider-neutral de guardrails, registry e pipeline ordenado com
+  transformações e rejeição fail-closed.
+- Enforcement de entrada, model output, tool call, tool result e saída final,
+  incluindo checkpoint, HITL e replay determinístico.
+- Documentação da limitação de enforcement pós-acumulação no streaming.
 - Fundação inicial do monorepo.
 - Estrutura inicial do pacote core.
 - Ferramentas de qualidade e integração contínua.

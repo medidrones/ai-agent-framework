@@ -18,6 +18,7 @@ from atlas_agents.agents import (
 from atlas_agents.approvals import ApprovalDecision, ApprovalRequest
 from atlas_agents.events import AgentEvent
 from atlas_agents.execution import ExecutionLifecycle, ExecutionTransition, is_terminal
+from atlas_agents.guardrails import GuardrailRecord
 from atlas_agents.knowledge import KnowledgeContext, extract_citations
 from atlas_agents.models import ModelMessage, ModelSelectionResult, ModelUsage
 from atlas_agents.runtime.errors import (
@@ -81,6 +82,7 @@ class ExecutionState:
         self._execution_id = validated_execution_id
         self._agent = agent
         self._input_data = input_data
+        self._effective_input = input_data
         self._context = context
         self._lifecycle = resolved_lifecycle
         self._messages: list[ModelMessage] = []
@@ -95,6 +97,7 @@ class ExecutionState:
         self._pending_approval: ApprovalRequest | None = None
         self._approval_history: list[ApprovalDecision] = []
         self._events: list[AgentEvent] = []
+        self._guardrail_records: list[GuardrailRecord] = []
         self._output: object | None = None
         self._error: AgentErrorInfo | None = None
         self._created_at = created_at
@@ -115,6 +118,16 @@ class ExecutionState:
     def input_data(self) -> AgentInput:
         """Return the immutable original agent input."""
         return self._input_data
+
+    @property
+    def effective_input(self) -> AgentInput:
+        """Return the guarded input used by downstream integrations."""
+        return self._effective_input
+
+    @property
+    def guardrail_records(self) -> tuple[GuardrailRecord, ...]:
+        """Return privacy-safe guardrail decisions in evaluation order."""
+        return tuple(self._guardrail_records)
 
     @property
     def context(self) -> AgentContext:
@@ -245,6 +258,18 @@ class ExecutionState:
         mutation_time = self._mutation_timestamp()
         self._messages.append(message)
         self._updated_at = mutation_time
+
+    def set_effective_input(self, input_data: AgentInput) -> None:
+        """Preserve the original input while recording its guarded form."""
+        self._ensure_active()
+        self._effective_input = input_data
+        self._updated_at = self._mutation_timestamp()
+
+    def record_guardrail(self, record: GuardrailRecord) -> None:
+        """Append one content-free guardrail audit record."""
+        self._ensure_active()
+        self._guardrail_records.append(record)
+        self._updated_at = self._mutation_timestamp(record.timestamp)
 
     def set_model_selection(self, selection: ModelSelectionResult) -> None:
         """Record the immutable selection exactly once."""
@@ -453,6 +478,7 @@ class ExecutionState:
         execution_id: str,
         agent: AgentDefinition,
         input_data: AgentInput,
+        effective_input: AgentInput | None = None,
         context: AgentContext,
         messages: tuple[ModelMessage, ...],
         knowledge_context: KnowledgeContext | None = None,
@@ -462,6 +488,7 @@ class ExecutionState:
         turn_count: int,
         tool_call_count: int,
         tool_calls: tuple[ToolCallRecord, ...],
+        guardrail_records: tuple[GuardrailRecord, ...] = (),
         events: tuple[AgentEvent, ...],
         transitions: tuple[ExecutionTransition, ...],
         pending_approval: ApprovalRequest,
@@ -491,6 +518,8 @@ class ExecutionState:
             )
         state._lifecycle = lifecycle
         state._messages = list(messages)
+        state._effective_input = effective_input or input_data
+        state._guardrail_records = list(guardrail_records)
         state._knowledge_context = knowledge_context
         state._model_selection = model_selection
         state._usage = usage
@@ -517,6 +546,8 @@ class ExecutionState:
             agent_id=self._agent.agent_id,
             status=self.status,
             messages=self.messages,
+            effective_input=self._effective_input,
+            guardrail_records=self.guardrail_records,
             knowledge_context=self._knowledge_context,
             model_selection=self._model_selection,
             usage=self._usage,

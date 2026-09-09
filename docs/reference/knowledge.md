@@ -1,5 +1,9 @@
 # Conhecimento externo
 
+Consultas são derivadas do `effective_input` após guardrails de entrada. Isso
+impede que conteúdo removido seja enviado ao retriever. Guardrails permanecem
+separados do `KnowledgeRetriever` e não possuem acesso implícito às fontes.
+
 A camada de Knowledge/RAG do Atlas recupera evidências de fontes externas sem
 acoplar o runtime a um mecanismo de busca. Ela pode ser implementada sobre
 busca lexical, SQL, APIs, índices híbridos ou vetoriais, mas nenhum desses

@@ -1,5 +1,9 @@
 # Memória
 
+Memory recebe o `effective_input` produzido por guardrails de entrada. Escritas
+ocorrem somente depois dos guardrails de saída final e recebem o output efetivo.
+Conteúdo rejeitado não é persistido.
+
 A camada de memória do Atlas representa experiência e contexto associados a
 execuções, conversas, agentes ou usuários. Ela é provider-neutral,
 storage-agnostic e somente é ativada quando o agente declara uma configuração

@@ -23,6 +23,7 @@ from atlas_agents.agents import (
 from atlas_agents.approvals import ApprovalDecision, ApprovalRequest, ResumeToken
 from atlas_agents.events import AgentEvent
 from atlas_agents.execution import ExecutionTransition
+from atlas_agents.guardrails import GuardrailRecord
 from atlas_agents.knowledge import KnowledgeContext
 from atlas_agents.models import ModelMessage, ModelSelectionResult, ToolCall
 from atlas_agents.runtime.budget import ExecutionBudget
@@ -47,6 +48,7 @@ class ExecutionCheckpoint(_FrozenModel):
     execution_mode: ExecutionMode
     agent: AgentDefinition
     input_data: AgentInput
+    effective_input: AgentInput | None = None
     context: AgentContext
     status: ExecutionStatus
     messages: tuple[ModelMessage, ...]
@@ -59,6 +61,7 @@ class ExecutionCheckpoint(_FrozenModel):
     events: tuple[AgentEvent, ...]
     transitions: tuple[ExecutionTransition, ...]
     tool_call_records: tuple[ToolCallRecord, ...]
+    guardrail_records: tuple[GuardrailRecord, ...] = ()
     pending_approval: ApprovalRequest
     pending_tool_calls: tuple[ToolCall, ...]
     approval_history: tuple[ApprovalDecision, ...] = ()

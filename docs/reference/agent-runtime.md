@@ -1,5 +1,9 @@
 # Runtime de agentes
 
+Guardrails configurados são aplicados pelo runtime em cinco fronteiras:
+`INPUT`, `MODEL_OUTPUT`, `TOOL_CALL`, `TOOL_RESULT` e `FINAL_OUTPUT`. Falhas de
+avaliação são fail-closed e rejeições seguem o enforcement declarado.
+
 `AgentRuntime` executa o pipeline provider-agnostic do Atlas. Cada chamada de
 `run()` ou `stream()` cria estado e factory de eventos próprios, seleciona um
 modelo uma única vez e pode alternar chamadas do modelo com ferramentas até
@@ -223,8 +227,9 @@ repropagado.
 ## Limites desta versão
 
 Não há retry automático, fallback, reconexão, execução paralela de tools,
-guardrails, previsão de tokens/custo, provider concreto, adapter concreto de
-memória ou backend concreto de retrieval. Aprovação humana pode interromper `run()` com
+moderação por delta, previsão de tokens/custo, provider concreto, adapter
+concreto de memória ou backend concreto de retrieval. Aprovação humana pode
+interromper `run()` com
 `ExecutionSuspension` e ser continuada por `resume()`; veja
 [aprovação humana](human-approval.md). A leitura e a escrita de memória são
 opcionais, usam contratos injetados e estão detalhadas em

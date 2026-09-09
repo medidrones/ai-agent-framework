@@ -1,5 +1,17 @@
 # Arquitetura
 
+## Guardrails e governança
+
+Contratos runtime-facing de guardrails ficam em `atlas_agents.guardrails`.
+Registry e manager são injetados por instância; não há registry global nem
+políticas habilitadas implicitamente. O runtime aplica pipelines ordenados à
+entrada, model output, chamadas e resultados de ferramentas e saída final,
+permanecendo o único dono do loop.
+
+Implementações de moderação, DLP ou safety providers ficam fora do core.
+Consulte
+[`guardrail-enforcement.md`](docs/architecture/guardrail-enforcement.md).
+
 O Atlas Agent Framework é organizado como um monorepo Python. Sua arquitetura
 se baseia em inversão de dependência: contratos estáveis do core são
 implementados por pacotes opcionais de infraestrutura.

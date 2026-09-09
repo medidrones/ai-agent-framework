@@ -1,5 +1,9 @@
 # Atlas Agent Framework
 
+O core também oferece guardrails provider-neutral com opt-in explícito por
+agente para entrada, saída e ferramentas. Consulte
+[`guardrails.md`](docs/reference/guardrails.md).
+
 Atlas é um framework Python reutilizável e independente de provedor para
 definir, compor, executar e avaliar agentes de IA.
 

@@ -20,15 +20,18 @@ FORBIDDEN_IMPORTS = frozenset(
         "faiss",
         "flask",
         "google",
+        "guardrails",
         "grpc",
         "httpx",
         "kafka",
         "langchain",
         "langgraph",
         "llama_index",
+        "nemoguardrails",
         "openai",
         "opensearch",
         "pinecone",
+        "perspective",
         "pika",
         "psycopg",
         "qdrant",
@@ -36,6 +39,7 @@ FORBIDDEN_IMPORTS = frozenset(
         "requests",
         "sqlalchemy",
         "weaviate",
+        "detoxify",
     }
 )
 
@@ -277,3 +281,32 @@ def test_knowledge_contracts_have_no_memory_or_backend_coupling() -> None:
 
     tool_context = (source_root / "tools" / "context.py").read_text(encoding="utf-8")
     assert "KnowledgeManager" not in tool_context
+
+
+def test_guardrails_have_no_execution_owner_or_provider_coupling() -> None:
+    source_root = Path(__file__).parents[2] / "src" / "atlas_agents"
+    guardrail_root = source_root / "guardrails"
+    forbidden_calls = {"generate", "stream", "execute", "run", "eval", "exec"}
+    forbidden_names = {
+        "AgentRuntime",
+        "MemoryStore",
+        "KnowledgeRetriever",
+        "ServiceContainer",
+        "ToolExecutor",
+        "get_service",
+        "require_service",
+    }
+
+    for path in guardrail_root.rglob("*.py"):
+        source = path.read_text(encoding="utf-8")
+        tree = ast.parse(source, filename=str(path))
+        names = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}
+        called_attributes = {
+            node.func.attr
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+        }
+
+        assert _import_roots(path) & FORBIDDEN_IMPORTS == set()
+        assert forbidden_names.isdisjoint(names)
+        assert forbidden_calls.isdisjoint(called_attributes)

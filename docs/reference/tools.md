@@ -1,5 +1,9 @@
 # Contratos, registro e execução segura de ferramentas
 
+Guardrails de chamada executam depois de allowlist, permissão e validação, mas
+antes de aprovação, limite, contador e execução. Argumentos transformados são
+revalidados. Guardrails de resultado executam antes da mensagem `TOOL`.
+
 A camada de ferramentas define uma fronteira provider-agnostic para registrar
 implementações conhecidas, autorizar uma chamada, validar argumentos e produzir
 um resultado operacional seguro. O `AgentRuntime` usa essa fronteira no ciclo

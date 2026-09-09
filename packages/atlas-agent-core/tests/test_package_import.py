@@ -172,6 +172,28 @@ def test_knowledge_contracts_are_intentionally_public() -> None:
     assert expected <= set(atlas_agents.__all__)
 
 
+def test_guardrail_contracts_are_intentionally_public() -> None:
+    expected = {
+        "AgentGuardrailConfig",
+        "Guardrail",
+        "GuardrailContext",
+        "GuardrailDecision",
+        "GuardrailEnforcement",
+        "GuardrailManager",
+        "GuardrailPipeline",
+        "GuardrailPipelineResult",
+        "GuardrailRecord",
+        "GuardrailRegistry",
+        "GuardrailResult",
+        "GuardrailSeverity",
+        "GuardrailStage",
+        "GuardrailTransformation",
+        "GuardrailViolation",
+    }
+
+    assert expected <= set(atlas_agents.__all__)
+
+
 def test_tool_contracts_are_intentionally_public() -> None:
     expected = {
         "DuplicateToolError",

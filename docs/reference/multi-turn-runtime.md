@@ -1,5 +1,9 @@
 # Runtime multi-turn com ferramentas
 
+Cada resposta reconstruída passa por `MODEL_OUTPUT`. Chamadas e resultados de
+ferramenta passam por pipelines próprios. Replays de IDs concluídos reutilizam
+o resultado efetivo, sem executar novamente a ferramenta ou seus guardrails.
+
 O `AgentRuntime` executa ciclos completos e provider-agnostic entre modelo e
 ferramentas. O loop pertence exclusivamente ao runtime; `ModelProvider` nunca
 executa tools e `ToolExecutor` nunca chama o modelo.
@@ -206,6 +210,6 @@ Consulte [RAG no runtime](rag-runtime.md).
 
 Não existem execução paralela de tools, retry, fallback, timeout específico de
 tool, idempotência distribuída, storage concreto de checkpoint ou memória,
-backend concreto de retrieval ou guardrails. Dependências concretas continuam
+backend concreto de retrieval ou provider de guardrails. Dependências concretas continuam
 sendo injetadas nos construtores das implementações de `Tool`,
 `CheckpointStore`, `MemoryStore` e `KnowledgeRetriever`.

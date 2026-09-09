@@ -1,5 +1,9 @@
 # Estado de execução
 
+`input_data` preserva a entrada original. `effective_input` contém a versão
+usada após guardrails. `guardrail_records` mantém somente decisões e códigos sem
+conteúdo sensível; snapshot e checkpoint preservam ambos.
+
 `ExecutionState` é a fonte de verdade mutável e controlada de uma única
 execução. Ele reúne definição, entrada, contexto, lifecycle, mensagens,
 seleção de modelo, uso, contadores, eventos e resultado sem realizar I/O.

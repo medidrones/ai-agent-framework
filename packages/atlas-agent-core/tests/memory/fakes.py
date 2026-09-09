@@ -101,6 +101,7 @@ class FixedMemoryWritePolicy:
     def __init__(self, candidates: tuple[MemoryCandidate, ...]) -> None:
         self.candidates = candidates
         self.calls = 0
+        self.outputs: list[object] = []
 
     def select(
         self,
@@ -111,6 +112,7 @@ class FixedMemoryWritePolicy:
     ) -> tuple[MemoryCandidate, ...]:
         del agent
         self.calls += 1
+        self.outputs.append(output)
         assert snapshot.output is None
         assert output is not None
         return self.candidates
