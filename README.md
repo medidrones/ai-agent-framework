@@ -12,6 +12,10 @@ A distribuição opcional `atlas-agent-evaluation` mede resultados com datasets
 versionados, evaluators determinísticos, scoring e relatórios, sem alterar o
 runtime produtivo. Consulte [`evaluation.md`](docs/reference/evaluation.md).
 
+O core agora oferece uma API explícita de plugins com discovery por entry
+points, compatibilidade de versão, preflight de conflitos, ativação segura e
+rollback por plugin. Consulte [`plugins.md`](docs/reference/plugins.md).
+
 Atlas é um framework Python reutilizável e independente de provedor para
 definir, compor, executar e avaliar agentes de IA.
 
@@ -165,7 +169,11 @@ A avaliação de qualidade está em
 [docs/reference/evaluation.md](docs/reference/evaluation.md), com contratos de
 [datasets](docs/reference/evaluation-datasets.md), catálogo de
 [evaluators](docs/reference/evaluators.md) e sua
-[arquitetura independente](docs/architecture/evaluation.md).
+[arquitetura independente](docs/architecture/evaluation.md). A extensão por
+pacotes está documentada na [referência de plugins](docs/reference/plugins.md),
+no [guia de autoria](docs/plugins/authoring.md), nas
+[orientações de segurança](docs/plugins/security.md) e na
+[arquitetura de plugins](docs/architecture/plugins.md).
 
 Consulte [ARCHITECTURE.md](ARCHITECTURE.md) para conhecer o desenho de alto
 nível e

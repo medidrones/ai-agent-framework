@@ -230,9 +230,19 @@ cancelamentos continuam cooperativos. Consulte
 
 ## Política de plugins
 
-Plugins implementam contratos pequenos e neutros definidos pelo core. Uma
-integração pode depender do SDK que adapta, mas essa dependência não pode vazar
-para a instalação do pacote core nem para suas interfaces públicas.
+Plugins implementam contratos pequenos e neutros definidos pelo core. Discovery
+por `importlib.metadata` apenas lista descritores do grupo
+`atlas_agents.plugins`; load, registro e ativação são decisões explícitas e
+separadas. Uma integração pode depender do SDK que adapta, mas essa dependência
+não pode vazar para a instalação do pacote core nem para suas interfaces
+públicas.
+
+`PluginContext` contém somente versão e configuração isolada. O manager recebe
+registries conhecidos por construtor, executa compatibility check e preflight
+antes do plugin, valida descritores contra contribuições e aplica rollback em
+ordem inversa. Memory, Knowledge e Observability continuam host-managed, sem
+registries artificiais ou reconfiguração implícita do runtime. Consulte
+[`docs/architecture/plugins.md`](docs/architecture/plugins.md).
 
 ## Qualidade e segurança
 

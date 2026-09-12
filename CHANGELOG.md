@@ -9,6 +9,19 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ### Adicionado
 
+- API de plugins com manifesto versionado, capabilities, contexto restrito e
+  contribuições fortemente tipadas.
+- Discovery determinístico pelo grupo `atlas_agents.plugins` usando
+  `importlib.metadata`, sem import ou ativação automática.
+- Loader de factory canônica, registry local de plugins e introspecção sem
+  configuração ou objetos implementadores.
+- Ativação explícita com compatibility check, descrição livre de efeitos,
+  preflight de conflitos, validação de protocolo e rollback em ordem inversa.
+- Registro opcional de providers, tools, guardrails e evaluators nos registries
+  injetados; Memory, Knowledge e Observability permanecem host-managed.
+- Desativação, reativação, preservação de cancelamento e documentação de
+  autoria, segurança e arquitetura do ecossistema de plugins.
+
 - Distribuição opcional `atlas-agent-evaluation`, dependente apenas dos contratos
   públicos do core e sem integração inversa no runtime.
 - Datasets versionados, casos e expectativas estáveis com preflight completo

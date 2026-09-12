@@ -121,3 +121,18 @@ explicitamente fornecida. Clientes e credenciais devem ser injetados no
 construtor do adapter. Filtros da consulta não constituem uma barreira de
 autorização: cada implementação continua responsável por ACLs da fonte. URIs de
 citação podem ser expostas no resultado e não devem conter tokens ou segredos.
+
+## Plugins
+
+Plugins do Atlas são código Python confiável. Ativar um plugin instalado
+executa código com os mesmos privilégios do processo Python hospedeiro. O Atlas
+não executa plugins em sandbox. Instale e ative somente plugins de fontes
+confiáveis.
+
+Discovery não importa plugins e ativação nunca é automática. O loader aceita
+somente entry points descobertos no grupo oficial, sem import strings
+arbitrárias. O core não instala dependências, não lê credenciais do ambiente e
+não expõe configuração em `PluginInfo`, resultados ou erros. Preflight impede
+sobrescrita silenciosa; rollback reduz registros parciais, mas uma falha do
+próprio registry durante rollback pode deixar o host inconsistente e exige
+intervenção. Consulte [`docs/plugins/security.md`](docs/plugins/security.md).

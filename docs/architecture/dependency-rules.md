@@ -34,11 +34,18 @@ Schema Draft 2020-12 na fronteira de ferramentas. A biblioteca não introduz
 integração de infraestrutura nem semântica específica de provider. Os stubs de
 tipagem correspondentes permanecem restritos ao grupo de desenvolvimento.
 
+`packaging` é a dependência leve e geral usada para interpretar versões e
+specifier sets de compatibilidade de plugins. O core não implementa um parser
+de versões próprio nem usa essa biblioteca para instalar ou resolver
+dependências externas.
+
 ## Plugins
 
 Plugins implementam contratos declarados pelo core. Um plugin pode depender do
 SDK que integra, mas essa dependência permanece em sua própria distribuição. Os
-plugins não devem depender de adapters de transporte.
+plugins não devem depender de adapters de transporte. Discovery usa somente
+`importlib.metadata`; frameworks externos de plugins, `pkg_resources`, package
+installers e containers de dependência não fazem parte do core.
 
 ## Adapters
 
