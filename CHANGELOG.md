@@ -9,6 +9,19 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ### Adicionado
 
+- Distribuição opcional `atlas-agent-evaluation`, dependente apenas dos contratos
+  públicos do core e sem integração inversa no runtime.
+- Datasets versionados, casos e expectativas estáveis com preflight completo
+  antes de consumir recursos produtivos.
+- Observations imutáveis com política de captura segura e relatórios sem output
+  final persistido por padrão.
+- Registry local, métricas direcionais, scores finitos, findings e agregação
+  determinística de resultados.
+- Evaluators de correspondência exata, contenção, status, ferramentas, citações
+  e guardrails, além da abstração provider-neutral de judge.
+- Isolamento de erros de evaluator e executor, preservação de cancelamento e
+  suporte explícito a suspensões HITL sem autoaprovação.
+
 - Contratos provider-neutral de tracing e métricas, com implementações no-op e
   isolamento fail-open de adapters.
 - Instrumentação do runtime para execução, modelos, ferramentas, aprovação,

@@ -1,6 +1,9 @@
 """Provider-agnostic primitives for building and running AI agents."""
 
 from importlib.metadata import version as _distribution_version
+from pkgutil import extend_path
+
+__path__ = extend_path(__path__, __name__)
 
 from atlas_agents.agents import (
     Agent,

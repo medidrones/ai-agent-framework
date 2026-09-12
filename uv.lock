@@ -9,6 +9,7 @@ resolution-markers = [
 [manifest]
 members = [
     "atlas-agent-core",
+    "atlas-agent-evaluation",
     "atlas-agent-framework-workspace",
 ]
 
@@ -105,6 +106,21 @@ requires-dist = [
 ]
 
 [[package]]
+name = "atlas-agent-evaluation"
+version = "0.1.0"
+source = { editable = "packages/atlas-agent-evaluation" }
+dependencies = [
+    { name = "atlas-agent-core" },
+    { name = "pydantic" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "atlas-agent-core", editable = "packages/atlas-agent-core" },
+    { name = "pydantic", specifier = ">=2.10" },
+]
+
+[[package]]
 name = "atlas-agent-framework-workspace"
 version = "0.1.0"
 source = { virtual = "." }
@@ -112,6 +128,7 @@ source = { virtual = "." }
 [package.dev-dependencies]
 dev = [
     { name = "atlas-agent-core" },
+    { name = "atlas-agent-evaluation" },
     { name = "mypy" },
     { name = "pre-commit" },
     { name = "pytest" },
@@ -126,6 +143,7 @@ dev = [
 [package.metadata.requires-dev]
 dev = [
     { name = "atlas-agent-core", editable = "packages/atlas-agent-core" },
+    { name = "atlas-agent-evaluation", editable = "packages/atlas-agent-evaluation" },
     { name = "mypy", specifier = ">=1.15" },
     { name = "pre-commit", specifier = ">=4.0" },
     { name = "pytest", specifier = ">=8.3" },

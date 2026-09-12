@@ -8,6 +8,10 @@ O runtime possui observabilidade provider-neutral e fail-open por injeção
 explícita, com tracing, métricas, continuidade em checkpoints e defaults no-op.
 Consulte [`observability.md`](docs/reference/observability.md).
 
+A distribuição opcional `atlas-agent-evaluation` mede resultados com datasets
+versionados, evaluators determinísticos, scoring e relatórios, sem alterar o
+runtime produtivo. Consulte [`evaluation.md`](docs/reference/evaluation.md).
+
 Atlas é um framework Python reutilizável e independente de provedor para
 definir, compor, executar e avaliar agentes de IA.
 
@@ -157,6 +161,11 @@ A referência de observabilidade está em
 [docs/reference/observability.md](docs/reference/observability.md), com a decisão
 arquitetural em
 [docs/architecture/observability.md](docs/architecture/observability.md).
+A avaliação de qualidade está em
+[docs/reference/evaluation.md](docs/reference/evaluation.md), com contratos de
+[datasets](docs/reference/evaluation-datasets.md), catálogo de
+[evaluators](docs/reference/evaluators.md) e sua
+[arquitetura independente](docs/architecture/evaluation.md).
 
 Consulte [ARCHITECTURE.md](ARCHITECTURE.md) para conhecer o desenho de alto
 nível e
@@ -169,7 +178,8 @@ para conferir as restrições de dependência aplicáveis.
 .
 ├── docs/architecture/          # Documentação arquitetural
 ├── packages/
-│   └── atlas-agent-core/      # Distribuição e testes organizados por contexto
+│   ├── atlas-agent-core/       # Distribuição e testes do núcleo
+│   └── atlas-agent-evaluation/ # Avaliação opcional e independente do runtime
 ├── .github/workflows/         # Integração contínua
 ├── AGENTS.md                 # Regras para agentes de engenharia
 ├── Makefile                  # Comandos locais de conveniência

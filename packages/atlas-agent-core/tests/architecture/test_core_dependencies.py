@@ -337,3 +337,14 @@ def test_observability_contracts_have_no_runtime_or_vendor_coupling() -> None:
 
         assert _import_roots(path) & FORBIDDEN_IMPORTS == set()
         assert forbidden_names.isdisjoint(names)
+
+
+def test_core_does_not_depend_on_evaluation_package() -> None:
+    source_root = Path(__file__).parents[2] / "src" / "atlas_agents"
+    violations: list[str] = []
+    for path in source_root.rglob("*.py"):
+        source = path.read_text(encoding="utf-8")
+        if "atlas_agents.evaluation" in source:
+            violations.append(str(path.relative_to(source_root)))
+
+    assert violations == []

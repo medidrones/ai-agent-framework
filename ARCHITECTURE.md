@@ -214,6 +214,20 @@ cardinalidade; conteúdo, metadata, credenciais e exceptions cruas ficam fora da
 instrumentação automática. Consulte
 [`docs/architecture/observability.md`](docs/architecture/observability.md).
 
+## Avaliação
+
+`atlas-agent-evaluation` é uma distribuição opcional acima do core. Ela recebe
+`AgentResult`, eventos ou snapshots imutáveis, cria uma
+`EvaluationObservation` e coordena evaluators sem participar do loop produtivo.
+O adapter `AgentRuntimeEvaluationExecutor` chama a API pública normal do runtime;
+não existe flag ou comportamento especial de avaliação.
+
+Datasets são validados integralmente antes da primeira execução. O runner é
+sequencial e preserva ordem de casos e expectativas. Falhas operacionais de
+evaluators e executores entram no relatório sem modificar o status produtivo;
+cancelamentos continuam cooperativos. Consulte
+[`docs/architecture/evaluation.md`](docs/architecture/evaluation.md).
+
 ## Política de plugins
 
 Plugins implementam contratos pequenos e neutros definidos pelo core. Uma

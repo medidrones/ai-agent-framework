@@ -25,6 +25,7 @@ quality: lint format-check type-check test
 
 build:
 	uv build --package atlas-agent-core
+	uv build --package atlas-agent-evaluation
 
 clean:
 	uv run python -c "from pathlib import Path; import shutil; root = Path.cwd().resolve(); targets = tuple(root / name for name in ('.coverage', 'coverage.xml', '.mypy_cache', '.pytest_cache', '.ruff_cache', 'build', 'dist')); assert all(path.parent == root for path in targets); [shutil.rmtree(path, ignore_errors=True) if path.is_dir() else path.unlink(missing_ok=True) for path in targets]"

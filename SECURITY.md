@@ -24,6 +24,20 @@ métricas. Adapters são responsáveis por retenção, transporte, redação adi
 e controle de acesso. Falhas do adapter são absorvidas para não alterar o
 resultado funcional; essa semântica fail-open não se aplica a guardrails.
 
+## Avaliação
+
+Observations disponibilizam a saída final somente durante a avaliação. O
+relatório persiste uma projeção resumida sem output. Conteúdo intermediário,
+argumentos e outputs de ferramentas são opt-in; conteúdo de memória, passagens
+de knowledge, credenciais, mensagens completas de erro e tokens de retomada não
+são capturados por padrão.
+
+O adapter de runtime não neutraliza efeitos externos automaticamente. Avaliações
+devem usar memória e checkpoints isolados, ferramentas fake ou sandbox, serviços
+de staging, credenciais de teste e dados não produtivos. Inputs enviados a um
+LLM judge são não confiáveis e podem conter prompt injection; o score do judge
+não constitui verdade factual nem decisão de segurança.
+
 ## Versões compatíveis
 
 O Atlas Agent Framework é um software em fase de pré-lançamento. Correções de

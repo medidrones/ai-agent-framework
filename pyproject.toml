@@ -12,10 +12,12 @@ members = ["packages/*"]
 
 [tool.uv.sources]
 atlas-agent-core = { workspace = true }
+atlas-agent-evaluation = { workspace = true }
 
 [dependency-groups]
 dev = [
     "atlas-agent-core",
+    "atlas-agent-evaluation",
     "mypy>=1.15",
     "pre-commit>=4.0",
     "pytest>=8.3",
@@ -28,7 +30,7 @@ dev = [
 [tool.ruff]
 target-version = "py312"
 line-length = 88
-src = ["packages/atlas-agent-core/src"]
+src = ["packages/atlas-agent-core/src", "packages/atlas-agent-evaluation/src"]
 
 [tool.ruff.lint]
 select = [
@@ -58,7 +60,7 @@ select = [
 
 [tool.ruff.lint.per-file-ignores]
 "packages/atlas-agent-core/src/atlas_agents/events/types.py" = ["A005"]
-"packages/atlas-agent-core/tests/**/*.py" = ["D", "S101"]
+"packages/*/tests/**/*.py" = ["D", "S101"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
@@ -70,6 +72,11 @@ line-ending = "lf"
 [tool.mypy]
 python_version = "3.12"
 strict = true
+explicit_package_bases = true
+mypy_path = [
+    "packages/atlas-agent-core/src",
+    "packages/atlas-agent-evaluation/src",
+]
 warn_unused_configs = true
 show_error_codes = true
 pretty = true
@@ -86,7 +93,7 @@ addopts = [
     "--cov-fail-under=90",
 ]
 asyncio_mode = "auto"
-testpaths = ["packages/atlas-agent-core/tests"]
+testpaths = ["packages/atlas-agent-core/tests", "packages/atlas-agent-evaluation/tests"]
 
 [tool.coverage.run]
 branch = true

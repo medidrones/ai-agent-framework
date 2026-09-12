@@ -1,5 +1,12 @@
 # Regras de dependência
 
+## Evaluation
+
+`atlas-agent-evaluation` pode importar contratos públicos de
+`atlas-agent-core`. O core não pode importar `atlas_agents.evaluation`. SDKs de
+modelos, bancos, brokers, tracing e experiment tracking não são dependências do
+framework de avaliação; integrações futuras entram por adapters e construtores.
+
 Estas regras preservam o Atlas como um framework incorporável, sem acoplá-lo a
 uma aplicação ou stack de infraestrutura específica.
 
