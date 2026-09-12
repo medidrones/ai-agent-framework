@@ -1,5 +1,10 @@
 # Guardrails
 
+Cada estágio configurado produz um span agregado com decisão e quantidade de
+avaliações, sem conteúdo avaliado ou justificativas. Observabilidade é fail-open,
+mas guardrails permanecem fail-closed: falha de avaliação continua encerrando a
+execução com segurança.
+
 Guardrails são políticas de governança provider-neutral avaliadas em pontos
 precisos do runtime. O agente opta explicitamente por IDs registrados em
 `AgentGuardrailConfig`; registrar uma implementação não a habilita

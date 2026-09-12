@@ -194,6 +194,28 @@ def test_guardrail_contracts_are_intentionally_public() -> None:
     assert expected <= set(atlas_agents.__all__)
 
 
+def test_observability_contracts_are_intentionally_public() -> None:
+    expected = {
+        "MetricsRecorder",
+        "NoOpMetricsRecorder",
+        "NoOpSpan",
+        "NoOpTracer",
+        "ObservabilityError",
+        "ObservabilityManager",
+        "SafeAttributeBuilder",
+        "SafeSpan",
+        "Span",
+        "SpanKind",
+        "SpanStatus",
+        "TraceContext",
+        "Tracer",
+        "safe_metric_attributes",
+        "safe_span_attributes",
+    }
+
+    assert expected <= set(atlas_agents.__all__)
+
+
 def test_tool_contracts_are_intentionally_public() -> None:
     expected = {
         "DuplicateToolError",

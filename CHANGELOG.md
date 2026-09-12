@@ -9,6 +9,15 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ### Adicionado
 
+- Contratos provider-neutral de tracing e métricas, com implementações no-op e
+  isolamento fail-open de adapters.
+- Instrumentação do runtime para execução, modelos, ferramentas, aprovação,
+  checkpoints, memória, knowledge e guardrails.
+- Continuidade explícita de trace em `AgentContext` e checkpoints HITL, sem
+  persistir adapters ou tokens de retomada.
+- Allowlists de atributos, métricas de baixa cardinalidade e política de
+  privacidade sem conteúdo ou exceptions cruas por padrão.
+
 - Contratos provider-neutral de guardrails, registry e pipeline ordenado com
   transformações e rejeição fail-closed.
 - Enforcement de entrada, model output, tool call, tool result e saída final,

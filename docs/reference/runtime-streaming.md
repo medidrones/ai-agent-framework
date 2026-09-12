@@ -1,5 +1,11 @@
 # Streaming do runtime
 
+Cada model turn incremental cria um único span `atlas.model.stream`. O runtime
+agrega a quantidade de eventos e o tempo até o primeiro delta, sem emitir spans
+por chunk. Conclusão, timeout, cancelamento e fechamento antecipado encerram o
+model span e a raiz de forma idempotente. Consulte
+[`observability.md`](observability.md).
+
 ## Limitação de guardrails
 
 Guardrails de model output e saída final são avaliados somente após a resposta

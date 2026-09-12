@@ -1,5 +1,10 @@
 # Aprovação humana
 
+A avaliação de aprovação possui span próprio, sem registrar justificativa ou
+valores dos argumentos. Uma suspensão encerra a raiz com outcome esperado; não
+mantém span aberto durante a espera. A retomada inicia outra raiz ligada ao
+contexto persistido no checkpoint.
+
 O guardrail de tool call sempre precede a aprovação. O pedido reflete a chamada
 efetiva. O checkpoint preserva a decisão concluída e a retomada não repete o
 guardrail avaliado antes da suspensão.

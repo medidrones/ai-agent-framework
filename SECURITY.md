@@ -12,6 +12,18 @@ O core não lê credenciais, carrega módulos, executa shell nem inclui SDK de
 moderação. Em streaming, deltas emitidos antes da avaliação pós-acúmulo não
 podem ser retirados.
 
+## Observabilidade
+
+A telemetria automática usa allowlists de atributos e não inclui prompts,
+input/output, argumentos ou resultados de ferramentas, memória, passagens de
+knowledge, justificativas, tokens de retomada, credenciais ou metadata
+arbitrária. Exceptions e stack traces não são capturadas por padrão.
+
+IDs técnicos podem ser atributos de spans para correlação, mas nunca labels de
+métricas. Adapters são responsáveis por retenção, transporte, redação adicional
+e controle de acesso. Falhas do adapter são absorvidas para não alterar o
+resultado funcional; essa semântica fail-open não se aplica a guardrails.
+
 ## Versões compatíveis
 
 O Atlas Agent Framework é um software em fase de pré-lançamento. Correções de

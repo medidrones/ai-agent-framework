@@ -1,5 +1,11 @@
 # Checkpoint e retomada
 
+`ExecutionCheckpoint.trace_context` é opcional e preserva somente o contexto
+provider-neutral necessário à continuidade do trace. O campo mantém
+compatibilidade com checkpoints existentes. O token de retomada e adapters de
+telemetria nunca são serializados. Save e consume possuem spans sem conteúdo do
+checkpoint.
+
 Checkpoints preservam o input efetivo, registros de guardrail e versões efetivas
 de chamadas e resultados. Guardrails concluídos antes de uma suspensão HITL não
 são reavaliados na retomada, evitando efeitos externos duplicados e drift.

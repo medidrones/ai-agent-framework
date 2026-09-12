@@ -1,5 +1,10 @@
 # Runtime multi-turn com ferramentas
 
+A observabilidade cria um span por model turn e um `atlas.tool.execute` somente
+quando a implementação da ferramenta é realmente chamada. Replays deduplicados,
+negações e argumentos inválidos não inflam a contagem de execuções. Argumentos
+e resultados não entram na telemetria.
+
 Cada resposta reconstruída passa por `MODEL_OUTPUT`. Chamadas e resultados de
 ferramenta passam por pipelines próprios. Replays de IDs concluídos reutilizam
 o resultado efetivo, sem executar novamente a ferramenta ou seus guardrails.

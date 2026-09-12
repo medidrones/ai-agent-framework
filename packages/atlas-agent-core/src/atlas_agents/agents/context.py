@@ -3,6 +3,7 @@
 from pydantic import Field, field_validator
 
 from atlas_agents._models import _FrozenModel, _json_mapping, _non_empty
+from atlas_agents.observability.context import TraceContext
 
 
 class ExecutionIdentity(_FrozenModel):
@@ -34,6 +35,7 @@ class AgentContext(_FrozenModel):
     user_id: str | None = None
     tenant_id: str | None = None
     identity: ExecutionIdentity | None = None
+    trace_context: TraceContext | None = None
     metadata: dict[str, object] = Field(default_factory=dict)
 
     @field_validator("execution_id")

@@ -28,17 +28,23 @@ FORBIDDEN_IMPORTS = frozenset(
         "langgraph",
         "llama_index",
         "nemoguardrails",
+        "newrelic",
         "openai",
+        "opentelemetry",
         "opensearch",
         "pinecone",
         "perspective",
         "pika",
         "psycopg",
+        "prometheus_client",
         "qdrant",
         "redis",
         "requests",
         "sqlalchemy",
+        "sentry_sdk",
         "weaviate",
+        "datadog",
+        "elasticapm",
         "detoxify",
     }
 )
@@ -310,3 +316,24 @@ def test_guardrails_have_no_execution_owner_or_provider_coupling() -> None:
         assert _import_roots(path) & FORBIDDEN_IMPORTS == set()
         assert forbidden_names.isdisjoint(names)
         assert forbidden_calls.isdisjoint(called_attributes)
+
+
+def test_observability_contracts_have_no_runtime_or_vendor_coupling() -> None:
+    source_root = Path(__file__).parents[2] / "src" / "atlas_agents"
+    observability_root = source_root / "observability"
+    forbidden_names = {
+        "AgentRuntime",
+        "ModelProvider",
+        "ServiceContainer",
+        "ToolExecutor",
+        "get_service",
+        "require_service",
+    }
+
+    for path in observability_root.rglob("*.py"):
+        source = path.read_text(encoding="utf-8")
+        tree = ast.parse(source, filename=str(path))
+        names = {node.id for node in ast.walk(tree) if isinstance(node, ast.Name)}
+
+        assert _import_roots(path) & FORBIDDEN_IMPORTS == set()
+        assert forbidden_names.isdisjoint(names)

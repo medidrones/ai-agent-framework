@@ -1,5 +1,9 @@
 # Memória
 
+Leituras e escritas efetivas são instrumentadas por tipo e quantidade, sem
+conteúdo, IDs de escopo, metadata ou identidade do usuário. Falhas do adapter de
+observabilidade não interferem nas validações defensivas de memória.
+
 Memory recebe o `effective_input` produzido por guardrails de entrada. Escritas
 ocorrem somente depois dos guardrails de saída final e recebem o output efetivo.
 Conteúdo rejeitado não é persistido.

@@ -201,6 +201,19 @@ O core não depende de SDKs de modelos, frameworks web, bancos de dados,
 message brokers ou bancos vetoriais. Cada integração pertence a uma distribuição
 opcional e recebe configuração e credenciais por injeção explícita.
 
+## Observabilidade
+
+`AgentRuntime` recebe um `ObservabilityManager` por instância e produz spans e
+métricas provider-neutral. Sem configuração, implementações no-op preservam o
+comportamento. Falhas de telemetria são fail-open e nunca alteram lifecycle,
+eventos ou resultados; guardrails continuam fail-closed.
+
+O contexto de trace é explícito em `AgentContext` e pode atravessar checkpoints
+sem persistir adapters ou tokens de retomada. Métricas usam dimensões de baixa
+cardinalidade; conteúdo, metadata, credenciais e exceptions cruas ficam fora da
+instrumentação automática. Consulte
+[`docs/architecture/observability.md`](docs/architecture/observability.md).
+
 ## Política de plugins
 
 Plugins implementam contratos pequenos e neutros definidos pelo core. Uma

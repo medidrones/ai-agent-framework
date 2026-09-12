@@ -110,6 +110,13 @@ from atlas_agents.models import (
     TextContent,
     ToolCall,
 )
+from atlas_agents.observability import (
+    ObservabilityManager,
+    SafeSpan,
+    SpanKind,
+    SpanStatus,
+    TraceContext,
+)
 from atlas_agents.runtime.budget import ExecutionBudget, ExecutionBudgetViolation
 from atlas_agents.runtime.checkpoint import (
     CURRENT_CHECKPOINT_VERSION,
@@ -180,6 +187,21 @@ class _ExecutionPolicies:
     limits: ExecutionLimits
     budget: ExecutionBudget
     deadline: ExecutionDeadline
+    observation: "_InvocationObservation"
+
+
+@dataclass(frozen=True)
+class _InvocationObservation:
+    span: SafeSpan
+    started_at: float
+    mode: ExecutionMode
+    resumed: bool
+
+
+@dataclass(frozen=True)
+class _OperationObservation:
+    span: SafeSpan
+    started_at: float
 
 
 @runtime_checkable
@@ -211,6 +233,7 @@ class AgentRuntime:
         knowledge_query_builder: KnowledgeQueryBuilder | None = None,
         knowledge_context_renderer: KnowledgeContextRenderer | None = None,
         guardrail_manager: GuardrailManager | None = None,
+        observability_manager: ObservabilityManager | None = None,
         clock: Callable[[], datetime] | None = None,
     ) -> None:
         """Initialize the runtime with explicit replaceable dependencies."""
@@ -270,6 +293,11 @@ class AgentRuntime:
             else KnowledgeContextRenderer()
         )
         self._guardrail_manager = guardrail_manager
+        self._observability = (
+            observability_manager
+            if observability_manager is not None
+            else ObservabilityManager()
+        )
         self._clock = clock if clock is not None else lambda: datetime.now(UTC)
         self._state_restorer = ExecutionStateRestorer()
 
@@ -284,12 +312,22 @@ class AgentRuntime:
         budget: ExecutionBudget | None = None,
     ) -> RuntimeOutcome:
         """Execute model and tool turns and return a terminal result."""
-        policies = self._resolve_policies(limits=limits, budget=budget)
         state = ExecutionState(
             execution_id=context.execution_id,
             agent=agent,
             input_data=input_data,
             context=context,
+        )
+        observation = self._start_runtime_observation(
+            state=state,
+            mode=ExecutionMode.RUN,
+            resumed=False,
+            parent=context.trace_context,
+        )
+        policies = self._resolve_policies(
+            limits=limits,
+            budget=budget,
+            observation=observation,
         )
         factory = AgentEventFactory(context.execution_id)
         self._start_execution(state, factory)
@@ -323,6 +361,8 @@ class AgentRuntime:
                     reason="A execução foi cancelada pelo consumidor.",
                 )
             raise
+        finally:
+            self._finish_runtime_observation(state, observation)
 
     async def resume(
         self,
@@ -336,11 +376,17 @@ class AgentRuntime:
             expected_mode=ExecutionMode.RUN,
         )
         state = self._state_restorer.restore(checkpoint)
+        observation = self._start_runtime_observation(
+            state=state,
+            mode=ExecutionMode.RUN,
+            resumed=True,
+            parent=checkpoint.trace_context,
+        )
         factory = AgentEventFactory(
             state.execution_id,
             initial_sequence=len(state.events),
         )
-        policies = self._checkpoint_policies(checkpoint)
+        policies = self._checkpoint_policies(checkpoint, observation)
         try:
             resumed = await policies.deadline.wait_for(
                 lambda: self._resume_decision_and_tools(
@@ -379,6 +425,8 @@ class AgentRuntime:
                     reason="A retomada foi cancelada pelo consumidor.",
                 )
             raise
+        finally:
+            self._finish_runtime_observation(state, observation)
 
     async def resume_stream(
         self,
@@ -392,11 +440,17 @@ class AgentRuntime:
             expected_mode=ExecutionMode.STREAM,
         )
         state = self._state_restorer.restore(checkpoint)
+        observation = self._start_runtime_observation(
+            state=state,
+            mode=ExecutionMode.STREAM,
+            resumed=True,
+            parent=checkpoint.trace_context,
+        )
         factory = AgentEventFactory(
             state.execution_id,
             initial_sequence=len(state.events),
         )
-        policies = self._checkpoint_policies(checkpoint)
+        policies = self._checkpoint_policies(checkpoint, observation)
         previous_event_count = len(state.events)
         suspended = False
         try:
@@ -457,6 +511,7 @@ class AgentRuntime:
                     factory,
                     reason="O consumidor encerrou a retomada antes da conclusão.",
                 )
+            self._finish_runtime_observation(state, observation)
 
     async def _consume_checkpoint(
         self,
@@ -469,7 +524,47 @@ class AgentRuntime:
             raise CheckpointStoreRequiredError(
                 "A retomada exige um armazenamento de checkpoint configurado."
             )
-        checkpoint = await store.consume(resume_token)
+        observation = _OperationObservation(
+            span=self._observability.start_span(
+                "atlas.checkpoint.consume",
+                kind=SpanKind.CLIENT,
+                attributes={"atlas.operation": "consume"},
+            ),
+            started_at=self._observability.now(),
+        )
+        try:
+            checkpoint = await store.consume(resume_token)
+        except asyncio.CancelledError:
+            self._finish_operation_observation(
+                observation,
+                outcome="cancelled",
+                status=SpanStatus.UNSET,
+            )
+            raise
+        except Exception:
+            self._finish_operation_observation(
+                observation,
+                outcome="failed",
+                status=SpanStatus.ERROR,
+                error_code="checkpoint_consume_failed",
+            )
+            self._observability.increment(
+                "atlas.checkpoint.operations",
+                attributes={"operation": "consume", "outcome": "failed"},
+            )
+            raise
+        observation.span.set_attribute(
+            "atlas.checkpoint.version", checkpoint.checkpoint_version
+        )
+        self._finish_operation_observation(
+            observation,
+            outcome="completed",
+            status=SpanStatus.OK,
+        )
+        self._observability.increment(
+            "atlas.checkpoint.operations",
+            attributes={"operation": "consume", "outcome": "completed"},
+        )
         if checkpoint.execution_mode is not expected_mode:
             raise InvalidCheckpointError(
                 "O checkpoint deve ser retomado pela mesma modalidade de execução."
@@ -479,11 +574,13 @@ class AgentRuntime:
     def _checkpoint_policies(
         self,
         checkpoint: ExecutionCheckpoint,
+        observation: _InvocationObservation,
     ) -> _ExecutionPolicies:
         return _ExecutionPolicies(
             limits=checkpoint.limits,
             budget=checkpoint.budget,
             deadline=ExecutionDeadline.start(checkpoint.remaining_timeout_seconds),
+            observation=observation,
         )
 
     async def _resume_decision_and_tools(
@@ -507,6 +604,15 @@ class AgentRuntime:
             {"approval_request_id": request.approval_request_id},
         )
         state.resolve_approval(decision)
+        self._observability.increment(
+            "atlas.approval.decisions",
+            attributes={"decision": decision.decision.value},
+        )
+        self._observability.record(
+            "atlas.approval.wait_duration",
+            max(0.0, (decision.decided_at - request.requested_at).total_seconds()),
+            attributes={"decision": decision.decision.value},
+        )
         expired = request.expires_at is not None and self._clock() >= request.expires_at
         if expired or decision.decision is ApprovalDecisionType.REJECT:
             code = "approval_expired" if expired else "approval_rejected"
@@ -692,6 +798,7 @@ class AgentRuntime:
             agent=agent,
             input_data=input_data,
             model_selection=model_selection,
+            policies=policies,
         )
         if isinstance(prepared, AgentResult):
             return prepared
@@ -735,9 +842,31 @@ class AgentRuntime:
                 tools=prepared.tool_definitions,
             )
             model_context = self._model_context(state, state.agent)
+            model_observation = self._start_model_observation(
+                state=state,
+                selection=prepared.selection,
+                policies=policies,
+                mode="generate",
+                request_id=model_context.request_id,
+            )
+            response: ModelResponse | None = None
+            model_outcome = "completed"
+            model_status = SpanStatus.OK
+            model_error_code: str | None = None
             try:
                 response = await prepared.provider.generate(request, model_context)
+            except asyncio.CancelledError:
+                model_outcome = (
+                    "timed_out" if policies.deadline.expired else "cancelled"
+                )
+                model_status = (
+                    SpanStatus.ERROR if policies.deadline.expired else SpanStatus.UNSET
+                )
+                raise
             except ModelProviderError as error:
+                model_outcome = "failed"
+                model_status = SpanStatus.ERROR
+                model_error_code = "model_provider_error"
                 self._record(
                     state,
                     factory,
@@ -751,6 +880,9 @@ class AgentRuntime:
                 )
                 return state.to_result()
             except Exception:
+                model_outcome = "failed"
+                model_status = SpanStatus.ERROR
+                model_error_code = "runtime_error"
                 self._record(
                     state,
                     factory,
@@ -759,6 +891,16 @@ class AgentRuntime:
                 )
                 self._fail(state, factory, self._runtime_error())
                 return state.to_result()
+            finally:
+                self._finish_model_observation(
+                    model_observation,
+                    selection=prepared.selection,
+                    mode="generate",
+                    outcome=model_outcome,
+                    status=model_status,
+                    response=response,
+                    error_code=model_error_code,
+                )
 
             policies.deadline.raise_if_expired()
             self._record(
@@ -778,6 +920,7 @@ class AgentRuntime:
                 state=state,
                 factory=factory,
                 response=response,
+                policies=policies,
             )
             if isinstance(guarded_response, AgentResult):
                 return guarded_response
@@ -812,18 +955,30 @@ class AgentRuntime:
         budget: ExecutionBudget | None = None,
     ) -> AsyncIterator[RuntimeStreamItem]:
         """Yield incremental execution events followed by one terminal result."""
-        policies = self._resolve_policies(limits=limits, budget=budget)
         state = ExecutionState(
             execution_id=context.execution_id,
             agent=agent,
             input_data=input_data,
             context=context,
         )
+        observation = self._start_runtime_observation(
+            state=state,
+            mode=ExecutionMode.STREAM,
+            resumed=False,
+            parent=context.trace_context,
+        )
+        policies = self._resolve_policies(
+            limits=limits,
+            budget=budget,
+            observation=observation,
+        )
         factory = AgentEventFactory(context.execution_id)
         self._start_execution(state, factory)
         emitted_events = 0
         provider_iterator: AsyncIterator[ModelStreamEvent] | None = None
         provider_exhausted = False
+        active_model_observation: _OperationObservation | None = None
+        active_model_selection: ModelSelectionResult | None = None
         suspended = False
         result: RuntimeOutcome
         try:
@@ -834,6 +989,7 @@ class AgentRuntime:
                     agent=agent,
                     input_data=input_data,
                     model_selection=model_selection,
+                    policies=policies,
                     additional_required_capabilities=frozenset(
                         {ModelCapability.STREAMING}
                     ),
@@ -870,6 +1026,18 @@ class AgentRuntime:
                 emitted_events += 1
                 state.increment_turn()
                 accumulator = ModelStreamAccumulator()
+                model_context = self._model_context(state, agent)
+                model_observation = self._start_model_observation(
+                    state=state,
+                    selection=prepared.selection,
+                    policies=policies,
+                    mode="stream",
+                    request_id=model_context.request_id,
+                )
+                active_model_observation = model_observation
+                active_model_selection = prepared.selection
+                stream_event_count = 0
+                first_delta_recorded = False
                 try:
                     request = self._request_builder.build_request(
                         state,
@@ -878,7 +1046,7 @@ class AgentRuntime:
                     )
                     provider_iterator = prepared.provider.stream(
                         request,
-                        self._model_context(state, agent),
+                        model_context,
                     )
                     while True:
                         try:
@@ -889,6 +1057,24 @@ class AgentRuntime:
                             provider_exhausted = True
                             break
                         policies.deadline.raise_if_expired()
+                        stream_event_count += 1
+                        if (
+                            model_event.type is ModelStreamEventType.TEXT_DELTA
+                            and not first_delta_recorded
+                        ):
+                            first_delta_recorded = True
+                            self._observability.record(
+                                "atlas.model.stream.time_to_first_delta",
+                                self._observability.elapsed_since(
+                                    model_observation.started_at
+                                ),
+                                attributes={
+                                    "provider": prepared.selection.provider_name,
+                                    "model": prepared.selection.model,
+                                    "mode": "stream",
+                                    "outcome": "observed",
+                                },
+                            )
                         accumulator.consume(model_event)
                         runtime_event = self._record_model_stream_event(
                             state,
@@ -899,8 +1085,33 @@ class AgentRuntime:
                         emitted_events += 1
                     response = accumulator.finalize()
                 except ExecutionDeadlineExpiredError:
+                    self._finish_model_observation(
+                        model_observation,
+                        selection=prepared.selection,
+                        mode="stream",
+                        outcome="timed_out",
+                        status=SpanStatus.ERROR,
+                        error_code="execution_timed_out",
+                    )
+                    raise
+                except asyncio.CancelledError:
+                    self._finish_model_observation(
+                        model_observation,
+                        selection=prepared.selection,
+                        mode="stream",
+                        outcome="cancelled",
+                        status=SpanStatus.UNSET,
+                    )
                     raise
                 except ModelProviderError as error:
+                    self._finish_model_observation(
+                        model_observation,
+                        selection=prepared.selection,
+                        mode="stream",
+                        outcome="failed",
+                        status=SpanStatus.ERROR,
+                        error_code="model_provider_error",
+                    )
                     self._record(
                         state,
                         factory,
@@ -914,6 +1125,14 @@ class AgentRuntime:
                     )
                     result = state.to_result()
                 except ModelStreamProtocolError as error:
+                    self._finish_model_observation(
+                        model_observation,
+                        selection=prepared.selection,
+                        mode="stream",
+                        outcome="failed",
+                        status=SpanStatus.ERROR,
+                        error_code="model_stream_protocol_error",
+                    )
                     self._record(
                         state,
                         factory,
@@ -923,6 +1142,14 @@ class AgentRuntime:
                     self._fail(state, factory, self._stream_error(error))
                     result = state.to_result()
                 except Exception:
+                    self._finish_model_observation(
+                        model_observation,
+                        selection=prepared.selection,
+                        mode="stream",
+                        outcome="failed",
+                        status=SpanStatus.ERROR,
+                        error_code="runtime_error",
+                    )
                     self._record(
                         state,
                         factory,
@@ -932,6 +1159,27 @@ class AgentRuntime:
                     self._fail(state, factory, self._runtime_error())
                     result = state.to_result()
                 else:
+                    model_observation.span.set_attribute(
+                        "atlas.model.stream.event_count", stream_event_count
+                    )
+                    self._observability.record(
+                        "atlas.model.stream.event_count",
+                        stream_event_count,
+                        attributes={
+                            "provider": prepared.selection.provider_name,
+                            "model": prepared.selection.model,
+                            "mode": "stream",
+                            "outcome": "completed",
+                        },
+                    )
+                    self._finish_model_observation(
+                        model_observation,
+                        selection=prepared.selection,
+                        mode="stream",
+                        outcome="completed",
+                        status=SpanStatus.OK,
+                        response=response,
+                    )
                     self._record(
                         state,
                         factory,
@@ -951,6 +1199,7 @@ class AgentRuntime:
                             state=state,
                             factory=factory,
                             response=response,
+                            policies=policies,
                         )
                         if isinstance(guarded_response, AgentResult):
                             result = guarded_response
@@ -1044,6 +1293,18 @@ class AgentRuntime:
                 and isinstance(provider_iterator, _AsyncClosable)
             ):
                 await provider_iterator.aclose()
+            if (
+                active_model_observation is not None
+                and active_model_selection is not None
+                and not active_model_observation.span.ended
+            ):
+                self._finish_model_observation(
+                    active_model_observation,
+                    selection=active_model_selection,
+                    mode="stream",
+                    outcome="cancelled",
+                    status=SpanStatus.UNSET,
+                )
             if not state.is_terminal and not suspended:
                 if self._model_invocation_open(state):
                     self._record(
@@ -1057,6 +1318,7 @@ class AgentRuntime:
                     factory,
                     reason="O consumidor encerrou o stream antes da conclusão.",
                 )
+            self._finish_runtime_observation(state, observation)
 
         for event in state.events[emitted_events:]:
             yield RuntimeEventItem(event=event)
@@ -1104,6 +1366,17 @@ class AgentRuntime:
             accumulator = ModelStreamAccumulator()
             provider_iterator: AsyncIterator[ModelStreamEvent] | None = None
             provider_exhausted = False
+            model_stream_completed = False
+            model_context = self._model_context(state, agent)
+            model_observation = self._start_model_observation(
+                state=state,
+                selection=prepared.selection,
+                policies=policies,
+                mode="stream",
+                request_id=model_context.request_id,
+            )
+            stream_event_count = 0
+            first_delta_recorded = False
             try:
                 request = self._request_builder.build_request(
                     state,
@@ -1112,7 +1385,7 @@ class AgentRuntime:
                 )
                 provider_iterator = prepared.provider.stream(
                     request,
-                    self._model_context(state, agent),
+                    model_context,
                 )
                 while True:
                     try:
@@ -1123,6 +1396,24 @@ class AgentRuntime:
                         provider_exhausted = True
                         break
                     policies.deadline.raise_if_expired()
+                    stream_event_count += 1
+                    if (
+                        model_event.type is ModelStreamEventType.TEXT_DELTA
+                        and not first_delta_recorded
+                    ):
+                        first_delta_recorded = True
+                        self._observability.record(
+                            "atlas.model.stream.time_to_first_delta",
+                            self._observability.elapsed_since(
+                                model_observation.started_at
+                            ),
+                            attributes={
+                                "provider": prepared.selection.provider_name,
+                                "model": prepared.selection.model,
+                                "mode": "stream",
+                                "outcome": "observed",
+                            },
+                        )
                     accumulator.consume(model_event)
                     runtime_event = self._record_model_stream_event(
                         state,
@@ -1132,9 +1423,35 @@ class AgentRuntime:
                     yield RuntimeEventItem(event=runtime_event)
                     emitted_events += 1
                 response = accumulator.finalize()
+                model_stream_completed = True
             except ExecutionDeadlineExpiredError:
+                self._finish_model_observation(
+                    model_observation,
+                    selection=prepared.selection,
+                    mode="stream",
+                    outcome="timed_out",
+                    status=SpanStatus.ERROR,
+                    error_code="execution_timed_out",
+                )
+                raise
+            except asyncio.CancelledError:
+                self._finish_model_observation(
+                    model_observation,
+                    selection=prepared.selection,
+                    mode="stream",
+                    outcome="cancelled",
+                    status=SpanStatus.UNSET,
+                )
                 raise
             except ModelProviderError as error:
+                self._finish_model_observation(
+                    model_observation,
+                    selection=prepared.selection,
+                    mode="stream",
+                    outcome="failed",
+                    status=SpanStatus.ERROR,
+                    error_code="model_provider_error",
+                )
                 self._record(
                     state,
                     factory,
@@ -1149,6 +1466,14 @@ class AgentRuntime:
                 result = state.to_result()
                 break
             except ModelStreamProtocolError as error:
+                self._finish_model_observation(
+                    model_observation,
+                    selection=prepared.selection,
+                    mode="stream",
+                    outcome="failed",
+                    status=SpanStatus.ERROR,
+                    error_code="model_stream_protocol_error",
+                )
                 self._record(
                     state,
                     factory,
@@ -1159,6 +1484,14 @@ class AgentRuntime:
                 result = state.to_result()
                 break
             except Exception:
+                self._finish_model_observation(
+                    model_observation,
+                    selection=prepared.selection,
+                    mode="stream",
+                    outcome="failed",
+                    status=SpanStatus.ERROR,
+                    error_code="runtime_error",
+                )
                 self._record(
                     state,
                     factory,
@@ -1175,7 +1508,36 @@ class AgentRuntime:
                     and isinstance(provider_iterator, _AsyncClosable)
                 ):
                     await provider_iterator.aclose()
+                if not model_stream_completed and not model_observation.span.ended:
+                    self._finish_model_observation(
+                        model_observation,
+                        selection=prepared.selection,
+                        mode="stream",
+                        outcome="cancelled",
+                        status=SpanStatus.UNSET,
+                    )
 
+            model_observation.span.set_attribute(
+                "atlas.model.stream.event_count", stream_event_count
+            )
+            self._observability.record(
+                "atlas.model.stream.event_count",
+                stream_event_count,
+                attributes={
+                    "provider": prepared.selection.provider_name,
+                    "model": prepared.selection.model,
+                    "mode": "stream",
+                    "outcome": "completed",
+                },
+            )
+            self._finish_model_observation(
+                model_observation,
+                selection=prepared.selection,
+                mode="stream",
+                outcome="completed",
+                status=SpanStatus.OK,
+                response=response,
+            )
             self._record(
                 state,
                 factory,
@@ -1193,6 +1555,7 @@ class AgentRuntime:
                     state=state,
                     factory=factory,
                     response=response,
+                    policies=policies,
                 )
                 if isinstance(guarded_response, AgentResult):
                     result = guarded_response
@@ -1245,6 +1608,7 @@ class AgentRuntime:
         agent: AgentDefinition,
         input_data: AgentInput,
         model_selection: ModelSelectionRequest | None,
+        policies: _ExecutionPolicies,
         additional_required_capabilities: frozenset[ModelCapability] = frozenset(),
     ) -> _PreparedExecution | AgentResult[object]:
         try:
@@ -1301,6 +1665,7 @@ class AgentRuntime:
                 factory=factory,
                 stage=GuardrailStage.INPUT,
                 value=InputGuardrailInput(agent=agent, input_data=input_data),
+                policies=policies,
             )
             if isinstance(guarded, AgentResult):
                 return guarded
@@ -1399,6 +1764,7 @@ class AgentRuntime:
                 factory=factory,
                 agent=agent,
                 input_data=input_data,
+                policies=policies,
             )
         except MemoryScopeResolutionError:
             self._fail_preparation(
@@ -1471,6 +1837,7 @@ class AgentRuntime:
                 factory=factory,
                 agent=agent,
                 input_data=input_data,
+                policies=policies,
             )
             if isinstance(knowledge_result, AgentResult):
                 return knowledge_result
@@ -1504,10 +1871,25 @@ class AgentRuntime:
             model_selection,
             additional_required_capabilities=frozenset(required_capabilities),
         )
+        selection_observation = self._start_operation_observation(
+            name="atlas.model.select",
+            policies=policies,
+            attributes={
+                "atlas.model.required_capability_count": len(
+                    selection_request.required_capabilities
+                )
+            },
+        )
+        selection_succeeded = False
         try:
             selection = await self._model_registry.select(selection_request)
             state.set_model_selection(selection)
             provider = self._model_registry.get(selection.provider_name)
+            selection_succeeded = True
+            selection_observation.span.set_attribute(
+                "atlas.model.provider", selection.provider_name
+            )
+            selection_observation.span.set_attribute("atlas.model.id", selection.model)
         except ModelProviderError as error:
             self._fail_preparation(
                 state,
@@ -1532,6 +1914,13 @@ class AgentRuntime:
         except Exception:
             self._fail_preparation(state, factory, self._runtime_error())
             return state.to_result()
+        finally:
+            self._finish_operation_observation(
+                selection_observation,
+                outcome="completed" if selection_succeeded else "failed",
+                status=SpanStatus.OK if selection_succeeded else SpanStatus.ERROR,
+                error_code=None if selection_succeeded else "model_selection_failed",
+            )
 
         self._transition(state, factory, ExecutionStatus.RUNNING)
         return _PreparedExecution(
@@ -1549,6 +1938,7 @@ class AgentRuntime:
         factory: AgentEventFactory,
         agent: AgentDefinition,
         input_data: AgentInput,
+        policies: _ExecutionPolicies,
     ) -> ModelMessage | None:
         """Retrieve configured memory once and render one contextual message."""
         config = agent.memory
@@ -1567,6 +1957,14 @@ class AgentRuntime:
                 AgentEventType.MEMORY_RETRIEVAL_STARTED,
                 {"memory_type": memory_type.value},
             )
+            memory_observation = self._start_operation_observation(
+                name="atlas.memory.retrieve",
+                policies=policies,
+                kind=SpanKind.CLIENT,
+                attributes={"atlas.memory.type": memory_type.value},
+            )
+            retrieved: tuple[MemorySearchResult, ...] = ()
+            retrieval_succeeded = False
             try:
                 scope = self._memory_scope_policy.scope_for(
                     memory_type=memory_type,
@@ -1586,6 +1984,7 @@ class AgentRuntime:
                         "O armazenamento repetiu uma memória entre consultas."
                     )
                 seen_ids.update(result.record.memory_id for result in retrieved)
+                retrieval_succeeded = True
             except Exception:
                 self._record(
                     state,
@@ -1594,6 +1993,23 @@ class AgentRuntime:
                     {"memory_type": memory_type.value, "outcome": "failed"},
                 )
                 raise
+            finally:
+                memory_observation.span.set_attribute(
+                    "atlas.memory.result_count", len(retrieved)
+                )
+                self._finish_operation_observation(
+                    memory_observation,
+                    outcome="completed" if retrieval_succeeded else "failed",
+                    status=(SpanStatus.OK if retrieval_succeeded else SpanStatus.ERROR),
+                    duration_metric="atlas.memory.retrieval.duration",
+                    metric_attributes={
+                        "memory_type": memory_type.value,
+                        "outcome": ("completed" if retrieval_succeeded else "failed"),
+                    },
+                    error_code=(
+                        None if retrieval_succeeded else "memory_retrieval_failed"
+                    ),
+                )
             self._record(
                 state,
                 factory,
@@ -1621,6 +2037,7 @@ class AgentRuntime:
         factory: AgentEventFactory,
         agent: AgentDefinition,
         input_data: AgentInput,
+        policies: _ExecutionPolicies,
     ) -> ModelMessage | AgentResult[object] | None:
         """Retrieve external knowledge once and preserve its citation mapping."""
         config = agent.knowledge
@@ -1638,6 +2055,14 @@ class AgentRuntime:
                 "query_length": len(input_data.message),
             },
         )
+        knowledge_observation = self._start_operation_observation(
+            name="atlas.knowledge.retrieve",
+            policies=policies,
+            kind=SpanKind.CLIENT,
+            attributes={"atlas.knowledge.source_count": len(config.source_ids)},
+        )
+        knowledge_context = None
+        retrieval_succeeded = False
         try:
             query = self._knowledge_query_builder.build(
                 agent=agent,
@@ -1659,6 +2084,7 @@ class AgentRuntime:
             knowledge_message = self._knowledge_context_renderer.render(
                 knowledge_context
             )
+            retrieval_succeeded = True
         except KnowledgeSourceNotFoundError:
             return self._fail_knowledge_retrieval(
                 state,
@@ -1693,6 +2119,26 @@ class AgentRuntime:
                 factory,
                 code="knowledge_context_error",
                 message="Não foi possível montar o contexto de conhecimento.",
+            )
+        finally:
+            if knowledge_context is not None:
+                knowledge_observation.span.set_attribute(
+                    "atlas.knowledge.result_count", len(knowledge_context.results)
+                )
+                knowledge_observation.span.set_attribute(
+                    "atlas.knowledge.selected_count", len(knowledge_context.results)
+                )
+            self._finish_operation_observation(
+                knowledge_observation,
+                outcome="completed" if retrieval_succeeded else "failed",
+                status=SpanStatus.OK if retrieval_succeeded else SpanStatus.ERROR,
+                duration_metric="atlas.knowledge.retrieval.duration",
+                metric_attributes={
+                    "outcome": "completed" if retrieval_succeeded else "failed"
+                },
+                error_code=(
+                    None if retrieval_succeeded else "knowledge_retrieval_failed"
+                ),
             )
         self._record(
             state,
@@ -1751,6 +2197,7 @@ class AgentRuntime:
         state: ExecutionState,
         factory: AgentEventFactory,
         response: ModelResponse,
+        policies: _ExecutionPolicies,
     ) -> ModelResponse | AgentResult[object]:
         guarded = await self._evaluate_guardrails(
             state=state,
@@ -1760,6 +2207,7 @@ class AgentRuntime:
                 response=response,
                 turn_number=state.turn_count,
             ),
+            policies=policies,
         )
         if isinstance(guarded, AgentResult):
             return guarded
@@ -1809,6 +2257,7 @@ class AgentRuntime:
         factory: AgentEventFactory,
         stage: GuardrailStage,
         value: T,
+        policies: _ExecutionPolicies,
     ) -> GuardrailPipelineResult[T] | AgentResult[object]:
         """Evaluate one configured stage and record only content-free facts."""
         config = state.agent.guardrails
@@ -1834,6 +2283,15 @@ class AgentRuntime:
             AgentEventType.GUARDRAIL_EVALUATION_STARTED,
             {"stage": stage.value, "guardrails_count": len(config.ids_for(stage))},
         )
+        observation = self._start_operation_observation(
+            name="atlas.guardrail.evaluate",
+            policies=policies,
+            attributes={
+                "atlas.guardrail.stage": stage.value,
+                "atlas.guardrail.count": len(config.ids_for(stage)),
+            },
+        )
+        result: GuardrailPipelineResult[T] | None = None
         try:
             result = await manager.evaluate(
                 config=config,
@@ -1870,6 +2328,21 @@ class AgentRuntime:
                 message="Não foi possível avaliar a política configurada.",
             )
             return state.to_result()
+        finally:
+            decision = "error" if result is None else result.decision.value
+            observation.span.set_attribute("atlas.guardrail.decision", decision)
+            self._observability.increment(
+                "atlas.guardrail.evaluations",
+                attributes={"stage": stage.value, "decision": decision},
+            )
+            self._finish_operation_observation(
+                observation,
+                outcome="failed" if result is None else "completed",
+                status=SpanStatus.ERROR if result is None else SpanStatus.OK,
+                duration_metric="atlas.guardrail.duration",
+                metric_attributes={"stage": stage.value, "decision": decision},
+                error_code=("guardrail_evaluation_failed" if result is None else None),
+            )
         for item in result.guardrail_results:
             state.record_guardrail(
                 GuardrailRecord(
@@ -2120,6 +2593,7 @@ class AgentRuntime:
                         tool_call=call,
                         tool_definition=registered.definition,
                     ),
+                    policies=policies,
                 )
                 if isinstance(guarded_call, AgentResult):
                     return guarded_call
@@ -2183,6 +2657,7 @@ class AgentRuntime:
                     tool=registered.definition,
                     request=request,
                     state=state,
+                    policies=policies,
                 )
                 if isinstance(requirement, ApprovalRequired):
                     return await self._suspend_for_approval(
@@ -2209,13 +2684,40 @@ class AgentRuntime:
                 AgentEventType.TOOL_EXECUTION_STARTED,
                 {"tool_call_id": call.tool_call_id, "tool_name": call.name},
             )
+            tool_observation = self._start_operation_observation(
+                name="atlas.tool.execute",
+                policies=policies,
+                attributes={
+                    "atlas.tool.name": call.name,
+                    "atlas.tool.call_id": call.tool_call_id,
+                    "atlas.tool.idempotency": registered.definition.idempotency.value,
+                },
+            )
+            result: ToolExecutionResult | None = None
+            tool_outcome = "failed"
+            tool_status = SpanStatus.ERROR
+            tool_error_code: str | None = None
             try:
                 result = await policies.deadline.wait_for(
                     partial(self._tool_executor.execute_prepared, prepared)
                 )
+                tool_outcome = result.status.value
+                tool_status = (
+                    SpanStatus.ERROR
+                    if result.status is ToolExecutionStatus.FAILED
+                    else SpanStatus.OK
+                )
+                tool_error_code = None if result.error is None else result.error.code
             except ExecutionDeadlineExpiredError:
+                tool_outcome = "timed_out"
+                tool_error_code = "execution_timed_out"
+                raise
+            except asyncio.CancelledError:
+                tool_outcome = "cancelled"
+                tool_status = SpanStatus.UNSET
                 raise
             except ToolExecutionInvariantError:
+                tool_error_code = "tool_execution_invariant"
                 self._fail(
                     state,
                     factory,
@@ -2228,13 +2730,35 @@ class AgentRuntime:
                 )
                 return state.to_result()
             except Exception:
+                tool_error_code = "runtime_error"
                 self._fail(state, factory, self._runtime_error())
                 return state.to_result()
+            finally:
+                tool_observation.span.set_attribute("atlas.tool.status", tool_outcome)
+                self._observability.increment(
+                    "atlas.tool.executions",
+                    attributes={
+                        "tool_name": call.name,
+                        "status": tool_outcome,
+                    },
+                )
+                self._finish_operation_observation(
+                    tool_observation,
+                    outcome=tool_outcome,
+                    status=tool_status,
+                    duration_metric="atlas.tool.duration",
+                    metric_attributes={
+                        "tool_name": call.name,
+                        "status": tool_outcome,
+                    },
+                    error_code=tool_error_code,
+                )
             guarded_result = await self._guard_tool_result(
                 state=state,
                 factory=factory,
                 call=call,
                 result=result,
+                policies=policies,
             )
             if isinstance(guarded_result, AgentResult):
                 return guarded_result
@@ -2259,12 +2783,14 @@ class AgentRuntime:
         factory: AgentEventFactory,
         call: ToolCall,
         result: ToolExecutionResult,
+        policies: _ExecutionPolicies,
     ) -> ToolExecutionResult | AgentResult[object]:
         guarded = await self._evaluate_guardrails(
             state=state,
             factory=factory,
             stage=GuardrailStage.TOOL_RESULT,
             value=ToolResultGuardrailInput(tool_call=call, tool_result=result),
+            policies=policies,
         )
         if isinstance(guarded, AgentResult):
             return guarded
@@ -2317,24 +2843,50 @@ class AgentRuntime:
         tool: ToolDefinition,
         request: ToolExecutionRequest,
         state: ExecutionState,
+        policies: _ExecutionPolicies,
     ) -> ApprovalRequirement:
-        if tool.approval_mode is ToolApprovalMode.NOT_REQUIRED:
-            return ApprovalNotRequired()
-        if tool.approval_mode is ToolApprovalMode.REQUIRED:
-            return ApprovalRequired(
-                reason="A ferramenta exige aprovação humana antes da execução.",
-                summary=f"Autorizar a execução da ferramenta '{tool.name}'?",
-            )
-        return self._approval_policy.evaluate_tool(
-            tool=tool,
-            request=request,
-            context=ApprovalContext(
-                execution_id=state.execution_id,
-                agent_id=state.agent.agent_id,
-                tool_call_id=request.tool_call_id,
-                identity=state.context.identity,
-            ),
+        observation = self._start_operation_observation(
+            name="atlas.approval.evaluate",
+            policies=policies,
+            attributes={"atlas.tool.name": tool.name},
         )
+        try:
+            if tool.approval_mode is ToolApprovalMode.NOT_REQUIRED:
+                requirement: ApprovalRequirement = ApprovalNotRequired()
+            elif tool.approval_mode is ToolApprovalMode.REQUIRED:
+                requirement = ApprovalRequired(
+                    reason="A ferramenta exige aprovação humana antes da execução.",
+                    summary=f"Autorizar a execução da ferramenta '{tool.name}'?",
+                )
+            else:
+                requirement = self._approval_policy.evaluate_tool(
+                    tool=tool,
+                    request=request,
+                    context=ApprovalContext(
+                        execution_id=state.execution_id,
+                        agent_id=state.agent.agent_id,
+                        tool_call_id=request.tool_call_id,
+                        identity=state.context.identity,
+                    ),
+                )
+        except Exception:
+            self._finish_operation_observation(
+                observation,
+                outcome="failed",
+                status=SpanStatus.ERROR,
+                error_code="approval_evaluation_failed",
+            )
+            raise
+        decision = (
+            "required" if isinstance(requirement, ApprovalRequired) else "not_required"
+        )
+        observation.span.set_attribute("atlas.approval.decision", decision)
+        self._finish_operation_observation(
+            observation,
+            outcome="completed",
+            status=SpanStatus.OK,
+        )
+        return requirement
 
     async def _suspend_for_approval(
         self,
@@ -2398,6 +2950,23 @@ class AgentRuntime:
             {"approval_request_id": request.approval_request_id},
         )
         token = ResumeToken.create()
+        self._observability.increment(
+            "atlas.approval.requests",
+            attributes={"decision": "required"},
+        )
+        checkpoint_observation = self._start_operation_observation(
+            name="atlas.checkpoint.save",
+            policies=policies,
+            kind=SpanKind.CLIENT,
+            attributes={
+                "atlas.checkpoint.version": CURRENT_CHECKPOINT_VERSION,
+                "atlas.execution.mode": execution_mode.value,
+                "atlas.operation": "save",
+            },
+        )
+        checkpoint_outcome = "completed"
+        checkpoint_status = SpanStatus.OK
+        checkpoint_error_code: str | None = None
         try:
             checkpoint = self._state_restorer.build_checkpoint(
                 state=state,
@@ -2406,13 +2975,24 @@ class AgentRuntime:
                 limits=policies.limits,
                 budget=policies.budget,
                 deadline=policies.deadline,
+                trace_context=policies.observation.span.context,
             )
             await policies.deadline.wait_for(
                 lambda: store.save(resume_token=token, checkpoint=checkpoint)
             )
         except ExecutionDeadlineExpiredError:
+            checkpoint_outcome = "timed_out"
+            checkpoint_status = SpanStatus.ERROR
+            checkpoint_error_code = "execution_timed_out"
+            raise
+        except asyncio.CancelledError:
+            checkpoint_outcome = "cancelled"
+            checkpoint_status = SpanStatus.UNSET
             raise
         except Exception:
+            checkpoint_outcome = "failed"
+            checkpoint_status = SpanStatus.ERROR
+            checkpoint_error_code = "checkpoint_save_failed"
             self._fail(
                 state,
                 factory,
@@ -2422,6 +3002,20 @@ class AgentRuntime:
                 ),
             )
             return state.to_result()
+        finally:
+            self._observability.increment(
+                "atlas.checkpoint.operations",
+                attributes={
+                    "operation": "save",
+                    "outcome": checkpoint_outcome,
+                },
+            )
+            self._finish_operation_observation(
+                checkpoint_observation,
+                outcome=checkpoint_outcome,
+                status=checkpoint_status,
+                error_code=checkpoint_error_code,
+            )
         return ExecutionSuspension(
             execution_id=state.execution_id,
             approval_request=request,
@@ -2518,6 +3112,7 @@ class AgentRuntime:
                 factory=factory,
                 stage=GuardrailStage.FINAL_OUTPUT,
                 value=FinalOutputGuardrailInput(output=output),
+                policies=policies,
             )
             if isinstance(guarded_output, AgentResult):
                 return guarded_output
@@ -2703,7 +3298,50 @@ class AgentRuntime:
         written = 0
         try:
             for request in requests:
-                await policies.deadline.wait_for(partial(manager.remember, request))
+                memory_observation = self._start_operation_observation(
+                    name="atlas.memory.write",
+                    policies=policies,
+                    kind=SpanKind.CLIENT,
+                    attributes={"atlas.memory.type": request.memory_type.value},
+                )
+                write_outcome = "completed"
+                write_status = SpanStatus.OK
+                write_error_code: str | None = None
+                try:
+                    await policies.deadline.wait_for(partial(manager.remember, request))
+                except ExecutionDeadlineExpiredError:
+                    write_outcome = "timed_out"
+                    write_status = SpanStatus.ERROR
+                    write_error_code = "execution_timed_out"
+                    raise
+                except asyncio.CancelledError:
+                    write_outcome = "cancelled"
+                    write_status = SpanStatus.UNSET
+                    raise
+                except Exception:
+                    write_outcome = "failed"
+                    write_status = SpanStatus.ERROR
+                    write_error_code = "memory_write_failed"
+                    raise
+                finally:
+                    self._observability.increment(
+                        "atlas.memory.writes",
+                        attributes={
+                            "memory_type": request.memory_type.value,
+                            "outcome": write_outcome,
+                        },
+                    )
+                    self._finish_operation_observation(
+                        memory_observation,
+                        outcome=write_outcome,
+                        status=write_status,
+                        duration_metric="atlas.memory.write.duration",
+                        metric_attributes={
+                            "memory_type": request.memory_type.value,
+                            "outcome": write_outcome,
+                        },
+                        error_code=write_error_code,
+                    )
                 written += 1
         except ExecutionDeadlineExpiredError:
             self._record(
@@ -2783,6 +3421,7 @@ class AgentRuntime:
         *,
         limits: ExecutionLimits | None,
         budget: ExecutionBudget | None,
+        observation: _InvocationObservation,
     ) -> _ExecutionPolicies:
         resolved_limits = limits if limits is not None else self._default_limits
         resolved_budget = budget if budget is not None else self._default_budget
@@ -2790,7 +3429,211 @@ class AgentRuntime:
             limits=resolved_limits,
             budget=resolved_budget,
             deadline=ExecutionDeadline.start(resolved_limits.timeout_seconds),
+            observation=observation,
         )
+
+    def _start_runtime_observation(
+        self,
+        *,
+        state: ExecutionState,
+        mode: ExecutionMode,
+        resumed: bool,
+        parent: TraceContext | None,
+    ) -> _InvocationObservation:
+        """Start one fail-open root span and count the runtime invocation."""
+        started_at = self._observability.now()
+        span = self._observability.start_span(
+            "atlas.agent.execution",
+            parent=parent,
+            attributes={
+                "atlas.execution.id": state.execution_id,
+                "atlas.agent.id": state.agent.agent_id,
+                "atlas.execution.mode": mode.value,
+                "atlas.execution.resumed": resumed,
+            },
+        )
+        self._observability.increment(
+            "atlas.runtime.invocations",
+            attributes={"mode": mode.value, "resumed": resumed},
+        )
+        return _InvocationObservation(
+            span=span,
+            started_at=started_at,
+            mode=mode,
+            resumed=resumed,
+        )
+
+    def _start_operation_observation(
+        self,
+        *,
+        name: str,
+        policies: _ExecutionPolicies,
+        kind: SpanKind = SpanKind.INTERNAL,
+        attributes: Mapping[str, object] | None = None,
+    ) -> _OperationObservation:
+        """Start one logical child operation under the invocation span."""
+        return _OperationObservation(
+            span=self._observability.start_span(
+                name,
+                kind=kind,
+                parent=policies.observation.span.context,
+                attributes=attributes,
+            ),
+            started_at=self._observability.now(),
+        )
+
+    def _finish_operation_observation(
+        self,
+        observation: _OperationObservation,
+        *,
+        outcome: str,
+        status: SpanStatus,
+        duration_metric: str | None = None,
+        metric_attributes: Mapping[str, object] | None = None,
+        error_code: str | None = None,
+    ) -> None:
+        """Finalize a child operation and its optional duration metric."""
+        observation.span.set_attribute("atlas.outcome", outcome)
+        if error_code is not None:
+            observation.span.set_attribute("atlas.error.code", error_code)
+        observation.span.set_status(status)
+        if duration_metric is not None:
+            self._observability.record(
+                duration_metric,
+                self._observability.elapsed_since(observation.started_at),
+                attributes=metric_attributes,
+            )
+        observation.span.end()
+
+    def _start_model_observation(
+        self,
+        *,
+        state: ExecutionState,
+        selection: ModelSelectionResult,
+        policies: _ExecutionPolicies,
+        mode: str,
+        request_id: str,
+    ) -> _OperationObservation:
+        """Start one logical model turn and count its request."""
+        return self._start_operation_observation(
+            name=f"atlas.model.{mode}",
+            policies=policies,
+            kind=SpanKind.CLIENT,
+            attributes={
+                "atlas.model.provider": selection.provider_name,
+                "atlas.model.id": selection.model,
+                "atlas.model.turn": state.turn_count,
+                "atlas.model.request_id": request_id,
+            },
+        )
+
+    def _finish_model_observation(
+        self,
+        observation: _OperationObservation,
+        *,
+        selection: ModelSelectionResult,
+        mode: str,
+        outcome: str,
+        status: SpanStatus,
+        response: ModelResponse | None = None,
+        error_code: str | None = None,
+    ) -> None:
+        """Finalize one model turn with safe usage facts only."""
+        if response is not None:
+            observation.span.set_attribute(
+                "atlas.model.finish_reason", response.finish_reason.value
+            )
+            observation.span.set_attribute(
+                "atlas.model.input_tokens", response.usage.input_tokens
+            )
+            observation.span.set_attribute(
+                "atlas.model.output_tokens", response.usage.output_tokens
+            )
+            observation.span.set_attribute(
+                "atlas.model.total_tokens", response.usage.total_tokens
+            )
+            if response.usage.estimated_cost is not None:
+                observation.span.set_attribute(
+                    "atlas.model.estimated_cost",
+                    str(response.usage.estimated_cost),
+                )
+        self._observability.increment(
+            "atlas.model.requests",
+            attributes={
+                "provider": selection.provider_name,
+                "model": selection.model,
+                "mode": mode,
+                "outcome": outcome,
+            },
+        )
+        self._finish_operation_observation(
+            observation,
+            outcome=outcome,
+            status=status,
+            duration_metric="atlas.model.duration",
+            metric_attributes={
+                "provider": selection.provider_name,
+                "model": selection.model,
+                "mode": mode,
+                "outcome": outcome,
+            },
+            error_code=error_code,
+        )
+
+    def _finish_runtime_observation(
+        self,
+        state: ExecutionState,
+        observation: _InvocationObservation,
+    ) -> None:
+        """Finalize one invocation without changing its functional state."""
+        outcome, status = self._observation_outcome(state.status)
+        span = observation.span
+        span.set_attribute("atlas.execution.status", state.status.value)
+        span.set_attribute("atlas.execution.turn_count", state.turn_count)
+        span.set_attribute("atlas.execution.tool_call_count", state.tool_call_count)
+        span.set_attribute("atlas.outcome", outcome)
+        if state.error is not None:
+            span.set_attribute("atlas.error.code", state.error.code)
+        span.set_status(status)
+        metric_attributes = {
+            "mode": observation.mode.value,
+            "resumed": observation.resumed,
+            "status": state.status.value,
+            "outcome": outcome,
+        }
+        self._observability.record(
+            "atlas.execution.duration",
+            self._observability.elapsed_since(observation.started_at),
+            attributes=metric_attributes,
+        )
+        if state.is_terminal:
+            self._observability.increment(
+                "atlas.executions.terminal",
+                attributes=metric_attributes,
+            )
+        span.end()
+
+    @staticmethod
+    def _observation_outcome(
+        status: ExecutionStatus,
+    ) -> tuple[str, SpanStatus]:
+        if status is ExecutionStatus.COMPLETED:
+            return "completed", SpanStatus.OK
+        if status is ExecutionStatus.REJECTED:
+            return "rejected", SpanStatus.OK
+        if status is ExecutionStatus.WAITING_FOR_APPROVAL:
+            return "suspended", SpanStatus.OK
+        if status is ExecutionStatus.LIMIT_EXCEEDED:
+            return "limit_exceeded", SpanStatus.OK
+        if status is ExecutionStatus.BUDGET_EXCEEDED:
+            return "budget_exceeded", SpanStatus.OK
+        if status is ExecutionStatus.FAILED:
+            return "failed", SpanStatus.ERROR
+        if status is ExecutionStatus.TIMED_OUT:
+            return "timed_out", SpanStatus.ERROR
+        if status is ExecutionStatus.CANCELLED:
+            return "cancelled", SpanStatus.UNSET
+        return "cancelled", SpanStatus.UNSET
 
     def _enforce_usage(
         self,

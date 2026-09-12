@@ -4,6 +4,10 @@ O core também oferece guardrails provider-neutral com opt-in explícito por
 agente para entrada, saída e ferramentas. Consulte
 [`guardrails.md`](docs/reference/guardrails.md).
 
+O runtime possui observabilidade provider-neutral e fail-open por injeção
+explícita, com tracing, métricas, continuidade em checkpoints e defaults no-op.
+Consulte [`observability.md`](docs/reference/observability.md).
+
 Atlas é um framework Python reutilizável e independente de provedor para
 definir, compor, executar e avaliar agentes de IA.
 
@@ -149,6 +153,10 @@ Knowledge/RAG em
 A referência de conhecimento está em
 [docs/reference/knowledge.md](docs/reference/knowledge.md), e sua integração no
 runtime em [docs/reference/rag-runtime.md](docs/reference/rag-runtime.md).
+A referência de observabilidade está em
+[docs/reference/observability.md](docs/reference/observability.md), com a decisão
+arquitetural em
+[docs/architecture/observability.md](docs/architecture/observability.md).
 
 Consulte [ARCHITECTURE.md](ARCHITECTURE.md) para conhecer o desenho de alto
 nível e

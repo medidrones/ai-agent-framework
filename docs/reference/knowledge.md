@@ -1,5 +1,9 @@
 # Conhecimento externo
 
+A recuperação registra apenas quantidades e status operacionais. Query,
+passagens, URIs, scores, metadata, IDs de usuário e credenciais ficam fora de
+spans e métricas.
+
 Consultas são derivadas do `effective_input` após guardrails de entrada. Isso
 impede que conteúdo removido seja enviado ao retriever. Guardrails permanecem
 separados do `KnowledgeRetriever` e não possuem acesso implícito às fontes.

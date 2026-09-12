@@ -5,6 +5,7 @@ from atlas_agents.approvals import (
     UnsupportedCheckpointVersionError,
 )
 from atlas_agents.models import ToolCall
+from atlas_agents.observability import TraceContext
 from atlas_agents.runtime.budget import ExecutionBudget
 from atlas_agents.runtime.checkpoint import (
     CURRENT_CHECKPOINT_VERSION,
@@ -28,6 +29,7 @@ class ExecutionStateRestorer:
         limits: ExecutionLimits,
         budget: ExecutionBudget,
         deadline: ExecutionDeadline,
+        trace_context: TraceContext | None = None,
     ) -> ExecutionCheckpoint:
         """Capture all serializable facts required by the next invocation."""
         if state.pending_approval is None or state.model_selection is None:
@@ -42,6 +44,7 @@ class ExecutionStateRestorer:
             input_data=state.input_data,
             effective_input=state.effective_input,
             context=state.context,
+            trace_context=trace_context,
             status=state.status,
             messages=state.messages,
             knowledge_context=state.knowledge_context,

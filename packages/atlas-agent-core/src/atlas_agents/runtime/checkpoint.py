@@ -26,6 +26,7 @@ from atlas_agents.execution import ExecutionTransition
 from atlas_agents.guardrails import GuardrailRecord
 from atlas_agents.knowledge import KnowledgeContext
 from atlas_agents.models import ModelMessage, ModelSelectionResult, ToolCall
+from atlas_agents.observability import TraceContext
 from atlas_agents.runtime.budget import ExecutionBudget
 from atlas_agents.runtime.limits import ExecutionLimits
 from atlas_agents.runtime.tool_calls import ToolCallRecord
@@ -50,6 +51,7 @@ class ExecutionCheckpoint(_FrozenModel):
     input_data: AgentInput
     effective_input: AgentInput | None = None
     context: AgentContext
+    trace_context: TraceContext | None = None
     status: ExecutionStatus
     messages: tuple[ModelMessage, ...]
     knowledge_context: KnowledgeContext | None = None
