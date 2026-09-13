@@ -26,6 +26,7 @@ quality: lint format-check type-check test
 build:
 	uv build --package atlas-agent-core
 	uv build --package atlas-agent-evaluation
+	uv build --package atlas-agent-mcp
 	uv build --package atlas-agent-providers
 
 clean:

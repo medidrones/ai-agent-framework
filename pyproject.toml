@@ -13,12 +13,14 @@ members = ["packages/*"]
 [tool.uv.sources]
 atlas-agent-core = { workspace = true }
 atlas-agent-evaluation = { workspace = true }
+atlas-agent-mcp = { workspace = true }
 atlas-agent-providers = { workspace = true }
 
 [dependency-groups]
 dev = [
     "atlas-agent-core",
     "atlas-agent-evaluation",
+    "atlas-agent-mcp",
     "atlas-agent-providers",
     "mypy>=1.15",
     "pre-commit>=4.0",
@@ -35,6 +37,7 @@ line-length = 88
 src = [
     "packages/atlas-agent-core/src",
     "packages/atlas-agent-evaluation/src",
+    "packages/atlas-agent-mcp/src",
     "packages/atlas-agent-providers/src",
 ]
 
@@ -82,6 +85,7 @@ explicit_package_bases = true
 mypy_path = [
     "packages/atlas-agent-core/src",
     "packages/atlas-agent-evaluation/src",
+    "packages/atlas-agent-mcp/src",
     "packages/atlas-agent-providers/src",
 ]
 warn_unused_configs = true
@@ -103,6 +107,7 @@ asyncio_mode = "auto"
 testpaths = [
     "packages/atlas-agent-core/tests",
     "packages/atlas-agent-evaluation/tests",
+    "packages/atlas-agent-mcp/tests",
     "packages/atlas-agent-providers/tests",
 ]
 

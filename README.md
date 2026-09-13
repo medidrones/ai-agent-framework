@@ -20,6 +20,11 @@ A distribuição opcional `atlas-agent-providers` oferece o provider oficial
 OpenAI sobre a API Responses, com streaming, function calling, saída estruturada
 e entrada de imagem. Consulte [`openai.md`](docs/providers/openai.md).
 
+A distribuição opcional `atlas-agent-mcp` integra o runtime ao Model Context
+Protocol como cliente e servidor, com transportes stdio e Streamable HTTP,
+importação explícita de ferramentas e exposição por allowlist. Consulte a
+[`visão geral MCP`](docs/mcp/overview.md).
+
 Atlas é um framework Python reutilizável e independente de provedor para
 definir, compor, executar e avaliar agentes de IA.
 
@@ -106,7 +111,8 @@ testes.
 
 O workspace raiz é um agregador. Use `make build` para selecionar explicitamente
 as distribuições `atlas-agent-core`, `atlas-agent-evaluation` e
-`atlas-agent-providers`, evitando publicar o agregador por engano.
+`atlas-agent-providers` e `atlas-agent-mcp`, evitando publicar o agregador por
+engano.
 
 O pacote utiliza o layout `src` e pode ser importado da seguinte forma:
 
@@ -193,7 +199,8 @@ para conferir as restrições de dependência aplicáveis.
 ├── packages/
 │   ├── atlas-agent-core/       # Distribuição e testes do núcleo
 │   ├── atlas-agent-evaluation/ # Avaliação opcional e independente do runtime
-│   └── atlas-agent-providers/  # Providers concretos e SDKs opcionais
+│   ├── atlas-agent-providers/  # Providers concretos e SDKs opcionais
+│   └── atlas-agent-mcp/        # Integração cliente e servidor com MCP
 ├── .github/workflows/         # Integração contínua
 ├── AGENTS.md                 # Regras para agentes de engenharia
 ├── Makefile                  # Comandos locais de conveniência

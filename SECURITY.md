@@ -111,6 +111,26 @@ alterar essa política exige configuração explícita. Clientes injetados
 manualmente pertencem ao chamador, enquanto o plugin fecha apenas o cliente que
 ele cria.
 
+### Model Context Protocol
+
+Servidores MCP remotos são fronteiras externas não confiáveis. Ferramentas,
+schemas, recursos, prompts, conteúdo e erros recebidos são validados e
+normalizados antes de alcançar o core. Nada é importado automaticamente: cada
+ferramenta exige allowlist explícita, recebe nome local determinístico e passa
+pelo `ToolExecutor`, preservando permissões, guardrails, aprovação humana,
+deduplicação e limites antes da chamada remota.
+
+O servidor MCP do Atlas também falha fechado: somente ferramentas, recursos e
+prompts registrados explicitamente são expostos. Ferramentas são executadas pelo
+`ToolExecutor`; identidade e autoridade não são inferidas de metadata enviada
+pelo cliente. Configurações de transporte não executam shell, rejeitam URLs com
+credenciais e não exibem ambiente ou headers em representações e erros.
+
+HTTP sem TLS é aceito apenas em loopback para desenvolvimento. Em produção,
+aplicações devem usar HTTPS, aplicar autenticação e autorização na borda,
+restringir origens e redirecionamentos e controlar egress. Consulte
+[`docs/mcp/security.md`](docs/mcp/security.md).
+
 `ToolExecutionResult` não retém exceptions, stack traces nem output parcial em
 falhas. Erros inesperados são substituídos por mensagem pública genérica. A
 semântica de idempotência permanece declarativa e não oferece garantia

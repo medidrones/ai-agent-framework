@@ -9,6 +9,22 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ### Adicionado
 
+- Distribuição opcional `atlas-agent-mcp`, dependente apenas dos contratos
+  públicos do core e do SDK oficial do Model Context Protocol.
+- Cliente MCP assíncrono com lifecycle explícito, negociação pelo SDK,
+  descoberta de ferramentas, recursos, templates e prompts e limites de
+  resposta.
+- Transportes stdio e Streamable HTTP sem execução de shell, com ownership
+  explícito de clientes e proteção de credenciais em configuração e erros.
+- Importação de ferramentas remotas por allowlist, nomes locais determinísticos,
+  preflight de colisões e rollback em ordem inversa.
+- Servidor MCP do Atlas com exposição explícita e execução de ferramentas pelo
+  `ToolExecutor`, preservando as políticas do runtime.
+- Testes de integração locais para stdio e Streamable HTTP, fluxos de segurança,
+  HITL, guardrails, limites, deduplicação, concorrência e cancelamento.
+- Documentação de cliente, servidor, ferramentas, recursos, prompts,
+  transportes, segurança e arquitetura MCP.
+
 - API de plugins com manifesto versionado, capabilities, contexto restrito e
   contribuições fortemente tipadas.
 - Discovery determinístico pelo grupo `atlas_agents.plugins` usando

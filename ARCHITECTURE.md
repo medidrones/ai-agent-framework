@@ -40,6 +40,18 @@ AgentRuntime → ModelProvider (core) ← OpenAIModelProvider → SDK OpenAI
               registro explícito ou plugin
 ```
 
+A integração com o Model Context Protocol vive na distribuição opcional
+`atlas-agent-mcp`. O pacote adapta servidores MCP remotos para ferramentas do
+core e expõe ferramentas Atlas a clientes MCP sem inverter a dependência:
+
+```text
+servidor MCP remoto ← MCPClient ← MCPRemoteTool ← ToolExecutor
+cliente MCP externo → AtlasMCPServer → ToolExecutor → Tool (core)
+```
+
+Negociação, JSON-RPC e framing pertencem ao SDK oficial. Allowlist, permissões,
+guardrails, aprovação humana e limites permanecem sob controle do runtime.
+
 O runtime continua dono do loop, ferramentas, aprovação humana, memória,
 Knowledge/RAG e guardrails. O provider somente traduz requests, responses,
 streaming e erros, sem armazenar estado conversacional remoto implicitamente.
@@ -270,8 +282,9 @@ core.
 
 Atualmente, o repositório inclui o workspace, os contratos e o runtime do
 pacote `atlas-agent-core`, a distribuição `atlas-agent-evaluation` e a
-distribuição opcional `atlas-agent-providers`. O primeiro provider concreto é
-o `OpenAIModelProvider`, baseado na Responses API assíncrona.
+distribuição opcional `atlas-agent-providers`, além da integração opcional
+`atlas-agent-mcp`. O primeiro provider concreto é o `OpenAIModelProvider`,
+baseado na Responses API assíncrona.
 
 Esses tipos representam snapshots imutáveis nas fronteiras do framework. IDs
 são strings opacas e não impõem UUID. Metadados são explicitamente tipados,
@@ -285,14 +298,16 @@ Também oferece aprovação humana, checkpoints versionados, retomada segura,
 memória com escopo e Knowledge/RAG provider-neutral. Retries, fallback e
 integrações concretas de armazenamento e retrieval serão introduzidos
 incrementalmente em tarefas posteriores. O provider OpenAI permanece opcional,
-recebe cliente e configuração explicitamente e não altera essas fronteiras.
+recebe cliente e configuração explicitamente e não altera essas fronteiras. A
+integração MCP também permanece opcional e depende somente dos contratos
+públicos do core. Consulte [`docs/architecture/mcp.md`](docs/architecture/mcp.md).
 
 ## Evolução prevista
 
 Novas distribuições serão criadas somente quando houver contratos estáveis a
 implementar. A evolução prevista inclui novos providers, adapters concretos de
-memória, conhecimento e observabilidade, MCP e transportes, sempre como pacotes
-opcionais ao redor do core.
+memória, conhecimento e observabilidade e novos transportes, sempre como
+pacotes opcionais ao redor do core.
 
 Os limites detalhados dos pacotes estão documentados em
 [`docs/architecture/dependency-rules.md`](docs/architecture/dependency-rules.md).
