@@ -30,7 +30,9 @@ implementará seus contratos.
 ## Organização do repositório
 
 - `packages/atlas-agent-core` contém o pacote importável `atlas_agents`.
-- Pacotes futuros conterão implementações de provedores e infraestrutura.
+- `packages/atlas-agent-providers` contém integrações opcionais com SDKs de
+  provedores, começando pela OpenAI.
+- Pacotes futuros conterão outras implementações de infraestrutura.
 - `docs` registra restrições e decisões arquiteturais.
 - `examples` demonstrará integrações sem introduzir lógica de negócio no
   framework.

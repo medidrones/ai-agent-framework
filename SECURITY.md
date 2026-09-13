@@ -97,6 +97,20 @@ Conteúdo vindo de modelos, ferramentas ou bases de conhecimento nunca concede
 autoridade adicional por si só. Um executor genérico de código permanece
 explicitamente fora do escopo inicial.
 
+### Providers externos
+
+Ao usar o provider OpenAI, mensagens, schemas de ferramentas, schemas de saída
+estruturada e referências de imagens da requisição atravessam a fronteira do
+processo e são enviados ao serviço externo. A aplicação deve aplicar suas
+políticas de classificação, consentimento e retenção antes da chamada.
+
+Credenciais são fornecidas explicitamente ao cliente ou à configuração do
+plugin. Metadata do request, identidade, IDs internos e tokens de retomada não
+são encaminhados automaticamente. O provider define `store=False` por padrão;
+alterar essa política exige configuração explícita. Clientes injetados
+manualmente pertencem ao chamador, enquanto o plugin fecha apenas o cliente que
+ele cria.
+
 `ToolExecutionResult` não retém exceptions, stack traces nem output parcial em
 falhas. Erros inesperados são substituídos por mensagem pública genérica. A
 semântica de idempotência permanece declarativa e não oferece garantia

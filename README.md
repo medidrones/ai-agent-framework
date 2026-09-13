@@ -16,6 +16,10 @@ O core agora oferece uma API explícita de plugins com discovery por entry
 points, compatibilidade de versão, preflight de conflitos, ativação segura e
 rollback por plugin. Consulte [`plugins.md`](docs/reference/plugins.md).
 
+A distribuição opcional `atlas-agent-providers` oferece o provider oficial
+OpenAI sobre a API Responses, com streaming, function calling, saída estruturada
+e entrada de imagem. Consulte [`openai.md`](docs/providers/openai.md).
+
 Atlas é um framework Python reutilizável e independente de provedor para
 definir, compor, executar e avaliar agentes de IA.
 
@@ -74,7 +78,8 @@ memória de trabalho, conversa e longo prazo por escopos seguros, store abstrato
 e policies explícitas de leitura e escrita. Também podem consultar uma
 allowlist de fontes externas por contratos Knowledge/RAG, com contexto não
 autoritativo e citações `K1`, `K2`… Ainda não existem retries automáticos,
-fallback, backends concretos de retrieval ou integração concreta com modelos.
+fallback ou backends concretos de retrieval. O provider OpenAI é a primeira
+integração concreta com modelos.
 
 ## Requisitos
 
@@ -92,16 +97,16 @@ uv run ruff check .
 uv run ruff format --check .
 uv run mypy packages
 uv run pytest
-uv build --package atlas-agent-core
+make build
 ```
 
 Os mesmos comandos podem ser executados pelos alvos do `Makefile`. Por exemplo,
 `make quality` executa lint, validação de formato, verificação de tipos e
 testes.
 
-O workspace raiz é um agregador não distribuível. Por isso, o build seleciona
-explicitamente `atlas-agent-core`, evitando a geração acidental de um wheel
-vazio para o projeto agregador.
+O workspace raiz é um agregador. Use `make build` para selecionar explicitamente
+as distribuições `atlas-agent-core`, `atlas-agent-evaluation` e
+`atlas-agent-providers`, evitando publicar o agregador por engano.
 
 O pacote utiliza o layout `src` e pode ser importado da seguinte forma:
 
@@ -187,7 +192,8 @@ para conferir as restrições de dependência aplicáveis.
 ├── docs/architecture/          # Documentação arquitetural
 ├── packages/
 │   ├── atlas-agent-core/       # Distribuição e testes do núcleo
-│   └── atlas-agent-evaluation/ # Avaliação opcional e independente do runtime
+│   ├── atlas-agent-evaluation/ # Avaliação opcional e independente do runtime
+│   └── atlas-agent-providers/  # Providers concretos e SDKs opcionais
 ├── .github/workflows/         # Integração contínua
 ├── AGENTS.md                 # Regras para agentes de engenharia
 ├── Makefile                  # Comandos locais de conveniência

@@ -29,6 +29,21 @@ Providers implementam os contratos
 O core não importa adapters nem providers concretos. Providers e adapters
 dependem dos contratos públicos do core e permanecem substituíveis.
 
+O provider oficial OpenAI vive na distribuição opcional
+`atlas-agent-providers`. Ele adapta exclusivamente os contratos públicos de
+modelo para a Responses API e mantém o SDK `openai` fora do grafo de
+dependências do core:
+
+```text
+AgentRuntime → ModelProvider (core) ← OpenAIModelProvider → SDK OpenAI
+                         ↑
+              registro explícito ou plugin
+```
+
+O runtime continua dono do loop, ferramentas, aprovação humana, memória,
+Knowledge/RAG e guardrails. O provider somente traduz requests, responses,
+streaming e erros, sem armazenar estado conversacional remoto implicitamente.
+
 ## Camadas
 
 1. **Core** define contratos neutros de provedor para agentes, modelos,
@@ -253,10 +268,10 @@ core.
 
 ## Escopo atual
 
-Atualmente, o repositório inclui o workspace e os contratos fundamentais do
-pacote `atlas-agent-core`: agentes, lifecycle, eventos, estado de execução e
-contratos abstratos de modelos, incluindo multimodalidade, streaming e a
-interface `ModelProvider`.
+Atualmente, o repositório inclui o workspace, os contratos e o runtime do
+pacote `atlas-agent-core`, a distribuição `atlas-agent-evaluation` e a
+distribuição opcional `atlas-agent-providers`. O primeiro provider concreto é
+o `OpenAIModelProvider`, baseado na Responses API assíncrona.
 
 Esses tipos representam snapshots imutáveis nas fronteiras do framework. IDs
 são strings opacas e não impõem UUID. Metadados são explicitamente tipados,
@@ -264,18 +279,19 @@ isolados por instância e validados como serializáveis em JSON. Eventos exigem
 timestamps com fuso horário.
 
 O core já oferece execução multi-turn completa ou incremental por
-`ModelProvider`, sem provider concreto, com limites, budget e timeout opcionais.
+`ModelProvider`, com limites, budget e timeout opcionais.
 Também oferece contratos, registro e execução integrada de ferramentas.
 Também oferece aprovação humana, checkpoints versionados, retomada segura,
 memória com escopo e Knowledge/RAG provider-neutral. Retries, fallback e
 integrações concretas de armazenamento e retrieval serão introduzidos
-incrementalmente em tarefas posteriores.
+incrementalmente em tarefas posteriores. O provider OpenAI permanece opcional,
+recebe cliente e configuração explicitamente e não altera essas fronteiras.
 
 ## Evolução prevista
 
 Novas distribuições serão criadas somente quando houver contratos estáveis a
-implementar. A evolução prevista inclui providers, memória, conhecimento, MCP,
-observabilidade, avaliação e adapters de transporte, sempre como pacotes
+implementar. A evolução prevista inclui novos providers, adapters concretos de
+memória, conhecimento e observabilidade, MCP e transportes, sempre como pacotes
 opcionais ao redor do core.
 
 Os limites detalhados dos pacotes estão documentados em
@@ -284,6 +300,6 @@ Os limites detalhados dos pacotes estão documentados em
 ## Empacotamento do workspace
 
 O projeto raiz coordena dependências e ferramentas, mas não é uma distribuição
-publicável. Cada pacote possui seus próprios metadados e backend PEP 517. Como o
-`uv build` usa o projeto raiz por padrão, builds executados na raiz selecionam o
-pacote explicitamente com `uv build --package atlas-agent-core`.
+publicável. Cada pacote possui seus próprios metadados e backend PEP 517. O alvo
+`make build` seleciona explicitamente todas as distribuições publicáveis e evita
+empacotar o agregador por engano.

@@ -53,6 +53,10 @@ Adapters traduzem dados entre transportes externos e a API pública do core.
 Eles podem depender do core e de bibliotecas de transporte. O core nunca deve
 importar um adapter.
 
+`atlas-agent-providers` segue essa direção: depende de `atlas-agent-core` e dos
+SDKs que adapta. O provider OpenAI é o único pacote que importa `openai`; o core
+e a distribuição de avaliação não conhecem esse SDK.
+
 ## Garantia das regras
 
 Cada pacote declara suas dependências de forma independente. A integração
