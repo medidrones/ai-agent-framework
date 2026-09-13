@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.example/schemas/message-envelope-v1.schema.json",
+  "title": "Envelope de mensagem Atlas v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "message_id",
+    "message_type",
+    "schema_version",
+    "correlation_id",
+    "timestamp",
+    "payload"
+  ],
+  "properties": {
+    "message_id": { "type": "string", "minLength": 1 },
+    "message_type": {
+      "enum": ["execution.execute", "execution.resume"]
+    },
+    "schema_version": { "const": 1 },
+    "correlation_id": { "type": "string", "minLength": 1 },
+    "causation_id": { "type": ["string", "null"], "minLength": 1 },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "payload": { "type": "object" }
+  }
+}

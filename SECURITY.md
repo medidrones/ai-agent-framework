@@ -131,6 +131,20 @@ aplicações devem usar HTTPS, aplicar autenticação e autorização na borda,
 restringir origens e redirecionamentos e controlar egress. Consulte
 [`docs/mcp/security.md`](docs/mcp/security.md).
 
+### Adapters externos
+
+REST, gRPC e mensageria recebem dados não confiáveis. A identidade deve ser
+obtida exclusivamente de middleware, interceptor ou contexto de entrega já
+autenticado; campos do payload nunca concedem roles ou permissões. Cada host
+deve injetar uma política de acesso e tetos de execução, configurar TLS, limites
+de corpo/mensagem, rate limiting e isolamento por tenant.
+
+Tokens de retomada permanecem no body e devem ser tratados como bearer secrets.
+O store de idempotência em memória não é durável nem oferece exactly-once; uma
+implantação distribuída precisa de reserva atômica persistente e, quando
+necessário, inbox/outbox. Consulte
+[`docs/adapters/security.md`](docs/adapters/security.md).
+
 `ToolExecutionResult` não retém exceptions, stack traces nem output parcial em
 falhas. Erros inesperados são substituídos por mensagem pública genérica. A
 semântica de idempotência permanece declarativa e não oferece garantia

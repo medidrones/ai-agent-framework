@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.example/schemas/resume-execution-command-v1.schema.json",
+  "title": "Comando de retomada de execução Atlas v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "request_id",
+    "agent_id",
+    "resume_token",
+    "approval_request_id",
+    "decision",
+    "decided_at"
+  ],
+  "properties": {
+    "request_id": { "type": "string", "minLength": 1 },
+    "agent_id": { "type": "string", "minLength": 1 },
+    "resume_token": { "type": "string", "minLength": 1 },
+    "approval_request_id": { "type": "string", "minLength": 1 },
+    "decision": { "enum": ["approve", "reject"] },
+    "reason": { "type": ["string", "null"] },
+    "decided_at": { "type": "string", "format": "date-time" },
+    "metadata": { "type": "object", "default": {} }
+  }
+}

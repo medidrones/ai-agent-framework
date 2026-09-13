@@ -25,6 +25,11 @@ Protocol como cliente e servidor, com transportes stdio e Streamable HTTP,
 importação explícita de ferramentas e exposição por allowlist. Consulte a
 [`visão geral MCP`](docs/mcp/overview.md).
 
+A distribuição opcional `atlas-agent-adapters` expõe uma fachada única de
+execução por REST/FastAPI, gRPC/protobuf e mensageria broker-neutral, com
+identidade confiável, autorização e limites explícitos. Consulte a
+[`visão geral dos adapters`](docs/adapters/overview.md).
+
 Atlas é um framework Python reutilizável e independente de provedor para
 definir, compor, executar e avaliar agentes de IA.
 
@@ -110,9 +115,9 @@ Os mesmos comandos podem ser executados pelos alvos do `Makefile`. Por exemplo,
 testes.
 
 O workspace raiz é um agregador. Use `make build` para selecionar explicitamente
-as distribuições `atlas-agent-core`, `atlas-agent-evaluation` e
-`atlas-agent-providers` e `atlas-agent-mcp`, evitando publicar o agregador por
-engano.
+as distribuições `atlas-agent-adapters`, `atlas-agent-core`,
+`atlas-agent-evaluation`, `atlas-agent-providers` e `atlas-agent-mcp`, evitando
+publicar o agregador por engano.
 
 O pacote utiliza o layout `src` e pode ser importado da seguinte forma:
 
@@ -184,7 +189,10 @@ A avaliação de qualidade está em
 pacotes está documentada na [referência de plugins](docs/reference/plugins.md),
 no [guia de autoria](docs/plugins/authoring.md), nas
 [orientações de segurança](docs/plugins/security.md) e na
-[arquitetura de plugins](docs/architecture/plugins.md).
+[arquitetura de plugins](docs/architecture/plugins.md). Os contratos externos,
+formas de composição e garantias por transporte estão na
+[documentação de adapters](docs/adapters/overview.md) e em sua
+[decisão arquitetural](docs/architecture/external-adapters.md).
 
 Consulte [ARCHITECTURE.md](ARCHITECTURE.md) para conhecer o desenho de alto
 nível e
@@ -200,7 +208,8 @@ para conferir as restrições de dependência aplicáveis.
 │   ├── atlas-agent-core/       # Distribuição e testes do núcleo
 │   ├── atlas-agent-evaluation/ # Avaliação opcional e independente do runtime
 │   ├── atlas-agent-providers/  # Providers concretos e SDKs opcionais
-│   └── atlas-agent-mcp/        # Integração cliente e servidor com MCP
+│   ├── atlas-agent-mcp/        # Integração cliente e servidor com MCP
+│   └── atlas-agent-adapters/   # REST, gRPC e mensageria externa
 ├── .github/workflows/         # Integração contínua
 ├── AGENTS.md                 # Regras para agentes de engenharia
 ├── Makefile                  # Comandos locais de conveniência

@@ -12,16 +12,20 @@ members = ["packages/*"]
 
 [tool.uv.sources]
 atlas-agent-core = { workspace = true }
+atlas-agent-adapters = { workspace = true }
 atlas-agent-evaluation = { workspace = true }
 atlas-agent-mcp = { workspace = true }
 atlas-agent-providers = { workspace = true }
 
 [dependency-groups]
 dev = [
+    "atlas-agent-adapters",
     "atlas-agent-core",
     "atlas-agent-evaluation",
     "atlas-agent-mcp",
     "atlas-agent-providers",
+    "grpcio-tools>=1.74,<2",
+    "httpx>=0.28,<1",
     "mypy>=1.15",
     "pre-commit>=4.0",
     "pytest>=8.3",
@@ -29,12 +33,20 @@ dev = [
     "pytest-cov>=6.0",
     "ruff>=0.9",
     "types-jsonschema>=4.23",
+    "types-grpcio>=1.0",
+    "types-protobuf>=6.30",
 ]
 
 [tool.ruff]
 target-version = "py312"
 line-length = 88
+extend-exclude = [
+    "packages/atlas-agent-adapters/src/atlas_agents/adapters/grpc/v1/agent_execution_pb2.py",
+    "packages/atlas-agent-adapters/src/atlas_agents/adapters/grpc/v1/agent_execution_pb2.pyi",
+    "packages/atlas-agent-adapters/src/atlas_agents/adapters/grpc/v1/agent_execution_pb2_grpc.py",
+]
 src = [
+    "packages/atlas-agent-adapters/src",
     "packages/atlas-agent-core/src",
     "packages/atlas-agent-evaluation/src",
     "packages/atlas-agent-mcp/src",
@@ -69,6 +81,7 @@ select = [
 
 [tool.ruff.lint.per-file-ignores]
 "packages/atlas-agent-core/src/atlas_agents/events/types.py" = ["A005"]
+"packages/atlas-agent-adapters/src/atlas_agents/adapters/grpc/server.py" = ["N802"]
 "packages/*/tests/**/*.py" = ["D", "S101"]
 
 [tool.ruff.lint.pydocstyle]
@@ -83,6 +96,7 @@ python_version = "3.12"
 strict = true
 explicit_package_bases = true
 mypy_path = [
+    "packages/atlas-agent-adapters/src",
     "packages/atlas-agent-core/src",
     "packages/atlas-agent-evaluation/src",
     "packages/atlas-agent-mcp/src",
@@ -93,6 +107,13 @@ show_error_codes = true
 pretty = true
 files = ["packages"]
 exclude = ['(^|/)build(/|$)']
+
+[[tool.mypy.overrides]]
+module = [
+    "atlas_agents.adapters.grpc.v1.agent_execution_pb2",
+    "atlas_agents.adapters.grpc.v1.agent_execution_pb2_grpc",
+]
+ignore_errors = true
 
 [tool.pytest.ini_options]
 addopts = [
@@ -105,6 +126,7 @@ addopts = [
 ]
 asyncio_mode = "auto"
 testpaths = [
+    "packages/atlas-agent-adapters/tests",
     "packages/atlas-agent-core/tests",
     "packages/atlas-agent-evaluation/tests",
     "packages/atlas-agent-mcp/tests",
@@ -114,6 +136,10 @@ testpaths = [
 [tool.coverage.run]
 branch = true
 source = ["atlas_agents"]
+omit = [
+    "*/adapters/grpc/v1/agent_execution_pb2.py",
+    "*/adapters/grpc/v1/agent_execution_pb2_grpc.py",
+]
 
 [tool.coverage.report]
 fail_under = 90

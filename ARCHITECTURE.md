@@ -52,6 +52,21 @@ cliente MCP externo → AtlasMCPServer → ToolExecutor → Tool (core)
 Negociação, JSON-RPC e framing pertencem ao SDK oficial. Allowlist, permissões,
 guardrails, aprovação humana e limites permanecem sob controle do runtime.
 
+A distribuição opcional `atlas-agent-adapters` expõe transportes de aplicação
+sem transferir a eles o execution loop:
+
+```text
+REST / gRPC / broker → AgentExecutionService → AgentRuntime
+                              ↑
+             identidade, acesso, limites e idempotência
+```
+
+DTOs REST, protobuf e envelopes são separados dos modelos do core. O host é
+dono de autenticação, servidores, conexões, TLS e lifecycle; o pacote apenas
+cria a aplicação FastAPI, registra o servicer gRPC ou processa uma entrega. A
+decisão completa está em
+[`external-adapters.md`](docs/architecture/external-adapters.md).
+
 O runtime continua dono do loop, ferramentas, aprovação humana, memória,
 Knowledge/RAG e guardrails. O provider somente traduz requests, responses,
 streaming e erros, sem armazenar estado conversacional remoto implicitamente.

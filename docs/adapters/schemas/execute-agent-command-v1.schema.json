@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://atlas.example/schemas/execute-agent-command-v1.schema.json",
+  "title": "Comando de execução de agente Atlas v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["request_id", "agent_id", "input"],
+  "properties": {
+    "request_id": { "type": "string", "minLength": 1 },
+    "agent_id": { "type": "string", "minLength": 1 },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["message"],
+      "properties": {
+        "message": { "type": "string" },
+        "attachments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["attachment_id", "name", "media_type", "uri"],
+            "properties": {
+              "attachment_id": { "type": "string", "minLength": 1 },
+              "name": { "type": "string", "minLength": 1 },
+              "media_type": { "type": "string", "minLength": 1 },
+              "uri": { "type": "string", "minLength": 1 },
+              "metadata": { "type": "object" }
+            }
+          },
+          "default": []
+        },
+        "metadata": { "type": "object", "default": {} }
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "session_id": { "type": ["string", "null"] },
+        "metadata": { "type": "object", "default": {} }
+      },
+      "default": {}
+    },
+    "requested_limits": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "max_turns": { "type": ["integer", "null"], "minimum": 1 },
+        "max_tool_calls": { "type": ["integer", "null"], "minimum": 1 },
+        "max_input_tokens": { "type": ["integer", "null"], "minimum": 1 },
+        "max_output_tokens": { "type": ["integer", "null"], "minimum": 1 },
+        "max_total_tokens": { "type": ["integer", "null"], "minimum": 1 },
+        "timeout_seconds": {
+          "type": ["number", "null"],
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "requested_budget": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "properties": {
+        "max_estimated_cost": {
+          "type": ["number", "string", "null"]
+        },
+        "currency": { "type": ["string", "null"] }
+      }
+    },
+    "metadata": { "type": "object", "default": {} }
+  }
+}

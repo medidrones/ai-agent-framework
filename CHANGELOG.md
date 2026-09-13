@@ -9,6 +9,18 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ### Adicionado
 
+- Distribuição opcional `atlas-agent-adapters` com fachada provider-neutral de
+  execução, registro explícito de agentes, identidade confiável, autorização,
+  limites de servidor e idempotência abstrata.
+- API REST/FastAPI v1 com execução, retomada, SSE, health e readiness, sem
+  servidor global ou lifecycle implícito.
+- Serviço gRPC `atlas.agent.v1` com operações unary e server streaming,
+  deadline propagado e contratos protobuf versionados e gerados no repositório.
+- Consumer e publisher broker-neutral com envelopes versionados, correlação,
+  causação, semântica explícita de ack/retry e publicação terminal por padrão.
+- Testes de contrato, integração local, fluxos negativos, segurança e cobertura
+  isolada dos adapters, além da documentação de implantação e versionamento.
+
 - Distribuição opcional `atlas-agent-mcp`, dependente apenas dos contratos
   públicos do core e do SDK oficial do Model Context Protocol.
 - Cliente MCP assíncrono com lifecycle explícito, negociação pelo SDK,

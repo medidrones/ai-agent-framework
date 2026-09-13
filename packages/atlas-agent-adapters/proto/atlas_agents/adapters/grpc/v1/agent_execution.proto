@@ -1,0 +1,144 @@
+syntax = "proto3";
+
+package atlas.agent.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+enum ApprovalDecision {
+  APPROVAL_DECISION_UNSPECIFIED = 0;
+  APPROVAL_DECISION_APPROVE = 1;
+  APPROVAL_DECISION_REJECT = 2;
+}
+
+message Attachment {
+  string attachment_id = 1;
+  string name = 2;
+  string media_type = 3;
+  string uri = 4;
+  google.protobuf.Struct metadata = 5;
+}
+
+message AgentInput {
+  string message = 1;
+  repeated Attachment attachments = 2;
+  google.protobuf.Struct metadata = 3;
+}
+
+message ExecutionContext {
+  optional string session_id = 1;
+  google.protobuf.Struct metadata = 2;
+}
+
+message RequestedLimits {
+  optional int32 max_turns = 1;
+  optional int32 max_tool_calls = 2;
+  optional int64 max_input_tokens = 3;
+  optional int64 max_output_tokens = 4;
+  optional int64 max_total_tokens = 5;
+  optional double timeout_seconds = 6;
+}
+
+message RequestedBudget {
+  optional string max_estimated_cost = 1;
+  optional string currency = 2;
+}
+
+message ExecuteRequest {
+  string request_id = 1;
+  string agent_id = 2;
+  AgentInput input = 3;
+  ExecutionContext context = 4;
+  RequestedLimits requested_limits = 5;
+  RequestedBudget requested_budget = 6;
+  google.protobuf.Struct metadata = 7;
+}
+
+message ResumeRequest {
+  string request_id = 1;
+  string agent_id = 2;
+  string resume_token = 3;
+  string approval_request_id = 4;
+  ApprovalDecision decision = 5;
+  optional string reason = 6;
+  google.protobuf.Timestamp decided_at = 7;
+  google.protobuf.Struct metadata = 8;
+}
+
+message Error {
+  string code = 1;
+  string message = 2;
+  bool retryable = 3;
+  google.protobuf.Struct details = 4;
+}
+
+message Usage {
+  int64 input_tokens = 1;
+  int64 output_tokens = 2;
+  int64 cached_input_tokens = 3;
+  int64 reasoning_tokens = 4;
+  optional string estimated_cost = 5;
+}
+
+message Citation {
+  string citation_key = 1;
+  string source_id = 2;
+  string document_id = 3;
+  string passage_id = 4;
+  optional string title = 5;
+  optional string uri = 6;
+  optional int32 page = 7;
+  optional string section = 8;
+}
+
+message ApprovalSubject {
+  string tool_call_id = 1;
+  string tool_name = 2;
+  repeated string argument_keys = 3;
+}
+
+message ApprovalRequest {
+  string approval_request_id = 1;
+  string execution_id = 2;
+  string agent_id = 3;
+  string kind = 4;
+  string summary = 5;
+  string reason = 6;
+  google.protobuf.Timestamp requested_at = 7;
+  optional google.protobuf.Timestamp expires_at = 8;
+  ApprovalSubject subject = 9;
+}
+
+message Suspension {
+  string execution_id = 1;
+  ApprovalRequest approval_request = 2;
+  string resume_token = 3;
+  int32 checkpoint_version = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+message ExecuteResponse {
+  string request_id = 1;
+  string execution_id = 2;
+  string status = 3;
+  google.protobuf.Value output = 4;
+  optional Error error = 5;
+  optional Usage usage = 6;
+  repeated Citation citations = 7;
+  optional Suspension suspension = 8;
+  google.protobuf.Struct metadata = 9;
+}
+
+message StreamItem {
+  string type = 1;
+  int64 sequence = 2;
+  string execution_id = 3;
+  google.protobuf.Struct data = 4;
+}
+
+service AgentExecutionService {
+  rpc Execute(ExecuteRequest) returns (ExecuteResponse);
+  rpc Stream(ExecuteRequest) returns (stream StreamItem);
+  rpc Resume(ResumeRequest) returns (ExecuteResponse);
+  rpc ResumeStream(ResumeRequest) returns (stream StreamItem);
+}
