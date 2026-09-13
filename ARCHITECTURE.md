@@ -29,6 +29,12 @@ Providers implementam os contratos
 O core não importa adapters nem providers concretos. Providers e adapters
 dependem dos contratos públicos do core e permanecem substituíveis.
 
+A distribuição opcional `atlas-agent-config` é a composition root declarativa.
+Ela valida YAML, JSON ou objetos Python e usa factories tipadas registradas pelo
+host para construir registries, runtime e integrações. Não há service locator,
+descoberta automática ou dependência inversa do core. A decisão completa está
+em [`configuration.md`](docs/architecture/configuration.md).
+
 O provider oficial OpenAI vive na distribuição opcional
 `atlas-agent-providers`. Ele adapta exclusivamente os contratos públicos de
 modelo para a Responses API e mantém o SDK `openai` fora do grafo de

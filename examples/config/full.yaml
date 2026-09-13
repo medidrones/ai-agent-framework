@@ -1,0 +1,75 @@
+schema_version: 1
+
+atlas:
+  default_limits:
+    max_turns: 8
+    max_tool_calls: 4
+    timeout_seconds: 60
+  default_budget:
+    max_estimated_cost: 1.00
+    currency: USD
+
+providers:
+  openai:
+    type: openai
+    config:
+      api_key: {secret_ref: openai/producao}
+
+tools:
+  buscar_pedido:
+    type: buscar_pedido
+
+memory:
+  principal:
+    type: postgres
+
+knowledge:
+  catalogo:
+    type: vector_store
+    source_ids: [produtos]
+
+guardrails:
+  entrada-segura:
+    type: moderacao
+
+observability:
+  telemetria:
+    type: opentelemetry
+
+plugins:
+  acme.integracoes:
+    config:
+      token: {secret_ref: plugins/acme}
+plugin_activation: [acme.integracoes]
+
+mcp:
+  interno:
+    type: streamable_http
+    enabled: true
+    config:
+      url: https://mcp.example.com
+    import_tools:
+      include: [consultar_catalogo]
+
+adapters:
+  api:
+    type: rest
+    enabled: true
+
+agents:
+  assistant:
+    name: Assistente
+    description: Atende dúvidas sobre produtos e pedidos.
+    instructions: Responda em português com base nas fontes autorizadas.
+    model:
+      provider: openai
+      model: gpt-5
+      required_capabilities: [text_generation, tool_calling]
+    tools: [buscar_pedido]
+    memory:
+      read_types: [conversation]
+      write_types: [conversation]
+    knowledge:
+      sources: [produtos]
+    guardrails:
+      input: [entrada-segura]

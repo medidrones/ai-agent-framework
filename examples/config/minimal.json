@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "agents": {
+    "assistant": {
+      "name": "Assistente",
+      "instructions": "Responda com clareza e objetividade."
+    }
+  }
+}

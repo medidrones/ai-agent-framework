@@ -1,0 +1,794 @@
+{
+  "$defs": {
+    "AdapterComponentConfig": {
+      "additionalProperties": false,
+      "description": "Describe one external adapter disabled unless explicitly enabled.",
+      "properties": {
+        "config": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ConfigValue"
+          },
+          "title": "Config",
+          "type": "object"
+        },
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "type": {
+          "minLength": 1,
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "AdapterComponentConfig",
+      "type": "object"
+    },
+    "AgentConfig": {
+      "additionalProperties": false,
+      "description": "Describe one declarative AgentDefinition keyed by its stable ID.",
+      "properties": {
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "guardrails": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentGuardrailConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "instructions": {
+          "minLength": 1,
+          "title": "Instructions",
+          "type": "string"
+        },
+        "knowledge": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentKnowledgeConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "memory": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentMemoryConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "metadata": {
+          "additionalProperties": {
+            "$ref": "#/$defs/JsonValue"
+          },
+          "title": "Metadata",
+          "type": "object"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AgentModelConfig"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "tools": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Tools",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "instructions"
+      ],
+      "title": "AgentConfig",
+      "type": "object"
+    },
+    "AgentGuardrailConfig": {
+      "additionalProperties": false,
+      "description": "Describe ordered guardrail references for each runtime stage.",
+      "properties": {
+        "final_output": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Final Output",
+          "type": "array"
+        },
+        "input": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Input",
+          "type": "array"
+        },
+        "model_output": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Model Output",
+          "type": "array"
+        },
+        "tool_call": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Tool Call",
+          "type": "array"
+        },
+        "tool_result": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Tool Result",
+          "type": "array"
+        }
+      },
+      "title": "AgentGuardrailConfig",
+      "type": "object"
+    },
+    "AgentKnowledgeConfig": {
+      "additionalProperties": false,
+      "description": "Describe an explicit allowlist of configured knowledge sources.",
+      "properties": {
+        "max_characters": {
+          "default": 12000,
+          "exclusiveMinimum": 0,
+          "title": "Max Characters",
+          "type": "integer"
+        },
+        "max_results": {
+          "default": 8,
+          "exclusiveMinimum": 0,
+          "title": "Max Results",
+          "type": "integer"
+        },
+        "sources": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Sources",
+          "type": "array"
+        }
+      },
+      "title": "AgentKnowledgeConfig",
+      "type": "object"
+    },
+    "AgentMemoryConfig": {
+      "additionalProperties": false,
+      "description": "Describe explicit per-agent memory behavior.",
+      "properties": {
+        "max_characters": {
+          "default": 8000,
+          "exclusiveMinimum": 0,
+          "title": "Max Characters",
+          "type": "integer"
+        },
+        "max_records_per_type": {
+          "default": 20,
+          "exclusiveMinimum": 0,
+          "title": "Max Records Per Type",
+          "type": "integer"
+        },
+        "read_types": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/MemoryType"
+          },
+          "title": "Read Types",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "write_types": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/MemoryType"
+          },
+          "title": "Write Types",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "title": "AgentMemoryConfig",
+      "type": "object"
+    },
+    "AgentModelConfig": {
+      "additionalProperties": false,
+      "description": "Describe per-agent model selection references.",
+      "properties": {
+        "minimum_context_window": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minimum Context Window"
+        },
+        "minimum_max_output_tokens": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minimum Max Output Tokens"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "preferred_capabilities": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ModelCapability"
+          },
+          "title": "Preferred Capabilities",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "provider": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Provider"
+        },
+        "required_capabilities": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ModelCapability"
+          },
+          "title": "Required Capabilities",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "title": "AgentModelConfig",
+      "type": "object"
+    },
+    "AtlasRuntimeConfig": {
+      "additionalProperties": false,
+      "description": "Describe global runtime defaults with no transport behavior.",
+      "properties": {
+        "default_budget": {
+          "$ref": "#/$defs/ExecutionBudgetConfig",
+          "default": {
+            "currency": "USD",
+            "max_estimated_cost": null
+          }
+        },
+        "default_limits": {
+          "$ref": "#/$defs/ExecutionLimitsConfig",
+          "default": {
+            "max_input_tokens": null,
+            "max_output_tokens": null,
+            "max_tool_calls": null,
+            "max_total_tokens": null,
+            "max_turns": null,
+            "timeout_seconds": null
+          }
+        }
+      },
+      "title": "AtlasRuntimeConfig",
+      "type": "object"
+    },
+    "ComponentConfig": {
+      "additionalProperties": false,
+      "description": "Describe one enabled-by-declaration factory-managed component.",
+      "properties": {
+        "config": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ConfigValue"
+          },
+          "title": "Config",
+          "type": "object"
+        },
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "type": {
+          "minLength": 1,
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "ComponentConfig",
+      "type": "object"
+    },
+    "ConfigScalar": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "ConfigValue": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ConfigScalar"
+        },
+        {
+          "$ref": "#/$defs/SecretReference"
+        },
+        {
+          "items": {
+            "$ref": "#/$defs/ConfigValue"
+          },
+          "type": "array"
+        },
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/ConfigValue"
+          },
+          "type": "object"
+        }
+      ]
+    },
+    "ExecutionBudgetConfig": {
+      "additionalProperties": false,
+      "description": "Describe a default runtime budget.",
+      "properties": {
+        "currency": {
+          "default": "USD",
+          "minLength": 1,
+          "title": "Currency",
+          "type": "string"
+        },
+        "max_estimated_cost": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Estimated Cost"
+        }
+      },
+      "title": "ExecutionBudgetConfig",
+      "type": "object"
+    },
+    "ExecutionLimitsConfig": {
+      "additionalProperties": false,
+      "description": "Describe default runtime limits without constructing runtime objects.",
+      "properties": {
+        "max_input_tokens": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Input Tokens"
+        },
+        "max_output_tokens": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Output Tokens"
+        },
+        "max_tool_calls": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Tool Calls"
+        },
+        "max_total_tokens": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Total Tokens"
+        },
+        "max_turns": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Turns"
+        },
+        "timeout_seconds": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Timeout Seconds"
+        }
+      },
+      "title": "ExecutionLimitsConfig",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "KnowledgeComponentConfig": {
+      "additionalProperties": false,
+      "description": "Declare the source IDs served by one knowledge manager.",
+      "properties": {
+        "config": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ConfigValue"
+          },
+          "title": "Config",
+          "type": "object"
+        },
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "source_ids": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Source Ids",
+          "type": "array"
+        },
+        "type": {
+          "minLength": 1,
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "KnowledgeComponentConfig",
+      "type": "object"
+    },
+    "MCPComponentConfig": {
+      "additionalProperties": false,
+      "description": "Describe one MCP integration without starting it implicitly.",
+      "properties": {
+        "config": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ConfigValue"
+          },
+          "title": "Config",
+          "type": "object"
+        },
+        "enabled": {
+          "default": false,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "import_tools": {
+          "$ref": "#/$defs/MCPToolImportConfig",
+          "default": {
+            "include": []
+          }
+        },
+        "type": {
+          "minLength": 1,
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "MCPComponentConfig",
+      "type": "object"
+    },
+    "MCPToolImportConfig": {
+      "additionalProperties": false,
+      "description": "Allowlist remote MCP tool names; empty imports nothing.",
+      "properties": {
+        "include": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Include",
+          "type": "array"
+        }
+      },
+      "title": "MCPToolImportConfig",
+      "type": "object"
+    },
+    "MemoryType": {
+      "description": "Classify memory by its intended lifetime and sharing boundary.",
+      "enum": [
+        "working",
+        "conversation",
+        "long_term"
+      ],
+      "title": "MemoryType",
+      "type": "string"
+    },
+    "ModelCapability": {
+      "description": "Identify a stable capability offered by a model.",
+      "enum": [
+        "text_generation",
+        "streaming",
+        "structured_output",
+        "tool_calling",
+        "parallel_tool_calling",
+        "vision",
+        "audio_input",
+        "audio_output",
+        "json_mode"
+      ],
+      "title": "ModelCapability",
+      "type": "string"
+    },
+    "PluginConfig": {
+      "additionalProperties": false,
+      "description": "Describe explicit trusted plugin activation configuration.",
+      "properties": {
+        "config": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ConfigValue"
+          },
+          "title": "Config",
+          "type": "object"
+        },
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        }
+      },
+      "title": "PluginConfig",
+      "type": "object"
+    },
+    "SecretReference": {
+      "additionalProperties": false,
+      "description": "Keep only a logical secret name in serializable configuration.",
+      "properties": {
+        "secret_ref": {
+          "title": "Secret Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "secret_ref"
+      ],
+      "title": "SecretReference",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Root contract for the canonical Atlas configuration schema.",
+  "properties": {
+    "adapters": {
+      "additionalProperties": {
+        "$ref": "#/$defs/AdapterComponentConfig"
+      },
+      "title": "Adapters",
+      "type": "object"
+    },
+    "agents": {
+      "additionalProperties": {
+        "$ref": "#/$defs/AgentConfig"
+      },
+      "title": "Agents",
+      "type": "object"
+    },
+    "atlas": {
+      "$ref": "#/$defs/AtlasRuntimeConfig",
+      "default": {
+        "default_budget": {
+          "currency": "USD",
+          "max_estimated_cost": null
+        },
+        "default_limits": {
+          "max_input_tokens": null,
+          "max_output_tokens": null,
+          "max_tool_calls": null,
+          "max_total_tokens": null,
+          "max_turns": null,
+          "timeout_seconds": null
+        }
+      }
+    },
+    "guardrails": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ComponentConfig"
+      },
+      "title": "Guardrails",
+      "type": "object"
+    },
+    "knowledge": {
+      "additionalProperties": {
+        "$ref": "#/$defs/KnowledgeComponentConfig"
+      },
+      "title": "Knowledge",
+      "type": "object"
+    },
+    "mcp": {
+      "additionalProperties": {
+        "$ref": "#/$defs/MCPComponentConfig"
+      },
+      "title": "Mcp",
+      "type": "object"
+    },
+    "memory": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ComponentConfig"
+      },
+      "title": "Memory",
+      "type": "object"
+    },
+    "observability": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ComponentConfig"
+      },
+      "title": "Observability",
+      "type": "object"
+    },
+    "plugin_activation": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "title": "Plugin Activation",
+      "type": "array"
+    },
+    "plugins": {
+      "additionalProperties": {
+        "$ref": "#/$defs/PluginConfig"
+      },
+      "title": "Plugins",
+      "type": "object"
+    },
+    "providers": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ComponentConfig"
+      },
+      "title": "Providers",
+      "type": "object"
+    },
+    "schema_version": {
+      "const": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "tools": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ComponentConfig"
+      },
+      "title": "Tools",
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version"
+  ],
+  "title": "AtlasConfig",
+  "type": "object"
+}

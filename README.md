@@ -1,5 +1,10 @@
 # Atlas Agent Framework
 
+A distribuição opcional `atlas-agent-config` oferece schema versionado,
+carregamento seguro de YAML/JSON, referências de segredos, factories tipadas e
+uma composition root com rollback. Consulte a
+[`configuração declarativa`](docs/config/overview.md).
+
 O core também oferece guardrails provider-neutral com opt-in explícito por
 agente para entrada, saída e ferramentas. Consulte
 [`guardrails.md`](docs/reference/guardrails.md).
@@ -115,7 +120,7 @@ Os mesmos comandos podem ser executados pelos alvos do `Makefile`. Por exemplo,
 testes.
 
 O workspace raiz é um agregador. Use `make build` para selecionar explicitamente
-as distribuições `atlas-agent-adapters`, `atlas-agent-core`,
+as distribuições `atlas-agent-adapters`, `atlas-agent-config`, `atlas-agent-core`,
 `atlas-agent-evaluation`, `atlas-agent-providers` e `atlas-agent-mcp`, evitando
 publicar o agregador por engano.
 
@@ -209,7 +214,8 @@ para conferir as restrições de dependência aplicáveis.
 │   ├── atlas-agent-evaluation/ # Avaliação opcional e independente do runtime
 │   ├── atlas-agent-providers/  # Providers concretos e SDKs opcionais
 │   ├── atlas-agent-mcp/        # Integração cliente e servidor com MCP
-│   └── atlas-agent-adapters/   # REST, gRPC e mensageria externa
+│   ├── atlas-agent-adapters/   # REST, gRPC e mensageria externa
+│   └── atlas-agent-config/     # Configuração declarativa e composition root
 ├── .github/workflows/         # Integração contínua
 ├── AGENTS.md                 # Regras para agentes de engenharia
 ├── Makefile                  # Comandos locais de conveniência

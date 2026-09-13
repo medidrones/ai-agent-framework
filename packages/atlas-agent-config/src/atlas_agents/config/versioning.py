@@ -1,0 +1,4 @@
+"""Configuration schema version policy."""
+
+CURRENT_CONFIG_SCHEMA_VERSION = 1
+SUPPORTED_CONFIG_SCHEMA_VERSIONS = frozenset({CURRENT_CONFIG_SCHEMA_VERSION})

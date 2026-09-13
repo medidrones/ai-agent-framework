@@ -9,6 +9,17 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ### Adicionado
 
+- Distribuição opcional `atlas-agent-config` com schema v1 fechado, modelos
+  Pydantic, loaders seguros para YAML/JSON e overrides determinísticos.
+- Registry local de factories tipadas e composition root assíncrona para
+  providers, ferramentas, memória, knowledge, guardrails, observabilidade, MCP
+  e adapters, com preflight, rollback e ownership explícito.
+- Referências e resolução injetada de segredos, fingerprint canônico, ativação
+  explícita de plugins e defaults seguros sem importação ou inicialização
+  implícita de integrações.
+- JSON Schema, exemplos e documentação em português para composição,
+  segurança, factories, segredos e overrides.
+
 - Distribuição opcional `atlas-agent-adapters` com fachada provider-neutral de
   execução, registro explícito de agentes, identidade confiável, autorização,
   limites de servidor e idempotência abstrata.

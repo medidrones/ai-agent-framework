@@ -88,6 +88,14 @@ atualizações enquanto o relato estiver sob investigação.
 
 ## Providers e ferramentas
 
+Configurações declarativas são tratadas como entrada não confiável. O loader
+usa YAML seguro, rejeita chaves duplicadas e campos desconhecidos e nunca
+executa import dinâmico, `eval`, `exec`, leitura implícita de ambiente ou busca
+remota. Segredos aparecem na árvore somente como referências e são resolvidos
+por um contrato injetado no ponto de uso. MCP e adapters permanecem
+desabilitados por padrão. Consulte
+[`docs/config/security.md`](docs/config/security.md).
+
 Providers deverão receber credenciais por configuração ou serviços de segredos
 injetados, sem expô-las em eventos ou exceções. Ferramentas declaram entradas e
 permissões em `ToolDefinition`; dependências são injetadas diretamente em seus
