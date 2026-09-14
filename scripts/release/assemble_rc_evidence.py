@@ -60,7 +60,18 @@ def _run_git(*arguments: str) -> str:
         capture_output=True,
         text=True,
     )
-    return result.stdout.strip()
+    return result.stdout.rstrip()
+
+
+def unexpected_source_changes(status: str) -> list[str]:
+    """Return source changes that do not belong to generated release evidence."""
+    generated_prefixes = ("reports/release/", "release/", "dist/")
+    unexpected = []
+    for line in status.splitlines():
+        path = line[3:].replace("\\", "/")
+        if not path.startswith(generated_prefixes):
+            unexpected.append(line)
+    return unexpected
 
 
 def parse_junit(path: Path) -> TestSummary:
@@ -137,14 +148,12 @@ def verify_checksums(dist: Path) -> dict[str, str]:
 def _validate_source(version: str, *, require_tag: bool) -> tuple[str, str]:
     revision = _run_git("rev-parse", "HEAD")
     status = _run_git("status", "--porcelain", "--untracked-files=all")
-    generated_prefixes = ("reports/release/", "release/", "dist/")
-    unexpected = []
-    for line in status.splitlines():
-        path = line[3:].replace("\\", "/")
-        if not path.startswith(generated_prefixes):
-            unexpected.append(line)
+    unexpected = unexpected_source_changes(status)
     if unexpected:
-        raise RuntimeError("A fonte da candidata possui alterações não rastreadas.")
+        rendered = ", ".join(unexpected)
+        raise RuntimeError(
+            f"A fonte da candidata possui alterações não rastreadas: {rendered}"
+        )
     tag = f"v{version}"
     if require_tag:
         if _run_git("cat-file", "-t", tag) != "tag":

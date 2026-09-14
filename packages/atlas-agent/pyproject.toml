@@ -20,21 +20,21 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Typing :: Typed",
 ]
-dependencies = ["atlas-agent-core~=1.0.0rc1"]
+dependencies = ["atlas-agent-core~=1.0.0rc2"]
 
 [project.optional-dependencies]
-openai = ["atlas-agent-providers[openai]~=1.0.0rc1"]
-mcp = ["atlas-agent-mcp~=1.0.0rc1"]
-rest = ["atlas-agent-adapters[rest]~=1.0.0rc1"]
-grpc = ["atlas-agent-adapters[grpc]~=1.0.0rc1"]
-config = ["atlas-agent-config~=1.0.0rc1"]
-evaluation = ["atlas-agent-evaluation~=1.0.0rc1"]
+openai = ["atlas-agent-providers[openai]~=1.0.0rc2"]
+mcp = ["atlas-agent-mcp~=1.0.0rc2"]
+rest = ["atlas-agent-adapters[rest]~=1.0.0rc2"]
+grpc = ["atlas-agent-adapters[grpc]~=1.0.0rc2"]
+config = ["atlas-agent-config~=1.0.0rc2"]
+evaluation = ["atlas-agent-evaluation~=1.0.0rc2"]
 full = [
-    "atlas-agent-adapters[grpc,rest]~=1.0.0rc1",
-    "atlas-agent-config~=1.0.0rc1",
-    "atlas-agent-evaluation~=1.0.0rc1",
-    "atlas-agent-mcp~=1.0.0rc1",
-    "atlas-agent-providers[openai]~=1.0.0rc1",
+    "atlas-agent-adapters[grpc,rest]~=1.0.0rc2",
+    "atlas-agent-config~=1.0.0rc2",
+    "atlas-agent-evaluation~=1.0.0rc2",
+    "atlas-agent-mcp~=1.0.0rc2",
+    "atlas-agent-providers[openai]~=1.0.0rc2",
 ]
 
 [project.urls]

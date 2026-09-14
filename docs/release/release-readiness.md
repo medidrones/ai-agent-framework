@@ -1,4 +1,4 @@
-# Prontidão da release 1.0.0rc1
+# Prontidão da release 1.0.0rc2
 
 ## Decisão
 
@@ -57,7 +57,7 @@ certificar os artefatos vinculados à tag e obter os sign-offs formais.
 42. Compatibilidade: CI e `docs/compatibility.md`.
 43. Threat model: `docs/security/threat-model.md`.
 44. Produção: `docs/operations/production-checklist.md`.
-45. Changelog: seção `1.0.0rc1`.
+45. Changelog: seção `1.0.0rc2`.
 46. Bundle: 14 distribuições reproduzíveis, SBOM CycloneDX e 15 checksums.
 47. Pendências: certificação da tag e sign-offs do gate de aceitação.
 48. Recomendação: `READY_FOR_RC`, não `READY_FOR_STABLE`.

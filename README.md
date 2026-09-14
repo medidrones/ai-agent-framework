@@ -1,6 +1,6 @@
 # Atlas Agent Framework
 
-> Versão candidata atual: `1.0.0rc1`. Consulte o
+> Versão candidata atual: `1.0.0rc2`. Consulte o
 > [relatório de prontidão](docs/release/release-readiness.md) antes da promoção
 > para estável e o
 > [gate de aceitação da candidata](docs/release/rc-acceptance-checklist.md) para

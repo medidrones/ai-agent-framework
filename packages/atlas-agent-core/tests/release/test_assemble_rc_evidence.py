@@ -95,3 +95,16 @@ def test_coverage_rate_combines_lines_and_branches(tmp_path: Path) -> None:
     )
 
     assert module.coverage_rate(report) == 0.90
+
+
+def test_generated_reports_do_not_invalidate_clean_source() -> None:
+    module = _load_module()
+    status = (
+        " M reports/release/architecture-audit.json\n"
+        "?? release/1.0.0rc2/test-summary.json\n"
+        " M packages/atlas-agent-core/pyproject.toml\n"
+    )
+
+    assert module.unexpected_source_changes(status) == [
+        " M packages/atlas-agent-core/pyproject.toml"
+    ]

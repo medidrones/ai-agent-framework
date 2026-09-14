@@ -1,6 +1,6 @@
-# Gate de aceitação da candidata 1.0.0rc1
+# Gate de aceitação da candidata 1.0.0rc2
 
-Este documento é o gate formal de promoção da `1.0.0rc1` para `1.0.0`.
+Este documento é o gate formal de promoção da `1.0.0rc2` para `1.0.0`.
 Cada gate aceita somente `PASS`, `FAIL` ou `NOT_VERIFIED`. Um gate obrigatório
 `NOT_VERIFIED` equivale a `FAIL`; qualquer teste obrigatório com falha também
 produz `FAIL` automático.
@@ -28,7 +28,7 @@ construídos, sem instalação editable ou importação do source tree. O workfl
 
 | Gates | Evidência verificável |
 | --- | --- |
-| RC-01–RC-03 | SHA, tag `v1.0.0rc1`, `VERSION`, metadata e `git status` |
+| RC-01–RC-03 | SHA, tag `v1.0.0rc2`, `VERSION`, metadata e `git status` |
 | RC-04–RC-08 | logs da CI, `test-summary.json` e `coverage.xml` |
 | RC-09–RC-12 | `architecture-audit.json`, testes de arquitetura e import guards |
 | RC-13–RC-18 | `security-audit.json`, `dependency-audit.json` e suítes de segurança/HITL |
@@ -42,7 +42,7 @@ construídos, sem instalação editable ou importação do source tree. O workfl
 O comando `make rc-evidence`, executado no commit identificado pela tag, produz:
 
 ```text
-release/1.0.0rc1/
+release/1.0.0rc2/
 ├── automated-gates.json
 ├── owner-sign-offs.md
 ├── release-readiness.md

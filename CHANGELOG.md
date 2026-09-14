@@ -7,6 +7,20 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não publicado]
 
+## [1.0.0rc2] - 2026-09-14
+
+### Corrigido
+
+- Preservação do espaço inicial do formato porcelain do Git ao separar
+  alterações da fonte e evidências geradas durante a certificação.
+- Diagnóstico do gate de limpeza passou a identificar explicitamente qualquer
+  caminho inesperado.
+
+### Segurança
+
+- A tag `v1.0.0rc1` permanece imutável e não foi reutilizada após a falha do
+  assembler; a certificação completa será repetida para `v1.0.0rc2`.
+
 ## [1.0.0rc1] - 2026-09-13
 
 ### Adicionado
