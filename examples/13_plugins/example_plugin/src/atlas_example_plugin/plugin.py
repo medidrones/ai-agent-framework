@@ -55,7 +55,7 @@ class ExampleToolPlugin(Plugin):
                 version="0.1.0",
             ),
             capabilities=(PluginCapability.TOOL,),
-            required_atlas_version=">=0.1,<0.2",
+            required_atlas_version=">=1.0.0rc1,<2",
         )
 
     def describe(

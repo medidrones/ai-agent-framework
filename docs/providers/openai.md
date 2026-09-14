@@ -37,7 +37,7 @@ recebe configuração explícita no `PluginContext`:
 
 ```python
 context = PluginContext.create(
-    atlas_version="0.1.0",
+    atlas_version="1.0.0rc1",
     configuration={
         "api_key": "chave-fornecida-pelo-host",
         "store_responses": False,

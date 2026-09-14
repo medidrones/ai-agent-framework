@@ -12,7 +12,7 @@ seleções de modelo e integrações construídas. Use-a como gerenciador assín
 from atlas_agents.config import AtlasCompositionBuilder, load_config
 
 config = load_config("atlas.yaml")
-builder = AtlasCompositionBuilder(factories=factories, atlas_version="0.1.0")
+builder = AtlasCompositionBuilder(factories=factories, atlas_version="1.0.0rc1")
 
 async with await builder.build(config) as atlas:
     agente = atlas.agent_registry.get("assistant")

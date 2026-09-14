@@ -7,7 +7,7 @@ name = "atlas-example-tool-plugin"
 version = "0.1.0"
 description = "Plugin local usado pelo exemplo oficial do Atlas"
 requires-python = ">=3.12"
-dependencies = ["atlas-agent-core~=0.1.0"]
+dependencies = ["atlas-agent-core>=1.0.0rc1,<2"]
 
 [project.entry-points."atlas_agents.plugins"]
 example-tool = "atlas_example_plugin:create_plugin"

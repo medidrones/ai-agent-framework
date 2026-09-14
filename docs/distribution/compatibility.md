@@ -7,11 +7,11 @@
 - **Depreciado:** ainda funcional durante a janela de remoção.
 - **Não suportado:** fora dos ranges publicados ou da matriz de CI.
 
-## Matriz do release 0.1.0
+## Matriz da candidata 1.0.0rc1
 
 | Componente | Range declarado | Ambiente validado |
 | --- | --- | --- |
-| Python | `>=3.12` | CI: 3.12 e 3.13; validação local: 3.12.6 |
+| Python | `>=3.12` | CI: 3.12 e 3.13; validação local: 3.12.6 e 3.13.15 |
 | Pydantic | `>=2.13,<3` | 2.13.5 |
 | JSON Schema | `>=4.26,<5` | 4.26.0 |
 | Packaging | `>=26.0,<27` | 26.3 |
