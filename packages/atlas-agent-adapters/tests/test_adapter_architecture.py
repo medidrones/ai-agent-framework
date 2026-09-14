@@ -9,6 +9,7 @@ from atlas_agents.agents import AgentInput
 
 ROOT = Path(__file__).parents[3]
 CORE = ROOT / "packages" / "atlas-agent-core"
+CORE_SOURCE = CORE / "src"
 ADAPTERS = ROOT / "packages" / "atlas-agent-adapters"
 ADAPTER_SOURCE = ADAPTERS / "src"
 
@@ -18,7 +19,7 @@ def source_text(root: Path) -> str:
 
 
 def test_core_has_no_adapter_or_transport_dependencies() -> None:
-    text = source_text(CORE).lower()
+    text = source_text(CORE_SOURCE).lower()
     pyproject = (CORE / "pyproject.toml").read_text(encoding="utf-8").lower()
     assert "atlas_agents.adapters" not in text
     assert all(name not in pyproject for name in ("fastapi", "grpcio", "kafka", "pika"))

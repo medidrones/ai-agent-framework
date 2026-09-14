@@ -10,6 +10,10 @@ A versão editável vive somente em `VERSION`. Alterações de release devem rod
 Não edite módulos `_version.py` manualmente nem adicione dependências de
 integração ao core.
 
+Durante o feature freeze de uma candidata, são aceitos apenas bug fixes e
+correções de segurança, compatibilidade, performance, documentação, packaging
+ou testabilidade. Novas capabilities ficam para o roadmap posterior.
+
 Novas dependências de runtime precisam de range compatível, justificativa de
 ownership e teste de instalação. Ferramentas de teste, lint, geração protobuf e
 documentação pertencem aos grupos de desenvolvimento, não à metadata publicada.
@@ -60,6 +64,11 @@ Toda mudança de comportamento deve incluir testes do fluxo esperado e dos
 principais fluxos negativos. APIs públicas exigem docstrings em inglês e
 documentação técnica em português do Brasil. Não documente APIs que ainda não
 existem.
+
+Providers implementam contratos públicos fora do core e precisam de cliente
+fake na certificação. Ferramentas declaram schema, permissões e idempotência;
+plugins incluem manifesto, preflight e rollback; adapters traduzem DTOs sem
+atribuir autoridade ao payload.
 
 ## APIs públicas e dependências
 

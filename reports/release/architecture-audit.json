@@ -1,0 +1,24 @@
+{
+  "revision": "534909e6e9baee6eac398bde8cb1a1e886b045ac",
+  "graph": {
+    "atlas-agent": [],
+    "atlas-agent-adapters": [
+      "atlas-agent-core"
+    ],
+    "atlas-agent-config": [
+      "atlas-agent-adapters",
+      "atlas-agent-core"
+    ],
+    "atlas-agent-core": [],
+    "atlas-agent-evaluation": [
+      "atlas-agent-core"
+    ],
+    "atlas-agent-mcp": [
+      "atlas-agent-core"
+    ],
+    "atlas-agent-providers": [
+      "atlas-agent-core"
+    ]
+  },
+  "cycles": []
+}

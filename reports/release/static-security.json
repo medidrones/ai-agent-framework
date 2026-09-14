@@ -1,0 +1,275 @@
+{
+  "high_risk_findings": [],
+  "broad_exception_boundaries": [
+    {
+      "file": "packages/atlas-agent-adapters/src/atlas_agents/adapters/events/consumer.py",
+      "line": 88
+    },
+    {
+      "file": "packages/atlas-agent-adapters/src/atlas_agents/adapters/events/consumer.py",
+      "line": 165
+    },
+    {
+      "file": "packages/atlas-agent-adapters/src/atlas_agents/adapters/service.py",
+      "line": 277
+    },
+    {
+      "file": "packages/atlas-agent-adapters/src/atlas_agents/adapters/service.py",
+      "line": 333
+    },
+    {
+      "file": "packages/atlas-agent-config/src/atlas_agents/config/composition.py",
+      "line": 229
+    },
+    {
+      "file": "packages/atlas-agent-config/src/atlas_agents/config/composition.py",
+      "line": 236
+    },
+    {
+      "file": "packages/atlas-agent-config/src/atlas_agents/config/composition.py",
+      "line": 358
+    },
+    {
+      "file": "packages/atlas-agent-config/src/atlas_agents/config/composition.py",
+      "line": 412
+    },
+    {
+      "file": "packages/atlas-agent-config/src/atlas_agents/config/overrides.py",
+      "line": 22
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/guardrails/pipeline.py",
+      "line": 54
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/knowledge/manager.py",
+      "line": 43
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/knowledge/manager.py",
+      "line": 73
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/knowledge/manager.py",
+      "line": 153
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/memory/manager.py",
+      "line": 54
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/memory/manager.py",
+      "line": 107
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/memory/manager.py",
+      "line": 130
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/observability/manager.py",
+      "line": 30
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/observability/manager.py",
+      "line": 106
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/observability/manager.py",
+      "line": 113
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/observability/manager.py",
+      "line": 134
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/plugins/discovery.py",
+      "line": 117
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/plugins/discovery.py",
+      "line": 158
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/plugins/discovery.py",
+      "line": 167
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/plugins/manager.py",
+      "line": 146
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/plugins/manager.py",
+      "line": 160
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/plugins/manager.py",
+      "line": 170
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/plugins/manager.py",
+      "line": 234
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/plugins/manager.py",
+      "line": 261
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/plugins/manager.py",
+      "line": 340
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/plugins/manager.py",
+      "line": 226
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/plugins/manager.py",
+      "line": 433
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/plugins/registry.py",
+      "line": 30
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/runtime/restorer.py",
+      "line": 104
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/runtime/runtime.py",
+      "line": 544
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/runtime/runtime.py",
+      "line": 759
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/runtime/runtime.py",
+      "line": 1811
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/runtime/runtime.py",
+      "line": 1860
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/runtime/runtime.py",
+      "line": 1916
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/runtime/runtime.py",
+      "line": 2118
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/runtime/runtime.py",
+      "line": 2324
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/runtime/runtime.py",
+      "line": 2874
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/runtime/runtime.py",
+      "line": 2994
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/runtime/runtime.py",
+      "line": 3280
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/runtime/runtime.py",
+      "line": 3372
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/runtime/runtime.py",
+      "line": 882
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/runtime/runtime.py",
+      "line": 1486
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/runtime/runtime.py",
+      "line": 1990
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/runtime/runtime.py",
+      "line": 2569
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/runtime/runtime.py",
+      "line": 2734
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/runtime/runtime.py",
+      "line": 1144
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/runtime/runtime.py",
+      "line": 3323
+    },
+    {
+      "file": "packages/atlas-agent-core/src/atlas_agents/tools/executor.py",
+      "line": 155
+    },
+    {
+      "file": "packages/atlas-agent-evaluation/src/atlas_agents/evaluation/runner.py",
+      "line": 270
+    },
+    {
+      "file": "packages/atlas-agent-evaluation/src/atlas_agents/evaluation/runner.py",
+      "line": 168
+    },
+    {
+      "file": "packages/atlas-agent-mcp/src/atlas_agents/mcp/client.py",
+      "line": 162
+    },
+    {
+      "file": "packages/atlas-agent-mcp/src/atlas_agents/mcp/client.py",
+      "line": 174
+    },
+    {
+      "file": "packages/atlas-agent-mcp/src/atlas_agents/mcp/client.py",
+      "line": 187
+    },
+    {
+      "file": "packages/atlas-agent-mcp/src/atlas_agents/mcp/client.py",
+      "line": 204
+    },
+    {
+      "file": "packages/atlas-agent-mcp/src/atlas_agents/mcp/client.py",
+      "line": 217
+    },
+    {
+      "file": "packages/atlas-agent-mcp/src/atlas_agents/mcp/client.py",
+      "line": 230
+    },
+    {
+      "file": "packages/atlas-agent-mcp/src/atlas_agents/mcp/client.py",
+      "line": 252
+    },
+    {
+      "file": "packages/atlas-agent-mcp/src/atlas_agents/mcp/client.py",
+      "line": 122
+    },
+    {
+      "file": "packages/atlas-agent-mcp/src/atlas_agents/mcp/client.py",
+      "line": 145
+    },
+    {
+      "file": "packages/atlas-agent-mcp/src/atlas_agents/mcp/tools.py",
+      "line": 181
+    },
+    {
+      "file": "packages/atlas-agent-providers/src/atlas_agents/providers/openai/_stream.py",
+      "line": 159
+    },
+    {
+      "file": "packages/atlas-agent-providers/src/atlas_agents/providers/openai/provider.py",
+      "line": 72
+    },
+    {
+      "file": "packages/atlas-agent-providers/src/atlas_agents/providers/openai/provider.py",
+      "line": 104
+    }
+  ],
+  "broad_exception_count": 67,
+  "review_note": "Handlers amplos permanecem somente em fronteiras de normalização, cleanup, rollback ou fail-open documentado; cancelamento possui testes."
+}

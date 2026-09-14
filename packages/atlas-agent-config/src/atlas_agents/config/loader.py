@@ -91,7 +91,11 @@ def load_yaml(
 ) -> AtlasConfig:
     """Parse safe YAML text and return strict versioned configuration."""
     try:
-        value = yaml.load(text, Loader=_UniqueKeySafeLoader)  # noqa: S506
+        # The custom loader subclasses SafeLoader only to reject duplicate keys.
+        value = yaml.load(  # nosec B506
+            text,
+            Loader=_UniqueKeySafeLoader,  # noqa: S506
+        )
     except DuplicateComponentConfigError:
         raise
     except yaml.YAMLError as error:

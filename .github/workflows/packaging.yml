@@ -54,3 +54,14 @@ jobs:
 
       - name: Executar smoke tests isolados
         run: make packaging-smoke
+
+      - name: Gerar evidências e bundle da candidata
+        run: make release-bundle
+
+      - name: Arquivar candidata de release
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-release-candidate
+          path: |
+            dist/
+            reports/release/

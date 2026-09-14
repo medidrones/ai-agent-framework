@@ -1,5 +1,9 @@
 # Atlas Agent Framework
 
+> Versão candidata atual: `1.0.0rc1`. Consulte o
+> [relatório de prontidão](docs/release/release-readiness.md) antes da promoção
+> para estável.
+
 A distribuição opcional `atlas-agent-config` oferece schema versionado,
 carregamento seguro de YAML/JSON, referências de segredos, factories tipadas e
 uma composition root com rollback. Consulte a

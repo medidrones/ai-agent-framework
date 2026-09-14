@@ -7,6 +7,28 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não publicado]
 
+## [1.0.0rc1] - 2026-09-13
+
+### Adicionado
+
+- Auditoria do grafo de dependências, ciclos, API pública e segredos em
+  artefatos.
+- Stress com 100 execuções concorrentes e baseline de performance offline.
+- Modelo de ameaças, checklist de produção, prontidão, SBOM CycloneDX e
+  checksums SHA-256.
+- Matriz bloqueante Python 3.12/3.13 em Linux/Windows e workflow de candidata
+  sem publicação automática.
+
+### Alterado
+
+- Versão lockstep das sete distribuições promovida para `1.0.0rc1`.
+- CI passou a arquivar JUnit, coverage, auditorias e bundle da candidata.
+
+### Segurança
+
+- Formalizadas fronteiras de confiança, riscos residuais e exigências do host
+  para identidade, TLS, egress, plugins, MCP, retenção e idempotência.
+
 ### Adicionado
 
 - Estratégia oficial de sete distribuições modulares, incluindo o meta-package

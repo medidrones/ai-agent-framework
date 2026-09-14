@@ -668,6 +668,29 @@ async def test_concurrent_executions_keep_independent_event_sequences() -> None:
     assert provider.contexts[0].request_id != provider.contexts[1].request_id
 
 
+async def test_one_hundred_concurrent_executions_remain_isolated() -> None:
+    provider = _provider()
+    runtime = _runtime(provider)
+
+    results = await asyncio.gather(
+        *(
+            _run(runtime, context=_context(f"stress-execution-{index}"))
+            for index in range(100)
+        )
+    )
+
+    assert provider.generate_calls == 100
+    assert {result.execution_id for result in results} == {
+        f"stress-execution-{index}" for index in range(100)
+    }
+    assert all(result.status is ExecutionStatus.COMPLETED for result in results)
+    assert all(
+        tuple(event.sequence for event in result.events)
+        == tuple(range(1, len(result.events) + 1))
+        for result in results
+    )
+
+
 async def test_max_turns_one_allows_the_single_model_invocation() -> None:
     provider = _provider()
 

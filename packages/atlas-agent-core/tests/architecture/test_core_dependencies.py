@@ -1,6 +1,7 @@
 """Architecture tests for forbidden dependencies in the core package."""
 
 import ast
+import tomllib
 from pathlib import Path
 
 FORBIDDEN_IMPORTS = frozenset(
@@ -49,6 +50,15 @@ FORBIDDEN_IMPORTS = frozenset(
     }
 )
 
+REPOSITORY = Path(__file__).parents[4]
+PACKAGE_NAMESPACES = {
+    "atlas-agent-adapters": "atlas_agents.adapters",
+    "atlas-agent-config": "atlas_agents.config",
+    "atlas-agent-evaluation": "atlas_agents.evaluation",
+    "atlas-agent-mcp": "atlas_agents.mcp",
+    "atlas-agent-providers": "atlas_agents.providers",
+}
+
 
 def _import_roots(path: Path) -> set[str]:
     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
@@ -59,6 +69,54 @@ def _import_roots(path: Path) -> set[str]:
         elif isinstance(node, ast.ImportFrom) and node.module is not None:
             roots.add(node.module.partition(".")[0])
     return roots
+
+
+def _absolute_imports(path: Path) -> set[str]:
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    imported: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            imported.update(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module is not None:
+            imported.add(node.module)
+    return imported
+
+
+def _package_graph() -> dict[str, set[str]]:
+    graph: dict[str, set[str]] = {}
+    for package_root in sorted((REPOSITORY / "packages").iterdir()):
+        source_root = package_root / "src"
+        if not source_root.is_dir():
+            continue
+        dependencies: set[str] = set()
+        for path in source_root.rglob("*.py"):
+            for imported in _absolute_imports(path):
+                matched = False
+                for package, namespace in PACKAGE_NAMESPACES.items():
+                    if imported == namespace or imported.startswith(f"{namespace}."):
+                        dependencies.add(package)
+                        matched = True
+                        break
+                if imported.startswith("atlas_agents") and not matched:
+                    dependencies.add("atlas-agent-core")
+        dependencies.discard(package_root.name)
+        graph[package_root.name] = dependencies
+    return graph
+
+
+def _cycles(graph: dict[str, set[str]]) -> tuple[tuple[str, ...], ...]:
+    found: set[tuple[str, ...]] = set()
+
+    def visit(node: str, path: tuple[str, ...]) -> None:
+        if node in path:
+            found.add((*path[path.index(node) :], node))
+            return
+        for dependency in graph.get(node, set()):
+            visit(dependency, (*path, node))
+
+    for package in graph:
+        visit(package, ())
+    return tuple(sorted(found))
 
 
 def test_core_does_not_import_forbidden_dependencies() -> None:
@@ -348,3 +406,58 @@ def test_core_does_not_depend_on_evaluation_package() -> None:
             violations.append(str(path.relative_to(source_root)))
 
     assert violations == []
+
+
+def test_workspace_package_dependency_graph_has_no_cycles() -> None:
+    assert _cycles(_package_graph()) == ()
+
+
+def test_workspace_package_dependencies_follow_layering() -> None:
+    expected = {
+        "atlas-agent": set(),
+        "atlas-agent-adapters": {"atlas-agent-core"},
+        "atlas-agent-config": {"atlas-agent-adapters", "atlas-agent-core"},
+        "atlas-agent-core": set(),
+        "atlas-agent-evaluation": {"atlas-agent-core"},
+        "atlas-agent-mcp": {"atlas-agent-core"},
+        "atlas-agent-providers": {"atlas-agent-core"},
+    }
+
+    assert _package_graph() == expected
+
+
+def test_declared_runtime_dependencies_do_not_leak_optional_extras() -> None:
+    forbidden_by_package = {
+        "atlas-agent-adapters": {"fastapi", "grpcio", "protobuf"},
+        "atlas-agent-providers": {"openai"},
+    }
+    for package, forbidden in forbidden_by_package.items():
+        document = tomllib.loads(
+            (REPOSITORY / "packages" / package / "pyproject.toml").read_text(
+                encoding="utf-8"
+            )
+        )
+        dependencies = {
+            value.split("[", 1)[0].split("<", 1)[0].split(">=", 1)[0]
+            for value in document["project"]["dependencies"]
+        }
+        assert dependencies.isdisjoint(forbidden)
+
+
+def test_core_has_no_network_or_hidden_telemetry_imports() -> None:
+    source_root = REPOSITORY / "packages" / "atlas-agent-core" / "src"
+    forbidden = {"http.client", "socket", "urllib", "analytics", "posthog", "segment"}
+    imports = {
+        imported
+        for path in source_root.rglob("*.py")
+        for imported in _absolute_imports(path)
+    }
+    violations = {
+        imported
+        for imported in imports
+        if any(
+            imported == item or imported.startswith(f"{item}.") for item in forbidden
+        )
+    }
+
+    assert violations == set()

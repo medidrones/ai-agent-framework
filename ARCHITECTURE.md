@@ -1,5 +1,9 @@
 # Arquitetura
 
+O contrato arquitetural está em feature freeze para `1.0.0rc1`. A direção de
+dependências e a ausência de ciclos são verificadas por AST na suíte e
+registradas em `reports/release/architecture-audit.json`.
+
 ## Guardrails e governança
 
 Contratos runtime-facing de guardrails ficam em `atlas_agents.guardrails`.

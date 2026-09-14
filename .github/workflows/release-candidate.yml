@@ -1,0 +1,47 @@
+name: Candidata de release
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*rc*"]
+
+permissions:
+  contents: read
+
+jobs:
+  validar-candidata:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Configurar Python
+        run: uv python install 3.12
+
+      - name: Instalar workspace bloqueado
+        run: uv sync --locked --python 3.12
+
+      - name: Executar gates de qualidade
+        run: make quality
+
+      - name: Construir e validar candidata
+        run: make reproducible
+
+      - name: Instalar exatamente os wheels gerados
+        run: make packaging-smoke
+
+      - name: Gerar bundle e evidências
+        run: make release-bundle
+
+      - name: Arquivar candidata sem publicar
+        uses: actions/upload-artifact@v4
+        with:
+          name: atlas-${{ github.ref_name }}
+          path: |
+            dist/
+            reports/release/

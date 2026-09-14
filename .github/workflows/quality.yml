@@ -10,7 +10,12 @@ permissions:
 
 jobs:
   quality:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.12", "3.13"]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Baixar repositório
         uses: actions/checkout@v4
@@ -21,10 +26,10 @@ jobs:
           enable-cache: true
 
       - name: Configurar Python
-        run: uv python install 3.12
+        run: uv python install ${{ matrix.python }}
 
       - name: Instalar workspace
-        run: uv sync --locked
+        run: uv sync --locked --python ${{ matrix.python }}
 
       - name: Instalar plugin do exemplo local
         run: uv pip install --editable examples/13_plugins/example_plugin --no-deps
@@ -39,7 +44,22 @@ jobs:
         run: uv run mypy packages
 
       - name: Executar testes
-        run: uv run pytest --cov --cov-report=term-missing --cov-report=xml
+        run: uv run --python ${{ matrix.python }} pytest --cov --cov-branch --cov-report=term-missing --cov-report=xml --junitxml=reports/junit.xml
+
+      - name: Arquivar relatórios de teste
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testes-${{ matrix.os }}-py${{ matrix.python }}
+          path: |
+            coverage.xml
+            reports/junit.xml
+
+  exemplos-dotnet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
 
       - name: Configurar .NET LTS
         uses: actions/setup-dotnet@v4
@@ -51,5 +71,34 @@ jobs:
           dotnet build examples/20_dotnet_rest/dotnet/Atlas.Rest.Client.Example
           dotnet build examples/21_dotnet_grpc/dotnet/Atlas.Grpc.Client.Example
 
-      - name: Construir e inspecionar todas as distribuições
-        run: make artifacts
+  seguranca:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Configurar Python
+        run: uv python install 3.12
+
+      - name: Instalar workspace
+        run: uv sync --locked --python 3.12
+
+      - name: Analisar código estaticamente
+        run: uvx bandit -r packages -x "*/tests/*" -f json -o bandit.json
+
+      - name: Auditar vulnerabilidades conhecidas
+        run: |
+          uv export --frozen --all-packages --no-dev --no-emit-workspace --no-hashes --output-file requirements-audit.txt
+          uvx pip-audit --disable-pip --no-deps --requirement requirements-audit.txt --format json --output dependency-audit.json
+
+      - name: Arquivar auditorias
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: auditorias-seguranca
+          path: |
+            bandit.json
+            dependency-audit.json

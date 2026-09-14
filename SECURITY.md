@@ -1,5 +1,10 @@
 # Política de segurança
 
+O [modelo de ameaças](docs/security/threat-model.md) registra ativos, fronteiras,
+mitigações e riscos residuais. O
+[checklist de produção](docs/operations/production-checklist.md) descreve os
+controles que pertencem à aplicação hospedeira.
+
 ## Guardrails
 
 Guardrails são opt-in por agente e falham fechado quando uma avaliação não

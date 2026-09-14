@@ -3,6 +3,10 @@ __pycache__/
 *.egg-info/
 .coverage
 coverage.xml
+reports/release/*coverage.xml
+reports/release/junit.xml
+reports/release/bandit.json
+reports/release/dependency-audit.json
 .mypy_cache/
 .pytest_cache/
 .tmp-pytest-*/

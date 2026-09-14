@@ -1,4 +1,4 @@
-.PHONY: install sync-version lint format format-check type-check test coverage quality build artifacts reproducible packaging-smoke packaging clean
+.PHONY: install sync-version lint format format-check type-check test coverage quality build artifacts reproducible packaging-smoke release-audit release-bundle packaging clean
 
 install:
 	uv sync
@@ -43,6 +43,14 @@ reproducible: artifacts
 
 packaging-smoke:
 	uv run python scripts/smoke_wheels.py
+
+release-audit: artifacts
+	uv run python scripts/release/audit_repository.py
+	uv run python scripts/release/benchmark_runtime.py
+
+release-bundle: release-audit
+	uv run python scripts/release/generate_sbom.py
+	uv run python scripts/release/generate_checksums.py
 
 packaging: quality reproducible packaging-smoke
 
