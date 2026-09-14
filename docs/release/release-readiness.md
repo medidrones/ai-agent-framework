@@ -2,9 +2,10 @@
 
 ## Decisão
 
-**READY_FOR_RC.** A candidata preserva a correção do nome público do meta-package de
-`atlas-agent` para `atlas-agent-framework`. O namespace importável
-`atlas_agent`, as APIs e o comportamento funcional permanecem inalterados.
+**READY_FOR_STABLE.** A candidata preserva a correção do nome público do
+meta-package de `atlas-agent` para `atlas-agent-framework`. O namespace
+importável `atlas_agent`, as APIs e o comportamento funcional permanecem
+inalterados.
 
 O `rc5` corrige exclusivamente o nome normalizado usado pelo montador do bundle
 de evidências. O `rc4` passou pelos gates de qualidade, segurança e matriz, mas
@@ -33,13 +34,16 @@ O nome anterior pertence a um projeto de terceiros no PyPI. A release
 | Segredos nos artefatos | PASS | zero findings em 14 distribuições |
 | Checksums e SBOM | PASS | 15 checksums; CycloneDX com 79 componentes |
 | Exemplos .NET | PASS | REST e gRPC, zero erros e warnings |
+| Certificação remota | PASS | workflow `34893053130` |
+| Owner sign-offs | PASS | Jorge Medina nos cinco papéis |
+| P0/P1 abertas | PASS | `0/0` |
 
 ## Próximo gate
 
-1. criar a tag anotada `v1.0.0rc5` somente após autorização;
-2. certificar o bundle imutável na matriz remota;
-3. registrar novamente os cinco owner sign-offs;
-4. definir a estratégia para substituir a tag/release `v1.0.0` existente;
-5. configurar autenticação protegida do PyPI antes da promoção final.
+1. definir uma estratégia não destrutiva para a tag e GitHub Release `v1.0.0`
+   já existentes;
+2. executar o gate de promoção estável sem alteração funcional;
+3. configurar autenticação protegida do PyPI antes da publicação.
 
-`READY_FOR_RC` não autoriza publicação no PyPI.
+`READY_FOR_STABLE` não autoriza publicação no PyPI nem a movimentação de tags
+já publicadas.

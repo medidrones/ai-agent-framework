@@ -21,6 +21,9 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 - A tag imutável `v1.0.0rc4` foi preservada após a falha restrita ao montador de
   evidências; a nova certificação será executada sobre `v1.0.0rc5`.
+- A certificação remota do `v1.0.0rc5` e os cinco owner sign-offs de Jorge
+  Medina foram preservados em evidência versionada, resultando em
+  `READY_FOR_STABLE` sem autorizar publicação no PyPI.
 
 ## [1.0.0rc4] - 2026-09-14
 
