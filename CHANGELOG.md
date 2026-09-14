@@ -7,6 +7,20 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não publicado]
 
+## [1.0.0rc3] - 2026-09-14
+
+### Corrigido
+
+- O workflow de certificação agora substitui a referência leve criada pelo
+  checkout do GitHub Actions pelo objeto anotado original da tag remota.
+- A tag recuperada é validada como anotada e deve apontar exatamente para o
+  mesmo `GITHUB_SHA` que disparou o workflow.
+
+### Segurança
+
+- As tags `v1.0.0rc1` e `v1.0.0rc2` permanecem imutáveis e não foram
+  reutilizadas após suas respectivas falhas de certificação.
+
 ## [1.0.0rc2] - 2026-09-14
 
 ### Corrigido
@@ -18,8 +32,10 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ### Segurança
 
-- A tag `v1.0.0rc1` permanece imutável e não foi reutilizada após a falha do
-  assembler; a certificação completa será repetida para `v1.0.0rc2`.
+- A tag `v1.0.0rc1` permaneceu imutável e não foi reutilizada após a falha do
+  assembler.
+- A certificação da `v1.0.0rc2` identificou que o checkout do GitHub Actions
+  materializava a tag anotada como uma referência leve no runner.
 
 ## [1.0.0rc1] - 2026-09-13
 
