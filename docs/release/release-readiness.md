@@ -2,7 +2,8 @@
 
 ## Decisão
 
-**READY_FOR_RC.** A candidata inicia a rota não destrutiva para `1.0.1` e
+**READY_FOR_STABLE.** A candidata concluiu a certificação técnica e o gate
+formal de aprovações para a rota não destrutiva até `1.0.1`. Ela
 preserva o nome público `atlas-agent-framework`. O namespace importável
 `atlas_agent`, as APIs e o comportamento funcional permanecem inalterados.
 
@@ -33,17 +34,16 @@ O nome anterior pertence a um projeto de terceiros no PyPI. A release
 | Segredos nos artefatos | PASS | zero findings em 14 distribuições |
 | Checksums e SBOM | PASS | 15 checksums; CycloneDX com 79 componentes |
 | Exemplos .NET | PASS | REST e gRPC, zero erros e warnings |
-| Certificação remota | PENDING | exige tag `v1.0.1rc1` |
-| Owner sign-offs | PENDING | após a certificação imutável |
+| Certificação remota | PASS | workflow `34896013098` sobre `v1.0.1rc1` |
+| Owner sign-offs | PASS | cinco papéis aprovados por Jorge Medina |
 | P0/P1 abertas | PASS | `0/0` na origem certificada |
 
 ## Próximo gate
 
-1. criar a tag anotada `v1.0.1rc1` após os gates locais e de `main`;
-2. certificar o bundle imutável na matriz remota;
-3. registrar novamente os cinco owner sign-offs;
-4. executar o gate de promoção para `1.0.1` sem alteração funcional;
-5. configurar autenticação protegida do PyPI antes da publicação.
+1. executar o gate de promoção para `1.0.1` sem alteração funcional;
+2. construir e certificar os artefatos estáveis derivados do RC;
+3. configurar autenticação protegida do PyPI antes da publicação;
+4. exigir autorização explícita separada para publicar no registry.
 
-`READY_FOR_RC` não autoriza publicação no PyPI nem a movimentação de tags já
+`READY_FOR_STABLE` não autoriza publicação no PyPI nem a movimentação de tags já
 publicadas.

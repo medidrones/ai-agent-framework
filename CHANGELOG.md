@@ -25,7 +25,10 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ### Governança
 
 - A candidata deriva do conteúdo técnico certificado do `1.0.0rc5`; novos
-  artefatos e sign-offs serão exigidos antes da promoção estável.
+  artefatos e sign-offs foram exigidos antes da promoção estável.
+- A certificação remota do `v1.0.1rc1` e os cinco owner sign-offs de Jorge
+  Medina foram preservados em evidência versionada, resultando em
+  `READY_FOR_STABLE` sem autorizar publicação no PyPI.
 
 ## [1.0.0rc5] - 2026-09-14
 
