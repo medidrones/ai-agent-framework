@@ -7,6 +7,20 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não publicado]
 
+## [1.0.1rc1] - 2026-09-14
+
+### Alterado
+
+- Iniciado o ciclo não destrutivo de promoção `1.0.1rc1 → 1.0.1`, preservando
+  integralmente as tags e releases já publicadas.
+- Versões e restrições internas das sete distribuições foram sincronizadas em
+  lockstep, sem alteração funcional, de API, dependência ou contrato.
+
+### Governança
+
+- A candidata deriva do conteúdo técnico certificado do `1.0.0rc5`; novos
+  artefatos e sign-offs serão exigidos antes da promoção estável.
+
 ## [1.0.0rc5] - 2026-09-14
 
 ### Corrigido

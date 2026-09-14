@@ -1,15 +1,14 @@
-# Prontidão da candidata 1.0.0rc5
+# Prontidão da candidata 1.0.1rc1
 
 ## Decisão
 
-**READY_FOR_STABLE.** A candidata preserva a correção do nome público do
-meta-package de `atlas-agent` para `atlas-agent-framework`. O namespace
-importável `atlas_agent`, as APIs e o comportamento funcional permanecem
-inalterados.
+**READY_FOR_RC.** A candidata inicia a rota não destrutiva para `1.0.1` e
+preserva o nome público `atlas-agent-framework`. O namespace importável
+`atlas_agent`, as APIs e o comportamento funcional permanecem inalterados.
 
-O `rc5` corrige exclusivamente o nome normalizado usado pelo montador do bundle
-de evidências. O `rc4` passou pelos gates de qualidade, segurança e matriz, mas
-falhou na etapa final ao procurar o arquivo inexistente `atlas_agent-*`.
+O conteúdo técnico deriva do `1.0.0rc5`, cuja certificação e sign-offs passaram.
+A nova candidata existe para permitir a promoção `1.0.1rc1 → 1.0.1` sem mover
+ou reescrever a tag `v1.0.0` já publicada.
 
 O nome anterior pertence a um projeto de terceiros no PyPI. A release
 `v1.0.0` publicada no GitHub não foi enviada ao registry Python.
@@ -20,7 +19,7 @@ O nome anterior pertence a um projeto de terceiros no PyPI. A release
 | --- | --- | --- |
 | Disponibilidade dos sete nomes no PyPI | PASS | API oficial e simulação de upload |
 | Nome legado ausente da metadata pública | PASS | teste de regressão dedicado |
-| Workspace e lockfile | PASS | sete distribuições `1.0.0rc5` |
+| Workspace e lockfile | PASS | sete distribuições `1.0.1rc1` |
 | Inventário do bundle | PASS | `atlas_agent_framework` coberto por regressão |
 | Lint e formatação | PASS | Ruff |
 | Tipagem | PASS | mypy, 332 arquivos |
@@ -34,16 +33,17 @@ O nome anterior pertence a um projeto de terceiros no PyPI. A release
 | Segredos nos artefatos | PASS | zero findings em 14 distribuições |
 | Checksums e SBOM | PASS | 15 checksums; CycloneDX com 79 componentes |
 | Exemplos .NET | PASS | REST e gRPC, zero erros e warnings |
-| Certificação remota | PASS | workflow `34893053130` |
-| Owner sign-offs | PASS | Jorge Medina nos cinco papéis |
-| P0/P1 abertas | PASS | `0/0` |
+| Certificação remota | PENDING | exige tag `v1.0.1rc1` |
+| Owner sign-offs | PENDING | após a certificação imutável |
+| P0/P1 abertas | PASS | `0/0` na origem certificada |
 
 ## Próximo gate
 
-1. definir uma estratégia não destrutiva para a tag e GitHub Release `v1.0.0`
-   já existentes;
-2. executar o gate de promoção estável sem alteração funcional;
-3. configurar autenticação protegida do PyPI antes da publicação.
+1. criar a tag anotada `v1.0.1rc1` após os gates locais e de `main`;
+2. certificar o bundle imutável na matriz remota;
+3. registrar novamente os cinco owner sign-offs;
+4. executar o gate de promoção para `1.0.1` sem alteração funcional;
+5. configurar autenticação protegida do PyPI antes da publicação.
 
-`READY_FOR_STABLE` não autoriza publicação no PyPI nem a movimentação de tags
-já publicadas.
+`READY_FOR_RC` não autoriza publicação no PyPI nem a movimentação de tags já
+publicadas.

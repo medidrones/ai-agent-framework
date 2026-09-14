@@ -1,8 +1,9 @@
 # Atlas Agent Framework
 
-> Candidata atual: `1.0.0rc5`. Ela corrige o nome público do meta-package para
-> `atlas-agent-framework`, sem alterar o namespace Python `atlas_agent`.
-> Consulte as [notas da candidata](docs/release/releases/1.0.0rc5.md).
+> Candidata atual: `1.0.1rc1`. Ela preserva o nome público
+> `atlas-agent-framework` e inicia a promoção não destrutiva para `1.0.1`, sem
+> alterar o namespace Python `atlas_agent`.
+> Consulte as [notas da candidata](docs/release/releases/1.0.1rc1.md).
 
 A distribuição opcional `atlas-agent-config` oferece schema versionado,
 carregamento seguro de YAML/JSON, referências de segredos, factories tipadas e
