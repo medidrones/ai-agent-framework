@@ -1,6 +1,6 @@
 [project]
-name = "atlas-agent-framework-workspace"
-dynamic = ["version"]
+name = "atlas-agent-workspace"
+version = "0.0.0"
 description = "Configuração do workspace do Atlas Agent Framework"
 requires-python = ">=3.12"
 
@@ -11,7 +11,7 @@ package = false
 members = ["packages/*"]
 
 [tool.uv.sources]
-atlas-agent = { workspace = true }
+atlas-agent-framework = { workspace = true }
 atlas-agent-core = { workspace = true }
 atlas-agent-adapters = { workspace = true }
 atlas-agent-config = { workspace = true }
@@ -21,7 +21,7 @@ atlas-agent-providers = { workspace = true }
 
 [dependency-groups]
 dev = [
-    "atlas-agent",
+    "atlas-agent-framework",
     "atlas-agent-adapters[grpc,rest]",
     "atlas-agent-config",
     "atlas-agent-core",

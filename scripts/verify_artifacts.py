@@ -15,7 +15,7 @@ from packaging.version import Version
 REPOSITORY = Path(__file__).resolve().parents[1]
 DIST = REPOSITORY / "dist"
 DISTRIBUTIONS = {
-    "atlas-agent": "atlas_agent",
+    "atlas-agent-framework": "atlas_agent_framework",
     "atlas-agent-adapters": "atlas_agent_adapters",
     "atlas-agent-config": "atlas_agent_config",
     "atlas-agent-core": "atlas_agent_core",
@@ -24,7 +24,7 @@ DISTRIBUTIONS = {
     "atlas-agent-providers": "atlas_agent_providers",
 }
 TYPED_MARKERS = {
-    "atlas-agent": "atlas_agent/py.typed",
+    "atlas-agent-framework": "atlas_agent/py.typed",
     "atlas-agent-adapters": "atlas_agents/adapters/py.typed",
     "atlas-agent-config": "atlas_agents/config/py.typed",
     "atlas-agent-core": "atlas_agents/py.typed",

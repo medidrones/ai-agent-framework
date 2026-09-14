@@ -1,74 +1,74 @@
 {
   "artifacts": [
     {
-      "file": "atlas_agent-1.0.0-py3-none-any.whl",
-      "bytes": 2918,
-      "sha256": "26a0d73d35d66ff2c47d93aa64756d02a0e2eecfaaa5cabb40a86755f6a750f3"
+      "file": "atlas_agent_adapters-1.0.0rc4-py3-none-any.whl",
+      "bytes": 36730,
+      "sha256": "bfc19ccf3c45ab4c267ef6486c5986be7aba02749c8a3a5bcc20cbdb56ef178d"
     },
     {
-      "file": "atlas_agent-1.0.0.tar.gz",
-      "bytes": 2370,
-      "sha256": "5054a79258bbf9d2c216064b71b79e4850b4ab9b6359b280c050612d3f7f0d2e"
-    },
-    {
-      "file": "atlas_agent_adapters-1.0.0-py3-none-any.whl",
-      "bytes": 36698,
-      "sha256": "d628d8a0dc9ce5b5a4120ce93bcdb78d527ebf31013b15cbf4737fafff3bb3a9"
-    },
-    {
-      "file": "atlas_agent_adapters-1.0.0.tar.gz",
+      "file": "atlas_agent_adapters-1.0.0rc4.tar.gz",
       "bytes": 25821,
-      "sha256": "cd64c3f78938f7ea1a8101e8c260f22514a66f1da92b792ee9d4bac583824f53"
+      "sha256": "55cfffbfddaef165eed934b3f701afe10072c4b6c408fe4c793d85413ede674b"
     },
     {
-      "file": "atlas_agent_config-1.0.0-py3-none-any.whl",
-      "bytes": 23866,
-      "sha256": "8c896e7e948a4de123f4e471c4d27de5d72a8145c2d249c76f6201130c24ff98"
+      "file": "atlas_agent_config-1.0.0rc4-py3-none-any.whl",
+      "bytes": 23901,
+      "sha256": "60d335b6c5571ed7d2e3643011cb4ada54e3ee9d3c16d720f52d2bcb5c7cc1fd"
     },
     {
-      "file": "atlas_agent_config-1.0.0.tar.gz",
-      "bytes": 18125,
-      "sha256": "1347b84ea632fc64a407b2555d6ed2e184e17f78c078152136e5614bc556956e"
+      "file": "atlas_agent_config-1.0.0rc4.tar.gz",
+      "bytes": 18134,
+      "sha256": "c8a0e8c35ef9f35963173020195e153ef6e4ac51ec74671f268213e99b75026c"
     },
     {
-      "file": "atlas_agent_core-1.0.0-py3-none-any.whl",
-      "bytes": 150934,
-      "sha256": "3a770626cbd6e5586e99df3411b819c6fc3d63ce89717897b741af283c244ebb"
+      "file": "atlas_agent_core-1.0.0rc4-py3-none-any.whl",
+      "bytes": 150968,
+      "sha256": "bc6d2623cfdc4b3e71a44637bc4bc3bccf19a13173a9827acebfa8d38d43fbfa"
     },
     {
-      "file": "atlas_agent_core-1.0.0.tar.gz",
-      "bytes": 89902,
-      "sha256": "46cac358372453d4ce914729f7515e36b3332342436d63f86a792916cba11b24"
+      "file": "atlas_agent_core-1.0.0rc4.tar.gz",
+      "bytes": 89905,
+      "sha256": "4f65c32cb10ee1128431a339a3731ea24cc043d6074f98c4acab8ff5eb2e8b82"
     },
     {
-      "file": "atlas_agent_evaluation-1.0.0-py3-none-any.whl",
-      "bytes": 29799,
-      "sha256": "1dc5a62b3bd3c3fd5ca1c83d3c2f1d5821ab96da87114a926570f34db8f81ce6"
+      "file": "atlas_agent_evaluation-1.0.0rc4-py3-none-any.whl",
+      "bytes": 29838,
+      "sha256": "27b0dd4940f78221ec70033b1f414e9debf2864f0af3903f231feefca6c8a8b0"
     },
     {
-      "file": "atlas_agent_evaluation-1.0.0.tar.gz",
-      "bytes": 16826,
-      "sha256": "5080507e3f4f336c9f4d6d632a1881d1dbc5da9a95aa2c903ebb919f5eca328f"
+      "file": "atlas_agent_evaluation-1.0.0rc4.tar.gz",
+      "bytes": 16830,
+      "sha256": "2b1ba3216cbba6eef11a088de5feba9b89dd46424481a833a9311a12fa0873ca"
     },
     {
-      "file": "atlas_agent_mcp-1.0.0-py3-none-any.whl",
-      "bytes": 18430,
-      "sha256": "8b378a4ca2464764a1ba7a7cb8dc79e8b886bba16711b47ddc4253542cc73e30"
+      "file": "atlas_agent_framework-1.0.0rc4-py3-none-any.whl",
+      "bytes": 3040,
+      "sha256": "370f7fd25d5241ab516820120c0f4050dbb4d47373d84382bcbf59db008945da"
     },
     {
-      "file": "atlas_agent_mcp-1.0.0.tar.gz",
-      "bytes": 13750,
-      "sha256": "fb9ba3afbaa48b82cf644cc7203a55167b7344e3202cafba5c37e82a55aa6fff"
+      "file": "atlas_agent_framework-1.0.0rc4.tar.gz",
+      "bytes": 2382,
+      "sha256": "a9351c6dd9299b35df5c9623bfb6b8f83fdcbae51fc2d74620d8dc9c086ec15c"
     },
     {
-      "file": "atlas_agent_providers-1.0.0-py3-none-any.whl",
-      "bytes": 15649,
-      "sha256": "64e1aeb8f748c9baf512bf4ae53206b3f5134632f5ac4d84e398d0c3f928f4c1"
+      "file": "atlas_agent_mcp-1.0.0rc4-py3-none-any.whl",
+      "bytes": 18463,
+      "sha256": "c7e53fb44efb8c1e9c7ee06a5c906d22304ceb5e8dc4c243af5a02704b5485dc"
     },
     {
-      "file": "atlas_agent_providers-1.0.0.tar.gz",
-      "bytes": 10885,
-      "sha256": "478106dccd75a4e28c545d8d14fb3921851007d0a3c6cf25e82defce7593ee18"
+      "file": "atlas_agent_mcp-1.0.0rc4.tar.gz",
+      "bytes": 13751,
+      "sha256": "c1ddc03308217009a6dc5f51b45b7f78b7858fbff42320b6bfddeb8da79e34c5"
+    },
+    {
+      "file": "atlas_agent_providers-1.0.0rc4-py3-none-any.whl",
+      "bytes": 15687,
+      "sha256": "457dc1627f7b791360419a9da608b2ebd9478cc146b26c441f93337798f60252"
+    },
+    {
+      "file": "atlas_agent_providers-1.0.0rc4.tar.gz",
+      "bytes": 10884,
+      "sha256": "08d063f374e33e0a2fca9c1fa349a7424d47e4d86e46eeb9d886c6e0399fec80"
     }
   ],
   "secret_findings": []

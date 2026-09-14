@@ -1,5 +1,10 @@
 # Atlas Agent Framework — Status da promoção estável
 
+> Status substituído em 14 de setembro de 2026. A release `v1.0.0` foi
+> publicada no GitHub, mas o envio ao PyPI foi bloqueado porque o nome
+> `atlas-agent` pertence a um projeto de terceiros. A correção segue no ciclo
+> `1.0.0rc4` com o nome público `atlas-agent-framework`.
+
 ## Escopo
 
 Promoção administrativa de `1.0.0rc3` para `1.0.0`, sem nova funcionalidade,

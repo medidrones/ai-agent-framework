@@ -116,7 +116,7 @@ check("atlas_agents.providers.openai", MissingProviderDependencyError, "[openai]
             str(full_python),
             "--find-links",
             str(DIST),
-            f"atlas-agent[full]=={VERSION}",
+            f"atlas-agent-framework[full]=={VERSION}",
         )
         _execute(
             full_python,

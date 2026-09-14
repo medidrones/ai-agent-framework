@@ -11,21 +11,21 @@ from atlas_agents import AtlasDeprecationWarning, __version__
 
 REPOSITORY = Path(__file__).parents[4]
 PACKAGES = REPOSITORY / "packages"
-DISTRIBUTIONS = (
-    "atlas-agent",
-    "atlas-agent-adapters",
-    "atlas-agent-config",
-    "atlas-agent-core",
-    "atlas-agent-evaluation",
-    "atlas-agent-mcp",
-    "atlas-agent-providers",
-)
+DISTRIBUTIONS = {
+    "atlas-agent": "atlas-agent-framework",
+    "atlas-agent-adapters": "atlas-agent-adapters",
+    "atlas-agent-config": "atlas-agent-config",
+    "atlas-agent-core": "atlas-agent-core",
+    "atlas-agent-evaluation": "atlas-agent-evaluation",
+    "atlas-agent-mcp": "atlas-agent-mcp",
+    "atlas-agent-providers": "atlas-agent-providers",
+}
 OPTIONAL_VENDOR_PACKAGES = {"fastapi", "grpcio", "mcp", "openai", "pyyaml"}
 DEV_TOOLS = {"grpcio-tools", "mypy", "pytest", "ruff", "twine"}
 
 
-def metadata(distribution: str) -> dict[str, object]:
-    path = PACKAGES / distribution / "pyproject.toml"
+def metadata(package_directory: str) -> dict[str, object]:
+    path = PACKAGES / package_directory / "pyproject.toml"
     return tomllib.loads(path.read_text(encoding="utf-8"))
 
 
@@ -37,8 +37,8 @@ def test_all_distributions_use_one_pep440_lockstep_version() -> None:
     expected = (REPOSITORY / "VERSION").read_text(encoding="utf-8").strip()
     assert str(Version(expected)) == expected
     assert __version__ == expected
-    for distribution in DISTRIBUTIONS:
-        package = metadata(distribution)
+    for package_directory in DISTRIBUTIONS:
+        package = metadata(package_directory)
         project = package["project"]
         assert isinstance(project, dict)
         assert project["dynamic"] == ["version"]
@@ -49,15 +49,15 @@ def test_all_distributions_use_one_pep440_lockstep_version() -> None:
         version_config = hatch["version"]
         assert isinstance(version_config, dict)
         version_path = version_config["path"]
-        source = (PACKAGES / distribution / str(version_path)).read_text(
+        source = (PACKAGES / package_directory / str(version_path)).read_text(
             encoding="utf-8"
         )
         assert re.search(rf'__version__ = "{re.escape(expected)}"', source)
 
 
 def test_distribution_metadata_is_complete_and_consistent() -> None:
-    for distribution in DISTRIBUTIONS:
-        project = metadata(distribution)["project"]
+    for package_directory, distribution in DISTRIBUTIONS.items():
+        project = metadata(package_directory)["project"]
         assert isinstance(project, dict)
         assert project["name"] == distribution
         assert project["requires-python"] == ">=3.12"
@@ -70,9 +70,21 @@ def test_distribution_metadata_is_complete_and_consistent() -> None:
         assert set(project["urls"]) == {"Documentation", "Issues", "Repository"}
 
 
+def test_meta_package_does_not_reuse_the_occupied_public_name() -> None:
+    project = metadata("atlas-agent")["project"]
+    assert isinstance(project, dict)
+    assert project["name"] == "atlas-agent-framework"
+    assert "atlas-agent" not in DISTRIBUTIONS.values()
+
+    workspace = tomllib.loads((REPOSITORY / "pyproject.toml").read_text("utf-8"))
+    sources = workspace["tool"]["uv"]["sources"]
+    assert "atlas-agent-framework" in sources
+    assert "atlas-agent" not in sources
+
+
 def test_runtime_dependencies_exclude_dev_tools_and_local_references() -> None:
-    for distribution in DISTRIBUTIONS:
-        project = metadata(distribution)["project"]
+    for package_directory in DISTRIBUTIONS:
+        project = metadata(package_directory)["project"]
         assert isinstance(project, dict)
         declared = list(project.get("dependencies", []))
         optional = project.get("optional-dependencies", {})
@@ -107,15 +119,17 @@ def test_core_is_minimal_and_vendor_dependencies_are_isolated() -> None:
 
 def test_internal_distribution_graph_is_acyclic() -> None:
     graph: dict[str, set[str]] = {}
-    for distribution in DISTRIBUTIONS:
-        project = metadata(distribution)["project"]
+    for package_directory, distribution in DISTRIBUTIONS.items():
+        project = metadata(package_directory)["project"]
         assert isinstance(project, dict)
         values = list(project.get("dependencies", []))
         optional = project.get("optional-dependencies", {})
         assert isinstance(optional, dict)
         values.extend(item for group in optional.values() for item in group)
         graph[distribution] = {
-            item.name for item in requirements(values) if item.name in DISTRIBUTIONS
+            item.name
+            for item in requirements(values)
+            if item.name in DISTRIBUTIONS.values()
         }
 
     visiting: set[str] = set()
@@ -132,7 +146,7 @@ def test_internal_distribution_graph_is_acyclic() -> None:
         visiting.remove(node)
         visited.add(node)
 
-    for distribution in DISTRIBUTIONS:
+    for distribution in DISTRIBUTIONS.values():
         visit(distribution)
 
 
@@ -168,8 +182,8 @@ def test_every_typed_distribution_declares_and_contains_py_typed() -> None:
         "atlas-agent-mcp": "src/atlas_agents/mcp/py.typed",
         "atlas-agent-providers": "src/atlas_agents/providers/openai/py.typed",
     }
-    for distribution, marker in markers.items():
-        assert (PACKAGES / distribution / marker).is_file()
+    for package_directory, marker in markers.items():
+        assert (PACKAGES / package_directory / marker).is_file()
 
 
 def test_deprecation_warning_is_visible_to_application_consumers() -> None:

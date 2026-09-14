@@ -7,6 +7,23 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não publicado]
 
+## [1.0.0rc4] - 2026-09-14
+
+### Corrigido
+
+- O meta-package público foi renomeado de `atlas-agent` para
+  `atlas-agent-framework` porque o nome anterior pertence a um projeto de
+  terceiros no PyPI.
+- Build, verificação de artefatos, instalação limpa, testes de empacotamento e
+  documentação foram alinhados ao novo nome da distribuição.
+- O namespace importável `atlas_agent` foi preservado; não há alteração na API
+  Python nem no comportamento funcional.
+
+### Segurança
+
+- A validação de disponibilidade dos sete nomes de distribuição passou a fazer
+  parte da certificação do RC antes de qualquer publicação no registry.
+
 ## [1.0.0] - 2026-09-14
 
 ### Alterado

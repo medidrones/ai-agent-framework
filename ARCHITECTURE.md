@@ -35,7 +35,8 @@ dependem dos contratos públicos do core e permanecem substituíveis.
 
 As sete distribuições usam o mesmo release lockstep, mas não formam uma
 instalação monolítica. SDKs de providers e transportes ficam em extras do pacote
-que os possui; o meta-package `atlas-agent` depende somente do core por padrão.
+que os possui; o meta-package `atlas-agent-framework` depende somente do core
+por padrão.
 O grafo e as regras de namespace estão em
 [`packages.md`](docs/distribution/packages.md).
 

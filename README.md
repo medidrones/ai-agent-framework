@@ -1,9 +1,8 @@
 # Atlas Agent Framework
 
-> Versão estável: `1.0.0`. Consulte as
-> [notas da release](docs/release/releases/1.0.0.md), o
-> [relatório de promoção](docs/release/STABLE-PROMOTION-STATUS.md) e o
-> [gate de aceitação da candidata](docs/release/rc-acceptance-checklist.md).
+> Candidata atual: `1.0.0rc4`. Ela corrige o nome público do meta-package para
+> `atlas-agent-framework`, sem alterar o namespace Python `atlas_agent`.
+> Consulte as [notas da candidata](docs/release/releases/1.0.0rc4.md).
 
 A distribuição opcional `atlas-agent-config` oferece schema versionado,
 carregamento seguro de YAML/JSON, referências de segredos, factories tipadas e
@@ -111,7 +110,7 @@ integração concreta com modelos.
 | `atlas-agent-adapters` | transportes externos | `pip install atlas-agent-adapters[rest]` |
 | `atlas-agent-config` | configuração declarativa | `pip install atlas-agent-config` |
 | `atlas-agent-evaluation` | avaliação | `pip install atlas-agent-evaluation` |
-| `atlas-agent` | meta-package opcional | `pip install atlas-agent[full]` |
+| `atlas-agent-framework` | meta-package opcional | `pip install atlas-agent-framework[full]` |
 
 O core não instala OpenAI, MCP, FastAPI, gRPC ou PyYAML. Consulte a
 [estratégia de pacotes](docs/distribution/packages.md), os
@@ -155,7 +154,7 @@ core mínimo, imports opcionais, namespace compartilhado e entry points.
 O workspace raiz é um agregador. Use `make build` para selecionar explicitamente
 as distribuições `atlas-agent-adapters`, `atlas-agent-config`, `atlas-agent-core`,
 `atlas-agent-evaluation`, `atlas-agent-providers`, `atlas-agent-mcp` e o
-meta-package opcional `atlas-agent`, evitando
+meta-package opcional `atlas-agent-framework`, evitando
 publicar o agregador por engano.
 
 O pacote utiliza o layout `src` e pode ser importado da seguinte forma:

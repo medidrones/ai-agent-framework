@@ -38,4 +38,4 @@ Substitua fixtures por adapters explícitos, defina limites, timeouts, autentica
 
 ## Pacotes Atlas relacionados
 
-atlas-agent, atlas-agent-config, atlas-agent-evaluation e atlas-agent-mcp. Consulte também a [visão arquitetural](../../docs/architecture/overview.md) e o [índice dos exemplos](../README.md).
+atlas-agent-framework, atlas-agent-config, atlas-agent-evaluation e atlas-agent-mcp. Consulte também a [visão arquitetural](../../docs/architecture/overview.md) e o [índice dos exemplos](../README.md).

@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
   "scenario": "single_turn_offline_fake_provider",
-  "python": "3.13.15",
+  "python": "3.12.6",
   "platform": "Windows",
   "samples": 250,
   "concurrency": 25,
-  "wall_seconds": 0.077865,
-  "throughput_per_second": 3210.67,
+  "wall_seconds": 0.079827,
+  "throughput_per_second": 3131.76,
   "latency_ms": {
-    "mean": 0.284,
-    "p50": 0.277,
-    "p95": 0.338,
-    "max": 0.559
+    "mean": 0.29,
+    "p50": 0.274,
+    "p95": 0.381,
+    "max": 0.624
   }
 }

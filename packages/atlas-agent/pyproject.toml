@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "atlas-agent"
+name = "atlas-agent-framework"
 dynamic = ["version"]
 description = "Meta-package opcional do ecossistema Atlas Agent Framework"
 requires-python = ">=3.12"
@@ -20,21 +20,21 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Typing :: Typed",
 ]
-dependencies = ["atlas-agent-core~=1.0.0"]
+dependencies = ["atlas-agent-core~=1.0.0rc4"]
 
 [project.optional-dependencies]
-openai = ["atlas-agent-providers[openai]~=1.0.0"]
-mcp = ["atlas-agent-mcp~=1.0.0"]
-rest = ["atlas-agent-adapters[rest]~=1.0.0"]
-grpc = ["atlas-agent-adapters[grpc]~=1.0.0"]
-config = ["atlas-agent-config~=1.0.0"]
-evaluation = ["atlas-agent-evaluation~=1.0.0"]
+openai = ["atlas-agent-providers[openai]~=1.0.0rc4"]
+mcp = ["atlas-agent-mcp~=1.0.0rc4"]
+rest = ["atlas-agent-adapters[rest]~=1.0.0rc4"]
+grpc = ["atlas-agent-adapters[grpc]~=1.0.0rc4"]
+config = ["atlas-agent-config~=1.0.0rc4"]
+evaluation = ["atlas-agent-evaluation~=1.0.0rc4"]
 full = [
-    "atlas-agent-adapters[grpc,rest]~=1.0.0",
-    "atlas-agent-config~=1.0.0",
-    "atlas-agent-evaluation~=1.0.0",
-    "atlas-agent-mcp~=1.0.0",
-    "atlas-agent-providers[openai]~=1.0.0",
+    "atlas-agent-adapters[grpc,rest]~=1.0.0rc4",
+    "atlas-agent-config~=1.0.0rc4",
+    "atlas-agent-evaluation~=1.0.0rc4",
+    "atlas-agent-mcp~=1.0.0rc4",
+    "atlas-agent-providers[openai]~=1.0.0rc4",
 ]
 
 [project.urls]

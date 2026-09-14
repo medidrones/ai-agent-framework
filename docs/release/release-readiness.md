@@ -1,54 +1,40 @@
-# Prontidão da release 1.0.0
+# Prontidão da candidata 1.0.0rc4
 
 ## Decisão
 
-**READY_TO_PUBLISH.** A versão estável foi preparada exclusivamente a partir da
-candidata certificada `1.0.0rc3`. O delta foi limitado ao versionamento lockstep,
-às restrições internas entre os pacotes e à documentação e aos metadados de
-release. Nenhuma publicação em registry foi realizada.
+**READY_FOR_RC.** A candidata corrige o nome público do meta-package de
+`atlas-agent` para `atlas-agent-framework`. O namespace importável
+`atlas_agent`, as APIs e o comportamento funcional permanecem inalterados.
 
-## Origem certificada
+O nome anterior pertence a um projeto de terceiros no PyPI. A release
+`v1.0.0` publicada no GitHub não foi enviada ao registry Python.
 
-- candidata: `1.0.0rc3`;
-- tag: `v1.0.0rc3`;
-- commit: `8177cbda41324039f66698122b128ec9d832f729`;
-- certificação técnica: `PASS`;
-- cinco owner sign-offs: `PASS`, exercidos por Jorge Medina;
-- integridade do bundle do RC: `VERIFIED`;
-- digest do bundle: `8d961a13e1dede0a3071420850fda18024eb9283316ecb943d3ca8d51829ad48`;
-- P0/P1 abertas: `0/0`;
-- alterações materiais após a certificação: `NONE`.
-
-## Gates da promoção
+## Gates locais
 
 | Gate | Estado | Evidência |
 | --- | --- | --- |
-| Delta de promoção | PASS | somente versão, documentação e metadados de release |
+| Disponibilidade dos sete nomes no PyPI | PASS | API oficial e simulação de upload |
+| Nome legado ausente da metadata pública | PASS | teste de regressão dedicado |
+| Workspace e lockfile | PASS | sete distribuições `1.0.0rc4` |
 | Lint e formatação | PASS | Ruff |
 | Tipagem | PASS | mypy, 332 arquivos |
-| Regressão | PASS | 1.139 testes, cobertura de 93% |
-| Segurança estática | PASS | Bandit, zero findings |
-| Dependências | PASS | pip-audit, nenhuma vulnerabilidade conhecida |
+| Regressão | PASS | 1.140 testes, cobertura de 93% |
 | Build | PASS | sete wheels e sete sdists |
 | Reprodutibilidade | PASS | metadata e manifestos reproduzíveis |
 | Instalação limpa | PASS | core, extensões e conjunto completo |
-| Smoke dos artefatos | PASS | namespace, `py.typed`, extras e entry points |
-| Integridade | PASS | 15 checksums SHA-256 |
-| SBOM | PASS | CycloneDX, 79 componentes |
+| Namespace e extras | PASS | `atlas_agent`, `py.typed` e entry points |
+| Segurança estática | PASS | Bandit, zero findings |
+| Dependências | PASS | pip-audit, nenhuma vulnerabilidade conhecida |
 | Segredos nos artefatos | PASS | zero findings em 14 distribuições |
+| Checksums e SBOM | PASS | 15 checksums; CycloneDX com 79 componentes |
 | Exemplos .NET | PASS | REST e gRPC, zero erros e warnings |
 
-## Artefatos
+## Próximo gate
 
-O bundle local em `dist/` contém 14 distribuições `1.0.0`, o SBOM
-`atlas-agent-framework.cdx.json` e `SHA256SUMS`. O inventário versionado está em
-`reports/release/artifact-security.json`.
+1. criar a tag anotada `v1.0.0rc4` somente após autorização;
+2. certificar o bundle imutável na matriz remota;
+3. registrar novamente os cinco owner sign-offs;
+4. definir a estratégia para substituir a tag/release `v1.0.0` existente;
+5. configurar autenticação protegida do PyPI antes da promoção final.
 
-## Riscos e limitações
-
-- Os números de performance variam por host e servem apenas como baseline
-  relativo.
-- A evidência local deverá ser vinculada ao commit de promoção e ao mecanismo
-  auditável usado para a release oficial.
-- `READY_TO_PUBLISH` não significa `PUBLISHED`; tag, envio ao PyPI e publicação
-  da release exigem autorização explícita.
+`READY_FOR_RC` não autoriza publicação no PyPI.

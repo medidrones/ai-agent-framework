@@ -11,12 +11,12 @@ forma independente.
 | `atlas-agent-adapters` | fachada e transportes externos | core; transportes por extra |
 | `atlas-agent-config` | configuração declarativa | core, Pydantic e PyYAML |
 | `atlas-agent-evaluation` | avaliações provider-neutral | core e Pydantic |
-| `atlas-agent` | meta-package opcional | somente core por padrão |
+| `atlas-agent-framework` | meta-package opcional | somente core por padrão |
 
 O grafo publicado é acíclico:
 
 ```text
-atlas-agent ───────────────┐
+atlas-agent-framework ─────┐
 providers ────────────────┤
 mcp ──────────────────────┤
 adapters ─────────────────┼──→ core

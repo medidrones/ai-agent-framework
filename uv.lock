@@ -9,14 +9,14 @@ resolution-markers = [
 
 [manifest]
 members = [
-    "atlas-agent",
     "atlas-agent-adapters",
     "atlas-agent-config",
     "atlas-agent-core",
     "atlas-agent-evaluation",
-    "atlas-agent-framework-workspace",
+    "atlas-agent-framework",
     "atlas-agent-mcp",
     "atlas-agent-providers",
+    "atlas-agent-workspace",
 ]
 
 [[package]]
@@ -115,57 +115,6 @@ wheels = [
 ]
 
 [[package]]
-name = "atlas-agent"
-source = { editable = "packages/atlas-agent" }
-dependencies = [
-    { name = "atlas-agent-core" },
-]
-
-[package.optional-dependencies]
-config = [
-    { name = "atlas-agent-config" },
-]
-evaluation = [
-    { name = "atlas-agent-evaluation" },
-]
-full = [
-    { name = "atlas-agent-adapters", extra = ["grpc", "rest"] },
-    { name = "atlas-agent-config" },
-    { name = "atlas-agent-evaluation" },
-    { name = "atlas-agent-mcp" },
-    { name = "atlas-agent-providers", extra = ["openai"] },
-]
-grpc = [
-    { name = "atlas-agent-adapters", extra = ["grpc"] },
-]
-mcp = [
-    { name = "atlas-agent-mcp" },
-]
-openai = [
-    { name = "atlas-agent-providers", extra = ["openai"] },
-]
-rest = [
-    { name = "atlas-agent-adapters", extra = ["rest"] },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "atlas-agent-adapters", extras = ["grpc"], marker = "extra == 'grpc'", editable = "packages/atlas-agent-adapters" },
-    { name = "atlas-agent-adapters", extras = ["grpc", "rest"], marker = "extra == 'full'", editable = "packages/atlas-agent-adapters" },
-    { name = "atlas-agent-adapters", extras = ["rest"], marker = "extra == 'rest'", editable = "packages/atlas-agent-adapters" },
-    { name = "atlas-agent-config", marker = "extra == 'config'", editable = "packages/atlas-agent-config" },
-    { name = "atlas-agent-config", marker = "extra == 'full'", editable = "packages/atlas-agent-config" },
-    { name = "atlas-agent-core", editable = "packages/atlas-agent-core" },
-    { name = "atlas-agent-evaluation", marker = "extra == 'evaluation'", editable = "packages/atlas-agent-evaluation" },
-    { name = "atlas-agent-evaluation", marker = "extra == 'full'", editable = "packages/atlas-agent-evaluation" },
-    { name = "atlas-agent-mcp", marker = "extra == 'full'", editable = "packages/atlas-agent-mcp" },
-    { name = "atlas-agent-mcp", marker = "extra == 'mcp'", editable = "packages/atlas-agent-mcp" },
-    { name = "atlas-agent-providers", extras = ["openai"], marker = "extra == 'full'", editable = "packages/atlas-agent-providers" },
-    { name = "atlas-agent-providers", extras = ["openai"], marker = "extra == 'openai'", editable = "packages/atlas-agent-providers" },
-]
-provides-extras = ["config", "evaluation", "full", "grpc", "mcp", "openai", "rest"]
-
-[[package]]
 name = "atlas-agent-adapters"
 source = { editable = "packages/atlas-agent-adapters" }
 dependencies = [
@@ -248,56 +197,55 @@ requires-dist = [
 ]
 
 [[package]]
-name = "atlas-agent-framework-workspace"
-source = { virtual = "." }
+name = "atlas-agent-framework"
+source = { editable = "packages/atlas-agent" }
+dependencies = [
+    { name = "atlas-agent-core" },
+]
 
-[package.dev-dependencies]
-dev = [
-    { name = "atlas-agent" },
+[package.optional-dependencies]
+config = [
+    { name = "atlas-agent-config" },
+]
+evaluation = [
+    { name = "atlas-agent-evaluation" },
+]
+full = [
     { name = "atlas-agent-adapters", extra = ["grpc", "rest"] },
     { name = "atlas-agent-config" },
-    { name = "atlas-agent-core" },
     { name = "atlas-agent-evaluation" },
     { name = "atlas-agent-mcp" },
     { name = "atlas-agent-providers", extra = ["openai"] },
-    { name = "grpcio-tools" },
-    { name = "httpx" },
-    { name = "mypy" },
-    { name = "pre-commit" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "pytest-cov" },
-    { name = "ruff" },
-    { name = "types-grpcio" },
-    { name = "types-jsonschema" },
-    { name = "types-protobuf" },
-    { name = "types-pyyaml" },
+]
+grpc = [
+    { name = "atlas-agent-adapters", extra = ["grpc"] },
+]
+mcp = [
+    { name = "atlas-agent-mcp" },
+]
+openai = [
+    { name = "atlas-agent-providers", extra = ["openai"] },
+]
+rest = [
+    { name = "atlas-agent-adapters", extra = ["rest"] },
 ]
 
 [package.metadata]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "atlas-agent", editable = "packages/atlas-agent" },
-    { name = "atlas-agent-adapters", extras = ["grpc", "rest"], editable = "packages/atlas-agent-adapters" },
-    { name = "atlas-agent-config", editable = "packages/atlas-agent-config" },
+requires-dist = [
+    { name = "atlas-agent-adapters", extras = ["grpc"], marker = "extra == 'grpc'", editable = "packages/atlas-agent-adapters" },
+    { name = "atlas-agent-adapters", extras = ["grpc", "rest"], marker = "extra == 'full'", editable = "packages/atlas-agent-adapters" },
+    { name = "atlas-agent-adapters", extras = ["rest"], marker = "extra == 'rest'", editable = "packages/atlas-agent-adapters" },
+    { name = "atlas-agent-config", marker = "extra == 'config'", editable = "packages/atlas-agent-config" },
+    { name = "atlas-agent-config", marker = "extra == 'full'", editable = "packages/atlas-agent-config" },
     { name = "atlas-agent-core", editable = "packages/atlas-agent-core" },
-    { name = "atlas-agent-evaluation", editable = "packages/atlas-agent-evaluation" },
-    { name = "atlas-agent-mcp", editable = "packages/atlas-agent-mcp" },
-    { name = "atlas-agent-providers", extras = ["openai"], editable = "packages/atlas-agent-providers" },
-    { name = "grpcio-tools", specifier = ">=1.74,<2" },
-    { name = "httpx", specifier = ">=0.28,<1" },
-    { name = "mypy", specifier = ">=1.15" },
-    { name = "pre-commit", specifier = ">=4.0" },
-    { name = "pytest", specifier = ">=8.3" },
-    { name = "pytest-asyncio", specifier = ">=0.25" },
-    { name = "pytest-cov", specifier = ">=6.0" },
-    { name = "ruff", specifier = ">=0.9" },
-    { name = "types-grpcio", specifier = ">=1.0" },
-    { name = "types-jsonschema", specifier = ">=4.23" },
-    { name = "types-protobuf", specifier = ">=6.30" },
-    { name = "types-pyyaml", specifier = ">=6.0" },
+    { name = "atlas-agent-evaluation", marker = "extra == 'evaluation'", editable = "packages/atlas-agent-evaluation" },
+    { name = "atlas-agent-evaluation", marker = "extra == 'full'", editable = "packages/atlas-agent-evaluation" },
+    { name = "atlas-agent-mcp", marker = "extra == 'full'", editable = "packages/atlas-agent-mcp" },
+    { name = "atlas-agent-mcp", marker = "extra == 'mcp'", editable = "packages/atlas-agent-mcp" },
+    { name = "atlas-agent-providers", extras = ["openai"], marker = "extra == 'full'", editable = "packages/atlas-agent-providers" },
+    { name = "atlas-agent-providers", extras = ["openai"], marker = "extra == 'openai'", editable = "packages/atlas-agent-providers" },
 ]
+provides-extras = ["config", "evaluation", "full", "grpc", "mcp", "openai", "rest"]
 
 [[package]]
 name = "atlas-agent-mcp"
@@ -337,6 +285,59 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.13,<3" },
 ]
 provides-extras = ["openai"]
+
+[[package]]
+name = "atlas-agent-workspace"
+version = "0.0.0"
+source = { virtual = "." }
+
+[package.dev-dependencies]
+dev = [
+    { name = "atlas-agent-adapters", extra = ["grpc", "rest"] },
+    { name = "atlas-agent-config" },
+    { name = "atlas-agent-core" },
+    { name = "atlas-agent-evaluation" },
+    { name = "atlas-agent-framework" },
+    { name = "atlas-agent-mcp" },
+    { name = "atlas-agent-providers", extra = ["openai"] },
+    { name = "grpcio-tools" },
+    { name = "httpx" },
+    { name = "mypy" },
+    { name = "pre-commit" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "pytest-cov" },
+    { name = "ruff" },
+    { name = "types-grpcio" },
+    { name = "types-jsonschema" },
+    { name = "types-protobuf" },
+    { name = "types-pyyaml" },
+]
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "atlas-agent-adapters", extras = ["grpc", "rest"], editable = "packages/atlas-agent-adapters" },
+    { name = "atlas-agent-config", editable = "packages/atlas-agent-config" },
+    { name = "atlas-agent-core", editable = "packages/atlas-agent-core" },
+    { name = "atlas-agent-evaluation", editable = "packages/atlas-agent-evaluation" },
+    { name = "atlas-agent-framework", editable = "packages/atlas-agent" },
+    { name = "atlas-agent-mcp", editable = "packages/atlas-agent-mcp" },
+    { name = "atlas-agent-providers", extras = ["openai"], editable = "packages/atlas-agent-providers" },
+    { name = "grpcio-tools", specifier = ">=1.74,<2" },
+    { name = "httpx", specifier = ">=0.28,<1" },
+    { name = "mypy", specifier = ">=1.15" },
+    { name = "pre-commit", specifier = ">=4.0" },
+    { name = "pytest", specifier = ">=8.3" },
+    { name = "pytest-asyncio", specifier = ">=0.25" },
+    { name = "pytest-cov", specifier = ">=6.0" },
+    { name = "ruff", specifier = ">=0.9" },
+    { name = "types-grpcio", specifier = ">=1.0" },
+    { name = "types-jsonschema", specifier = ">=4.23" },
+    { name = "types-protobuf", specifier = ">=6.30" },
+    { name = "types-pyyaml", specifier = ">=6.0" },
+]
 
 [[package]]
 name = "attrs"

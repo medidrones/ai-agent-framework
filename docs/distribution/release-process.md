@@ -15,8 +15,10 @@ Checklist:
 7. executar `make artifacts` e `make packaging-smoke`;
 8. conferir metadata, licenças, `py.typed`, entry points e ausência de arquivos
    privados;
-9. produzir release notes curadas e criar o tag correspondente a `VERSION`;
-10. publicar por ambiente protegido e verificar instalação do índice.
+9. consultar o índice oficial e comprovar que todos os nomes de distribuição
+   estão disponíveis ou pertencem à organização responsável;
+10. produzir release notes curadas e criar o tag correspondente a `VERSION`;
+11. publicar por ambiente protegido e verificar instalação do índice.
 
 Release candidates, como `1.0.0rc1`, seguem o mesmo processo. Um release não
 pode sair de working tree suja, com changelog ausente, tag divergente, smoke

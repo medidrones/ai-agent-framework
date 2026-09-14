@@ -14,7 +14,7 @@ DIST = REPOSITORY / "dist"
 VERSION = (REPOSITORY / "VERSION").read_text(encoding="utf-8").strip()
 UV = shutil.which("uv")
 DISTRIBUTIONS = {
-    "atlas-agent": "atlas_agent",
+    "atlas-agent-framework": "atlas_agent_framework",
     "atlas-agent-adapters": "atlas_agent_adapters",
     "atlas-agent-config": "atlas_agent_config",
     "atlas-agent-core": "atlas_agent_core",

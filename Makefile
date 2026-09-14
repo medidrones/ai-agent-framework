@@ -27,7 +27,7 @@ coverage:
 quality: lint format-check type-check test
 
 build:
-	uv build --package atlas-agent
+	uv build --package atlas-agent-framework
 	uv build --package atlas-agent-adapters
 	uv build --package atlas-agent-config
 	uv build --package atlas-agent-core
