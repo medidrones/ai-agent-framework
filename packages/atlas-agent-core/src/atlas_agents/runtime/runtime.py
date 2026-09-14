@@ -1866,6 +1866,8 @@ class AgentRuntime:
         required_capabilities = set(additional_required_capabilities)
         if tool_definitions:
             required_capabilities.add(ModelCapability.TOOL_CALLING)
+        if agent.structured_output is not None:
+            required_capabilities.add(ModelCapability.STRUCTURED_OUTPUT)
         selection_request = self._request_builder.derive_selection_request(
             input_data,
             model_selection,

@@ -119,6 +119,13 @@ O core não instala OpenAI, MCP, FastAPI, gRPC ou PyYAML. Consulte a
 - [uv](https://docs.astral.sh/uv/)
 - GNU Make 4 ou superior para utilizar os alvos opcionais do `Makefile`
 
+## Exemplos oficiais
+
+A suíte em [`examples/`](examples/README.md) demonstra progressivamente a API
+pública, desde o agente mínimo até adapters REST/gRPC, consumidores .NET e uma
+arquitetura corporativa determinística. Salvo o cenário OpenAI explicitamente
+opt-in, os exemplos Python funcionam offline.
+
 ## Desenvolvimento
 
 Execute todos os comandos a partir da raiz do repositório:

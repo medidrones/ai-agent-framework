@@ -9,6 +9,7 @@ from atlas_agents.adapters.events.models import (
     MessagePrincipalResolver,
     MessageProcessingResult,
     ResumeExecutionCommand,
+    TrustedContextPrincipalResolver,
     TrustedMessageContext,
 )
 from atlas_agents.adapters.events.publisher import ExecutionEventPublisher
@@ -23,5 +24,6 @@ __all__ = [
     "MessagePrincipalResolver",
     "MessageProcessingResult",
     "ResumeExecutionCommand",
+    "TrustedContextPrincipalResolver",
     "TrustedMessageContext",
 ]

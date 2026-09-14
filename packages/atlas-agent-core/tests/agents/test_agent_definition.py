@@ -3,10 +3,14 @@
 import pytest
 from pydantic import ValidationError
 
-from atlas_agents import AgentDefinition
+from atlas_agents import AgentDefinition, StructuredOutputDefinition
 
 
 def test_agent_definition_accepts_valid_data() -> None:
+    structured_output = StructuredOutputDefinition(
+        name="answer",
+        json_schema={"type": "object"},
+    )
     definition = AgentDefinition(
         agent_id="support-agent",
         name="Support Agent",
@@ -14,11 +18,13 @@ def test_agent_definition_accepts_valid_data() -> None:
         instructions="Respond clearly.",
         tool_names=("search", "create_ticket"),
         metadata={"version": 1},
+        structured_output=structured_output,
     )
 
     assert definition.agent_id == "support-agent"
     assert definition.metadata == {"version": 1}
     assert definition.tool_names == ("search", "create_ticket")
+    assert definition.structured_output is structured_output
 
 
 @pytest.mark.parametrize(

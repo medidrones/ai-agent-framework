@@ -1,0 +1,15 @@
+schema_version: 1
+
+agents:
+  enterprise-support:
+    name: Agente corporativo de suporte
+    instructions: Responda com fontes e peça aprovação antes de compensar.
+    tools: [local__order_status, request_compensation]
+    memory:
+      read_types: [conversation]
+      write_types: [conversation]
+    knowledge:
+      sources: [support-policy]
+    guardrails:
+      input: [safe-input]
+      final_output: [safe-output]

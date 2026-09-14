@@ -6,6 +6,7 @@ from atlas_agents._models import _FrozenModel, _json_mapping, _non_empty
 from atlas_agents.guardrails.config import AgentGuardrailConfig
 from atlas_agents.knowledge.config import AgentKnowledgeConfig
 from atlas_agents.memory.config import AgentMemoryConfig
+from atlas_agents.models.structured_output import StructuredOutputDefinition
 
 
 class AgentDefinition(_FrozenModel):
@@ -19,6 +20,7 @@ class AgentDefinition(_FrozenModel):
     memory: AgentMemoryConfig | None = None
     knowledge: AgentKnowledgeConfig | None = None
     guardrails: AgentGuardrailConfig | None = None
+    structured_output: StructuredOutputDefinition | None = None
     metadata: dict[str, object] = Field(default_factory=dict)
 
     @field_validator("agent_id", "name", "instructions")

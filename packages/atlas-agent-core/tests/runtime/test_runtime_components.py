@@ -17,6 +17,7 @@ from atlas_agents import (
     ModelSelectionRequest,
     ModelSelectionResult,
     NoMatchingModelError,
+    StructuredOutputDefinition,
 )
 from atlas_agents.runtime.error_mapping import (
     model_selection_error_to_agent_error,
@@ -109,6 +110,45 @@ def test_builder_preserves_caller_selection_policy_and_builds_request() -> None:
     assert merged.metadata == {"policy": "caller"}
     assert request.model == "model"
     assert request.messages == state.messages
+
+
+def test_builder_adds_agent_structured_output_to_model_request() -> None:
+    contract = StructuredOutputDefinition(
+        name="answer",
+        json_schema={"type": "object"},
+    )
+    definition = _agent().model_copy(update={"structured_output": contract})
+    input_data = AgentInput(message="Hello")
+    state = ExecutionState(
+        execution_id="execution",
+        agent=definition,
+        input_data=input_data,
+        context=AgentContext(execution_id="execution"),
+    )
+    builder = ModelRequestBuilder()
+    for message in builder.build_initial_messages(definition, input_data):
+        state.add_message(message)
+    capabilities = frozenset(
+        {ModelCapability.TEXT_GENERATION, ModelCapability.STRUCTURED_OUTPUT}
+    )
+    descriptor = ModelDescriptor(
+        provider="provider",
+        model="model",
+        capabilities=capabilities,
+    )
+    selection = ModelSelectionResult(
+        provider_name="provider",
+        model="model",
+        descriptor=descriptor,
+        matched_required_capabilities=capabilities,
+        matched_preferred_capabilities=frozenset(),
+        preferred_capability_matches=0,
+        candidate_count=1,
+    )
+
+    request = builder.build_request(state, selection)
+
+    assert request.structured_output is contract
 
 
 def test_selection_error_mapping_covers_specific_and_generic_codes() -> None:

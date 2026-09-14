@@ -41,6 +41,7 @@ from atlas_agents import (
     ModelTimeoutError,
     ModelUnavailableError,
     ModelUsage,
+    StructuredOutputDefinition,
     TextContent,
     ToolCall,
 )
@@ -165,6 +166,52 @@ async def test_runtime_executes_one_complete_text_turn() -> None:
     assert result.usage.estimated_cost == Decimal("0.05")
     assert provider.generate_calls == 1
     assert provider.stream_calls == 0
+
+
+async def test_runtime_requires_and_forwards_structured_output_capability() -> None:
+    contract = StructuredOutputDefinition(
+        name="answer",
+        json_schema={"type": "object"},
+    )
+    provider = _provider(
+        descriptor=_descriptor(
+            capabilities=frozenset(
+                {
+                    ModelCapability.TEXT_GENERATION,
+                    ModelCapability.STRUCTURED_OUTPUT,
+                }
+            )
+        )
+    )
+    runtime = _runtime(provider)
+
+    result = await runtime.run(
+        agent=_agent().model_copy(update={"structured_output": contract}),
+        input_data=AgentInput(message="Return JSON."),
+        context=_context(),
+    )
+
+    assert isinstance(result, AgentResult)
+    assert provider.requests[0].structured_output is contract
+
+
+async def test_runtime_rejects_structured_output_without_provider_capability() -> None:
+    contract = StructuredOutputDefinition(
+        name="answer",
+        json_schema={"type": "object"},
+    )
+    runtime = _runtime(_provider())
+
+    result = await runtime.run(
+        agent=_agent().model_copy(update={"structured_output": contract}),
+        input_data=AgentInput(message="Return JSON."),
+        context=_context(),
+    )
+
+    assert isinstance(result, AgentResult)
+    assert result.status is ExecutionStatus.FAILED
+    assert result.error is not None
+    assert result.error.code == "no_matching_model"
 
 
 async def test_happy_path_builds_request_context_lifecycle_and_event_order() -> None:

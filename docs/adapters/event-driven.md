@@ -17,6 +17,10 @@ Identidade não pertence ao payload. Um adapter específico de broker autentica 
 origem e entrega `TrustedMessageContext`; `MessagePrincipalResolver` transforma
 somente esse contexto em principal.
 
+Para fixtures e brokers que já fornecem um `TransportPrincipal` autenticado,
+`TrustedContextPrincipalResolver` é a implementação pública mínima. Ela nunca
+consulta claims presentes no payload do comando.
+
 Schemas de referência estão versionados para o
 [envelope](schemas/message-envelope-v1.schema.json), o
 [comando de execução](schemas/execute-agent-command-v1.schema.json) e o

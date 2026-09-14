@@ -111,4 +111,5 @@ class ModelRequestBuilder:
             model=selection.model,
             messages=state.messages,
             tools=tools,
+            structured_output=state.agent.structured_output,
         )

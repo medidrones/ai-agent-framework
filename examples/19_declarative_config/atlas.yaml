@@ -1,0 +1,14 @@
+schema_version: 1
+
+providers:
+  local:
+    type: deterministic
+
+agents:
+  assistant:
+    name: Assistente declarativo
+    instructions: Responda em português de forma objetiva.
+    model:
+      provider: local
+      model: example-model
+      required_capabilities: [text_generation]

@@ -110,6 +110,10 @@ idempotência ou metadata interna. Consulte [tools.md](tools.md).
 `StructuredOutputDefinition` contém nome, descrição opcional, JSON Schema e a
 flag `strict`. Tipos Pydantic não atravessam diretamente essa fronteira.
 
+O host associa o contrato ao campo `AgentDefinition.structured_output`. O
+runtime exige `ModelCapability.STRUCTURED_OUTPUT` durante a seleção e encaminha
+o mesmo contrato imutável em cada `ModelRequest` da execução.
+
 Schemas, argumentos e metadata usam `dict[str, object]` com validação de
 compatibilidade JSON e cópia defensiva. Um alias JSON recursivo não foi criado
 nesta fase para preservar simplicidade e compatibilidade com Pydantic e Mypy.

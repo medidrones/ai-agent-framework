@@ -22,8 +22,11 @@ O contrato não fornece runtime, loop de modelo ou gerenciamento de lifecycle.
 ## `AgentDefinition`
 
 Descreve a configuração estática de um agente por `agent_id`, `name`,
-`description`, `instructions` e `metadata`. Identificador, nome e instruções
-não podem estar vazios nem conter somente espaços.
+`description`, `instructions`, `tool_names`, integrações opcionais, contrato
+`structured_output` e `metadata`. Quando presente, a saída estruturada é
+encaminhada ao provider e passa a exigir a capability correspondente.
+Identificador, nome e instruções não podem estar vazios nem conter somente
+espaços.
 
 ## `AgentInput` e `AgentAttachment`
 

@@ -26,6 +26,9 @@ jobs:
       - name: Instalar workspace
         run: uv sync --locked
 
+      - name: Instalar plugin do exemplo local
+        run: uv pip install --editable examples/13_plugins/example_plugin --no-deps
+
       - name: Verificar lint
         run: uv run ruff check .
 
@@ -37,6 +40,16 @@ jobs:
 
       - name: Executar testes
         run: uv run pytest --cov --cov-report=term-missing --cov-report=xml
+
+      - name: Configurar .NET LTS
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Compilar exemplos .NET
+        run: |
+          dotnet build examples/20_dotnet_rest/dotnet/Atlas.Rest.Client.Example
+          dotnet build examples/21_dotnet_grpc/dotnet/Atlas.Grpc.Client.Example
 
       - name: Construir e inspecionar todas as distribuições
         run: make artifacts
