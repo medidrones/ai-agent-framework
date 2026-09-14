@@ -3,9 +3,9 @@
 ## Decisão
 
 **READY_FOR_RC.** Todos os gates locais obrigatórios estão verdes, inclusive a
-auditoria pública de vulnerabilidades. A nova matriz Linux da CI permanece
-`NOT VERIFIED` até a publicação da branch; isso impede promover diretamente
-para estável, mas não impede criar e validar a candidata.
+auditoria pública de vulnerabilidades. A matriz publicada em Linux e Windows,
+com Python 3.12 e 3.13, também foi aprovada. A promoção para estável ainda exige
+certificar os artefatos vinculados à tag e obter os sign-offs formais.
 
 ## Evidências obrigatórias
 
@@ -59,7 +59,7 @@ para estável, mas não impede criar e validar a candidata.
 44. Produção: `docs/operations/production-checklist.md`.
 45. Changelog: seção `1.0.0rc1`.
 46. Bundle: 14 distribuições reproduzíveis, SBOM CycloneDX e 15 checksums.
-47. Pendências: uma verificação externa na seção Findings.
+47. Pendências: certificação da tag e sign-offs do gate de aceitação.
 48. Recomendação: `READY_FOR_RC`, não `READY_FOR_STABLE`.
 
 ## Scorecard
@@ -70,7 +70,7 @@ para estável, mas não impede criar e validar a candidata.
 | Correctness | PASS | 1.133/1.133 em Python 3.12 e 3.13 |
 | Segurança | PASS | Bandit, AST, artefatos e pip-audit sem findings |
 | Performance | PASS | baseline factual gerado |
-| Compatibilidade | PASS_WITH_NOTES | Windows 3.12/3.13 verde; Linux aguarda CI |
+| Compatibilidade | PASS | Python 3.12/3.13 em Linux e Windows |
 | Packaging | PASS | 14 artefatos reproduzíveis e smoke limpo |
 | Documentação | PASS | documentação de release e operação revisada |
 | Exemplos | PASS | 22 offline, cenário corporativo e clientes .NET |
@@ -98,6 +98,6 @@ para estável, mas não impede criar e validar a candidata.
 ## Findings
 
 - P0/P1 encontrados nas verificações executadas: nenhum.
-- Compatibilidade Linux da candidata: aguarda execução do workflow atualizado.
+- Certificação da candidata: aguarda tag imutável, bundle e sign-offs formais.
 - Risco residual P2: métricas variam por host; use o baseline somente para
   detectar regressão relativa.

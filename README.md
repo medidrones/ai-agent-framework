@@ -2,7 +2,9 @@
 
 > Versão candidata atual: `1.0.0rc1`. Consulte o
 > [relatório de prontidão](docs/release/release-readiness.md) antes da promoção
-> para estável.
+> para estável e o
+> [gate de aceitação da candidata](docs/release/rc-acceptance-checklist.md) para
+> a certificação dos artefatos.
 
 A distribuição opcional `atlas-agent-config` oferece schema versionado,
 carregamento seguro de YAML/JSON, referências de segredos, factories tipadas e

@@ -9,39 +9,92 @@ permissions:
   contents: read
 
 jobs:
-  validar-candidata:
+  qualidade:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.12", "3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v6
+      - name: Configurar Python
+        run: uv python install ${{ matrix.python }}
+      - name: Instalar workspace bloqueado
+        run: uv sync --locked --python ${{ matrix.python }}
+      - name: Instalar plugin do exemplo local
+        run: uv pip install --editable examples/13_plugins/example_plugin --no-deps
+      - name: Executar gates de qualidade
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+          uv run mypy packages
+          uv run pytest
+
+  seguranca:
     runs-on: ubuntu-latest
     steps:
       - name: Baixar repositório
         uses: actions/checkout@v4
-
       - name: Instalar uv
         uses: astral-sh/setup-uv@v6
-        with:
-          enable-cache: true
-
       - name: Configurar Python
         run: uv python install 3.12
-
       - name: Instalar workspace bloqueado
         run: uv sync --locked --python 3.12
+      - name: Executar análise estática
+        run: uvx bandit -r packages -x "*/tests/*"
+      - name: Auditar dependências
+        run: |
+          uv export --frozen --all-packages --no-dev --no-emit-workspace --no-hashes --output-file requirements-audit.txt
+          uvx pip-audit --disable-pip --no-deps --requirement requirements-audit.txt
 
-      - name: Executar gates de qualidade
-        run: make quality
+  exemplos-dotnet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+      - name: Configurar .NET LTS
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Compilar exemplos .NET
+        run: |
+          dotnet build examples/20_dotnet_rest/dotnet/Atlas.Rest.Client.Example
+          dotnet build examples/21_dotnet_grpc/dotnet/Atlas.Grpc.Client.Example
 
-      - name: Construir e validar candidata
-        run: make reproducible
-
-      - name: Instalar exatamente os wheels gerados
-        run: make packaging-smoke
-
-      - name: Gerar bundle e evidências
-        run: make release-bundle
-
+  certificar-artefatos:
+    needs: [qualidade, seguranca, exemplos-dotnet]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar repositório e preservar tag
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Exigir execução sobre uma tag RC
+        shell: bash
+        run: |
+          test "${GITHUB_REF_TYPE}" = "tag"
+          test "${GITHUB_REF_NAME}" = "v$(cat VERSION)"
+          git diff --exit-code
+          test -z "$(git status --porcelain --untracked-files=all)"
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v6
+      - name: Configurar Python
+        run: uv python install 3.12
+      - name: Instalar workspace bloqueado
+        run: uv sync --locked --python 3.12
+      - name: Instalar plugin do exemplo local
+        run: uv pip install --editable examples/13_plugins/example_plugin --no-deps
+      - name: Registrar JUnit e coverage da fonte imutável
+        run: uv run pytest --cov --cov-branch --cov-report=xml:reports/release/coverage.xml --junitxml=reports/release/junit.xml
+      - name: Construir, instalar e montar bundle vinculado à tag
+        run: make rc-evidence
       - name: Arquivar candidata sem publicar
         uses: actions/upload-artifact@v4
         with:
           name: atlas-${{ github.ref_name }}
-          path: |
-            dist/
-            reports/release/
+          path: release/

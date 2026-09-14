@@ -8,6 +8,9 @@
 5. Executar `make release-bundle` para auditorias, benchmark, SBOM e checksums.
 6. Compilar clientes .NET e executar exemplos offline e corporativo.
 7. Criar tag `vX.Y.ZrcN` somente após revisão humana.
+8. Executar o workflow sobre a tag e obter o bundle descrito no
+   [gate de aceitação](rc-acceptance-checklist.md).
+9. Registrar os cinco sign-offs sem modificar o commit ou os artefatos.
 
 O workflow `Candidata de release` é manual ou acionado por tag RC. Ele valida e
 arquiva artefatos, sem permissão ou etapa de publicação no PyPI.
@@ -21,3 +24,8 @@ extras, entry points, SBOM e `SHA256SUMS`.
 Uma RC pode manter P2 documentado. A `1.0.0` exige período de validação nas
 plataformas suportadas, auditoria de dependências atualizada e nenhum P0/P1.
 Publicação é ação separada e explicitamente autorizada.
+
+`READY_FOR_RC` autoriza construir o candidato, mas não equivale a
+`READY_FOR_STABLE`. Qualquer correção material depois da certificação exige uma
+nova versão RC, novo build e nova certificação; evidências de um RC anterior não
+podem ser reutilizadas para promover artefatos diferentes.

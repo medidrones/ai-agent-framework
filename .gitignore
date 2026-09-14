@@ -7,14 +7,17 @@ reports/release/*coverage.xml
 reports/release/junit.xml
 reports/release/bandit.json
 reports/release/dependency-audit.json
+reports/release/requirements-audit.txt
 .mypy_cache/
 .pytest_cache/
 .tmp-pytest-*/
+.tmp-pytest/
 .ruff_cache/
 .uv-cache/
 .venv/
 build/
 dist/
+/release/
 bin/
 obj/
 htmlcov/

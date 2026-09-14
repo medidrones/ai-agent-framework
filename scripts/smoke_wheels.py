@@ -108,28 +108,15 @@ check("atlas_agents.providers.openai", MissingProviderDependencyError, "[openai]
         _run("uv", "pip", "check", "--python", str(base_python))
 
         _, full_python = _create_environment(root, "full")
-        _install_external(
-            full_python,
-            "fastapi>=0.141,<1",
-            "grpcio>=1.81.1,<2",
-            "jsonschema>=4.26,<5",
-            "mcp>=2.2,<3",
-            "openai>=3.13,<4",
-            "packaging>=26,<27",
-            "protobuf>=6.33.5,<7",
-            "pydantic>=2.13,<3",
-            "pyyaml>=6,<7",
-            "typing-extensions>=4.16,<5",
-        )
-        _install_wheels(
-            full_python,
-            "atlas_agent",
-            "atlas_agent_adapters",
-            "atlas_agent_config",
-            "atlas_agent_core",
-            "atlas_agent_evaluation",
-            "atlas_agent_mcp",
-            "atlas_agent_providers",
+        _run(
+            "uv",
+            "pip",
+            "install",
+            "--python",
+            str(full_python),
+            "--find-links",
+            str(DIST),
+            f"atlas-agent[full]=={VERSION}",
         )
         _execute(
             full_python,

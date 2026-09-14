@@ -1,4 +1,4 @@
-.PHONY: install sync-version lint format format-check type-check test coverage quality build artifacts reproducible packaging-smoke release-audit release-bundle packaging clean
+.PHONY: install sync-version lint format format-check type-check test coverage quality build artifacts reproducible packaging-smoke release-audit release-bundle rc-evidence packaging clean
 
 install:
 	uv sync
@@ -51,6 +51,12 @@ release-audit: artifacts
 release-bundle: release-audit
 	uv run python scripts/release/generate_sbom.py
 	uv run python scripts/release/generate_checksums.py
+
+rc-evidence: reproducible packaging-smoke release-bundle
+	uvx bandit -r packages -x "*/tests/*" -f json -o reports/release/bandit.json
+	uv export --frozen --all-packages --no-dev --no-emit-workspace --no-hashes --output-file reports/release/requirements-audit.txt
+	uvx pip-audit --disable-pip --no-deps --requirement reports/release/requirements-audit.txt --format json --output reports/release/dependency-audit.json
+	uv run python scripts/release/assemble_rc_evidence.py
 
 packaging: quality reproducible packaging-smoke
 
