@@ -7,7 +7,7 @@
 - **Depreciado:** ainda funcional durante a janela de remoção.
 - **Não suportado:** fora dos ranges publicados ou da matriz de CI.
 
-## Matriz da candidata 1.0.0rc3
+## Matriz da versão estável 1.0.0
 
 | Componente | Range declarado | Ambiente validado |
 | --- | --- | --- |

@@ -5,12 +5,12 @@
   "platform": "Windows",
   "samples": 250,
   "concurrency": 25,
-  "wall_seconds": 0.088799,
-  "throughput_per_second": 2815.34,
+  "wall_seconds": 0.077865,
+  "throughput_per_second": 3210.67,
   "latency_ms": {
-    "mean": 0.321,
-    "p50": 0.3,
-    "p95": 0.43,
-    "max": 0.904
+    "mean": 0.284,
+    "p50": 0.277,
+    "p95": 0.338,
+    "max": 0.559
   }
 }

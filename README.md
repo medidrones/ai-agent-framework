@@ -1,10 +1,9 @@
 # Atlas Agent Framework
 
-> Versão candidata atual: `1.0.0rc3`. Consulte o
-> [relatório de prontidão](docs/release/release-readiness.md) antes da promoção
-> para estável e o
-> [gate de aceitação da candidata](docs/release/rc-acceptance-checklist.md) para
-> a certificação dos artefatos.
+> Versão estável: `1.0.0`. Consulte as
+> [notas da release](docs/release/releases/1.0.0.md), o
+> [relatório de promoção](docs/release/STABLE-PROMOTION-STATUS.md) e o
+> [gate de aceitação da candidata](docs/release/rc-acceptance-checklist.md).
 
 A distribuição opcional `atlas-agent-config` oferece schema versionado,
 carregamento seguro de YAML/JSON, referências de segredos, factories tipadas e

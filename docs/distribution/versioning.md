@@ -10,7 +10,7 @@ versão de cada wheel e sincroniza constraints internas. Não edite os módulos
 `version.py` ou `_version.py` manualmente.
 
 Constraints internas usam compatible release no minor atual, como
-`atlas-agent-core~=1.0.0rc3`. Assim, o conjunto publicado aceita a RC e versões
+`atlas-agent-core~=1.0.0`. Assim, o conjunto publicado aceita a versão estável e versões
 compatíveis da linha 1.0, sem presumir compatibilidade cross-minor sem validação.
 
 - PATCH: correção compatível, hardening ou refatoração interna;

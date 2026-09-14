@@ -1,6 +1,6 @@
 # Compatibilidade do Atlas
 
-## Matriz da candidata 1.0.0rc3
+## Matriz da versão estável 1.0.0
 
 | Dimensão | Suportado | Verificação |
 | --- | --- | --- |

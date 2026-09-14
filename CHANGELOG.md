@@ -7,6 +7,20 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não publicado]
 
+## [1.0.0] - 2026-09-14
+
+### Alterado
+
+- Promoção administrativa da candidata certificada `1.0.0rc3` para a versão
+  estável `1.0.0`.
+- Versões e restrições internas das sete distribuições sincronizadas em
+  lockstep, sem alteração funcional, de API, dependência ou contrato.
+
+### Segurança
+
+- Preservados os cinco owner sign-offs, o digest do bundle certificado e a
+  decisão `READY_FOR_STABLE` em documentação auditável.
+
 ## [1.0.0rc3] - 2026-09-14
 
 ### Corrigido

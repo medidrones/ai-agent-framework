@@ -5,7 +5,7 @@
 | `atlas-agent-providers[openai]` | `openai>=3.13.0,<4` |
 | `atlas-agent-adapters[rest]` | `fastapi>=0.141,<1` |
 | `atlas-agent-adapters[grpc]` | `grpcio>=1.81.1,<2`, `protobuf>=6.33.5,<7` |
-| `atlas-agent-config[adapters]` | `atlas-agent-adapters~=1.0.0rc3` |
+| `atlas-agent-config[adapters]` | `atlas-agent-adapters~=1.0.0` |
 | `atlas-agent[openai]` | provider e extra OpenAI |
 | `atlas-agent[mcp]` | integração MCP |
 | `atlas-agent[rest]` | adapters e extra REST |
