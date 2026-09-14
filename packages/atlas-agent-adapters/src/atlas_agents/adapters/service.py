@@ -43,7 +43,6 @@ from atlas_agents.adapters.policies import (
     ExecutionIdentityMapper,
     ExecutionPolicyResolver,
 )
-from atlas_agents.adapters.registry import AgentRegistry
 from atlas_agents.agents import (
     AgentAttachment,
     AgentContext,
@@ -114,6 +113,18 @@ class AgentRuntimePort(Protocol):
         ...
 
 
+class AgentRegistryPort(Protocol):
+    """Resolve configured agents without requiring a concrete registry class."""
+
+    def get(self, agent_id: str) -> AgentDefinition:
+        """Return the exact agent registered for an external identifier."""
+        ...
+
+    def agents(self) -> tuple[AgentDefinition, ...]:
+        """Return registered agents in deterministic order."""
+        ...
+
+
 class AgentExecutionService:
     """Centralize external execution, authorization, policy, and DTO mapping."""
 
@@ -121,7 +132,7 @@ class AgentExecutionService:
         self,
         *,
         runtime: AgentRuntimePort,
-        agent_registry: AgentRegistry,
+        agent_registry: AgentRegistryPort,
         identity_mapper: ExecutionIdentityMapper,
         access_policy: AgentAccessPolicy,
         policy_resolver: ExecutionPolicyResolver,

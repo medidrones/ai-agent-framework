@@ -1,8 +1,8 @@
 # Arquitetura da configuração declarativa
 
-`atlas-agent-config` é uma composition root opcional. Ele depende de contratos
-públicos do core e dos adapters externos, enquanto o core não conhece o pacote
-de configuração.
+`atlas-agent-config` é uma composition root opcional. Ele depende dos contratos
+públicos do core; a integração com adapters é um extra opcional e ocorre apenas
+quando o host a solicita. O core não conhece o pacote de configuração.
 
 ```text
 YAML / JSON / objeto Python

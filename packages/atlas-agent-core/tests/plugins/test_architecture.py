@@ -11,7 +11,7 @@ def test_plugins_use_standard_entry_points_without_unsafe_execution() -> None:
     }
     combined = "\n".join(sources.values())
 
-    assert "importlib.metadata" in combined
+    assert "from importlib import metadata" in combined
     assert "pkg_resources" not in combined
     assert "pluggy" not in combined
     assert "stevedore" not in combined

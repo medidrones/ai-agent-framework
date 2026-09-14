@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Protocol, TypeVar
+from typing import TYPE_CHECKING, Protocol, TypeVar
 
-from atlas_agents.adapters import AgentExecutionService
+if TYPE_CHECKING:
+    from atlas_agents.adapters import AgentExecutionService
 from atlas_agents.config.models import (
     AdapterComponentConfig,
     ComponentConfig,

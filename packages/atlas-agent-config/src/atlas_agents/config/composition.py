@@ -7,25 +7,27 @@ import hashlib
 import json
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from importlib.metadata import version as distribution_version
+from importlib.util import find_spec
 from types import MappingProxyType
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 from pydantic import JsonValue
 
-from atlas_agents.adapters import (
-    AgentAccessPolicy,
-    AgentExecutionService,
-    AgentRegistry,
-    ExecutionIdentityMapper,
-    ExecutionPolicyResolver,
-    IdempotencyStore,
-)
+if TYPE_CHECKING:
+    from atlas_agents.adapters import (
+        AgentAccessPolicy,
+        AgentExecutionService,
+        ExecutionIdentityMapper,
+        ExecutionPolicyResolver,
+        IdempotencyStore,
+    )
+from atlas_agents import version as atlas_version_module
 from atlas_agents.agents import AgentDefinition
 from atlas_agents.approvals import (
     ApprovalDecisionValidator,
     ApprovalPolicy,
 )
+from atlas_agents.config.agents import ConfiguredAgentRegistry
 from atlas_agents.config.errors import (
     ComponentBuildError,
     ComponentFactoryNotFoundError,
@@ -143,7 +145,7 @@ class AtlasComposition:
         model_provider_registry: ModelProviderRegistry,
         tool_registry: ToolRegistry,
         guardrail_registry: GuardrailRegistry,
-        agent_registry: AgentRegistry,
+        agent_registry: ConfiguredAgentRegistry,
         runtime: AgentRuntime,
         memory_manager: MemoryManager | None,
         knowledge_manager: KnowledgeManager | None,
@@ -255,7 +257,7 @@ class AtlasCompositionBuilder:
         self._plugins = plugins
         self._runtime_dependencies = runtime_dependencies or RuntimeDependencies()
         self._external_dependencies = external_execution_dependencies
-        self._atlas_version = atlas_version or distribution_version("atlas-agent-core")
+        self._atlas_version = atlas_version or atlas_version_module.__version__
 
     async def build(self, config: AtlasConfig) -> AtlasComposition:
         """Preflight, construct in phases, and cleanup any partial build."""
@@ -321,7 +323,7 @@ class AtlasCompositionBuilder:
                 guardrail_manager=guardrail_manager,
                 observability_manager=observability_manager,
             )
-            agent_registry = AgentRegistry()
+            agent_registry = ConfiguredAgentRegistry()
             for definition in definitions:
                 agent_registry.register(definition)
             execution_service = self._execution_service(runtime, agent_registry)
@@ -433,6 +435,14 @@ class AtlasCompositionBuilder:
         ):
             raise ConfigValidationError(
                 "Adapters habilitados exigem políticas externas explícitas.",
+                path="$.adapters",
+            )
+        if (
+            any(item.enabled for item in config.adapters.values())
+            and find_spec("atlas_agents.adapters") is None
+        ):
+            raise ConfigValidationError(
+                "Adapters habilitados exigem o extra opcional 'adapters'.",
                 path="$.adapters",
             )
 
@@ -695,11 +705,13 @@ class AtlasCompositionBuilder:
         return tuple(built)
 
     def _execution_service(
-        self, runtime: AgentRuntime, registry: AgentRegistry
+        self, runtime: AgentRuntime, registry: ConfiguredAgentRegistry
     ) -> AgentExecutionService | None:
         dependencies = self._external_dependencies
         if dependencies is None:
             return None
+        from atlas_agents.adapters import AgentExecutionService
+
         return AgentExecutionService(
             runtime=runtime,
             agent_registry=registry,

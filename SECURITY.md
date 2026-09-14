@@ -43,6 +43,12 @@ não constitui verdade factual nem decisão de segurança.
 O Atlas Agent Framework é um software em fase de pré-lançamento. Correções de
 segurança são aplicadas à revisão mais recente da branch padrão.
 
+Dependências opcionais não são importadas pela raiz do core, providers ou
+adapters. Wheels e sdists são inspecionados contra segredos, arquivos de IDE,
+coverage e fixtures de teste; smoke tests usam ambientes isolados e nunca fazem
+chamadas a APIs externas. A matriz e os ranges suportados estão em
+[`docs/distribution/compatibility.md`](docs/distribution/compatibility.md).
+
 ## Como relatar uma vulnerabilidade
 
 Não divulgue vulnerabilidades em uma issue pública. Relate-as de forma privada

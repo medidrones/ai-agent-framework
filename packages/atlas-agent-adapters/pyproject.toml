@@ -4,27 +4,38 @@ build-backend = "hatchling.build"
 
 [project]
 name = "atlas-agent-adapters"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Adapters externos REST, gRPC e orientados a eventos para o Atlas"
 requires-python = ">=3.12"
 license = "MIT"
+license-files = ["LICENSE"]
+readme = "README.md"
 authors = [{ name = "Jorge Medina" }]
+maintainers = [{ name = "Jorge Medina" }]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Typing :: Typed",
 ]
 dependencies = [
-    "atlas-agent-core>=0.1.0",
-    "fastapi>=0.116,<1",
-    "grpcio>=1.74,<2",
-    "protobuf>=6.31,<7",
+    "atlas-agent-core~=0.1.0",
+    "pydantic>=2.13,<3",
 ]
+
+[project.optional-dependencies]
+rest = ["fastapi>=0.141,<1"]
+grpc = ["grpcio>=1.81.1,<2", "protobuf>=6.33.5,<7"]
 
 [project.urls]
 Repository = "https://github.com/Medicode/ai-agent-framework"
+Documentation = "https://github.com/Medicode/ai-agent-framework/tree/main/docs/adapters"
+Issues = "https://github.com/Medicode/ai-agent-framework/issues"
+
+[tool.hatch.version]
+path = "src/atlas_agents/adapters/_version.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/atlas_agents"]
@@ -33,4 +44,4 @@ packages = ["src/atlas_agents"]
 "proto/atlas_agents/adapters/grpc/v1/agent_execution.proto" = "atlas_agents/adapters/grpc/v1/agent_execution.proto"
 
 [tool.hatch.build.targets.sdist]
-include = ["src/atlas_agents/adapters", "proto", "tests", "pyproject.toml"]
+include = ["src/atlas_agents/adapters", "proto", "LICENSE", "README.md", "pyproject.toml"]

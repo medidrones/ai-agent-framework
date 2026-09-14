@@ -1,5 +1,6 @@
 """Optional provider-neutral Model Context Protocol integration."""
 
+from atlas_agents.mcp._version import __version__
 from atlas_agents.mcp.client import MCPClient, MCPClientConfig
 from atlas_agents.mcp.errors import (
     MCPAuthenticationError,
@@ -112,4 +113,5 @@ __all__ = [
     "StdioMCPTransportConfig",
     "StreamableHTTPMCPTransport",
     "StreamableHTTPMCPTransportConfig",
+    "__version__",
 ]

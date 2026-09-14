@@ -9,6 +9,7 @@ resolution-markers = [
 
 [manifest]
 members = [
+    "atlas-agent",
     "atlas-agent-adapters",
     "atlas-agent-config",
     "atlas-agent-core",
@@ -114,67 +115,126 @@ wheels = [
 ]
 
 [[package]]
+name = "atlas-agent"
+source = { editable = "packages/atlas-agent" }
+dependencies = [
+    { name = "atlas-agent-core" },
+]
+
+[package.optional-dependencies]
+config = [
+    { name = "atlas-agent-config" },
+]
+evaluation = [
+    { name = "atlas-agent-evaluation" },
+]
+full = [
+    { name = "atlas-agent-adapters", extra = ["grpc", "rest"] },
+    { name = "atlas-agent-config" },
+    { name = "atlas-agent-evaluation" },
+    { name = "atlas-agent-mcp" },
+    { name = "atlas-agent-providers", extra = ["openai"] },
+]
+grpc = [
+    { name = "atlas-agent-adapters", extra = ["grpc"] },
+]
+mcp = [
+    { name = "atlas-agent-mcp" },
+]
+openai = [
+    { name = "atlas-agent-providers", extra = ["openai"] },
+]
+rest = [
+    { name = "atlas-agent-adapters", extra = ["rest"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "atlas-agent-adapters", extras = ["grpc"], marker = "extra == 'grpc'", editable = "packages/atlas-agent-adapters" },
+    { name = "atlas-agent-adapters", extras = ["grpc", "rest"], marker = "extra == 'full'", editable = "packages/atlas-agent-adapters" },
+    { name = "atlas-agent-adapters", extras = ["rest"], marker = "extra == 'rest'", editable = "packages/atlas-agent-adapters" },
+    { name = "atlas-agent-config", marker = "extra == 'config'", editable = "packages/atlas-agent-config" },
+    { name = "atlas-agent-config", marker = "extra == 'full'", editable = "packages/atlas-agent-config" },
+    { name = "atlas-agent-core", editable = "packages/atlas-agent-core" },
+    { name = "atlas-agent-evaluation", marker = "extra == 'evaluation'", editable = "packages/atlas-agent-evaluation" },
+    { name = "atlas-agent-evaluation", marker = "extra == 'full'", editable = "packages/atlas-agent-evaluation" },
+    { name = "atlas-agent-mcp", marker = "extra == 'full'", editable = "packages/atlas-agent-mcp" },
+    { name = "atlas-agent-mcp", marker = "extra == 'mcp'", editable = "packages/atlas-agent-mcp" },
+    { name = "atlas-agent-providers", extras = ["openai"], marker = "extra == 'full'", editable = "packages/atlas-agent-providers" },
+    { name = "atlas-agent-providers", extras = ["openai"], marker = "extra == 'openai'", editable = "packages/atlas-agent-providers" },
+]
+provides-extras = ["config", "evaluation", "full", "grpc", "mcp", "openai", "rest"]
+
+[[package]]
 name = "atlas-agent-adapters"
-version = "0.1.0"
 source = { editable = "packages/atlas-agent-adapters" }
 dependencies = [
     { name = "atlas-agent-core" },
-    { name = "fastapi" },
+    { name = "pydantic" },
+]
+
+[package.optional-dependencies]
+grpc = [
     { name = "grpcio" },
     { name = "protobuf" },
+]
+rest = [
+    { name = "fastapi" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "atlas-agent-core", editable = "packages/atlas-agent-core" },
-    { name = "fastapi", specifier = ">=0.116,<1" },
-    { name = "grpcio", specifier = ">=1.74,<2" },
-    { name = "protobuf", specifier = ">=6.31,<7" },
+    { name = "fastapi", marker = "extra == 'rest'", specifier = ">=0.141,<1" },
+    { name = "grpcio", marker = "extra == 'grpc'", specifier = ">=1.81.1,<2" },
+    { name = "protobuf", marker = "extra == 'grpc'", specifier = ">=6.33.5,<7" },
+    { name = "pydantic", specifier = ">=2.13,<3" },
 ]
+provides-extras = ["grpc", "rest"]
 
 [[package]]
 name = "atlas-agent-config"
-version = "0.1.0"
 source = { editable = "packages/atlas-agent-config" }
 dependencies = [
-    { name = "atlas-agent-adapters" },
     { name = "atlas-agent-core" },
     { name = "pydantic" },
     { name = "pyyaml" },
 ]
 
+[package.optional-dependencies]
+adapters = [
+    { name = "atlas-agent-adapters" },
+]
+
 [package.metadata]
 requires-dist = [
-    { name = "atlas-agent-adapters", editable = "packages/atlas-agent-adapters" },
+    { name = "atlas-agent-adapters", marker = "extra == 'adapters'", editable = "packages/atlas-agent-adapters" },
     { name = "atlas-agent-core", editable = "packages/atlas-agent-core" },
-    { name = "pydantic", specifier = ">=2.10,<3" },
+    { name = "pydantic", specifier = ">=2.13,<3" },
     { name = "pyyaml", specifier = ">=6.0,<7" },
 ]
+provides-extras = ["adapters"]
 
 [[package]]
 name = "atlas-agent-core"
-version = "0.1.0"
 source = { editable = "packages/atlas-agent-core" }
 dependencies = [
     { name = "jsonschema" },
     { name = "packaging" },
     { name = "pydantic" },
-    { name = "pyyaml" },
     { name = "typing-extensions" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "jsonschema", specifier = ">=4.23" },
-    { name = "packaging", specifier = ">=24.2" },
-    { name = "pydantic", specifier = ">=2.10" },
-    { name = "pyyaml", specifier = ">=6.0" },
-    { name = "typing-extensions", specifier = ">=4.12" },
+    { name = "jsonschema", specifier = ">=4.26,<5" },
+    { name = "packaging", specifier = ">=26.0,<27" },
+    { name = "pydantic", specifier = ">=2.13,<3" },
+    { name = "typing-extensions", specifier = ">=4.16,<5" },
 ]
 
 [[package]]
 name = "atlas-agent-evaluation"
-version = "0.1.0"
 source = { editable = "packages/atlas-agent-evaluation" }
 dependencies = [
     { name = "atlas-agent-core" },
@@ -184,22 +244,22 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "atlas-agent-core", editable = "packages/atlas-agent-core" },
-    { name = "pydantic", specifier = ">=2.10" },
+    { name = "pydantic", specifier = ">=2.13,<3" },
 ]
 
 [[package]]
 name = "atlas-agent-framework-workspace"
-version = "0.1.0"
 source = { virtual = "." }
 
 [package.dev-dependencies]
 dev = [
-    { name = "atlas-agent-adapters" },
+    { name = "atlas-agent" },
+    { name = "atlas-agent-adapters", extra = ["grpc", "rest"] },
     { name = "atlas-agent-config" },
     { name = "atlas-agent-core" },
     { name = "atlas-agent-evaluation" },
     { name = "atlas-agent-mcp" },
-    { name = "atlas-agent-providers" },
+    { name = "atlas-agent-providers", extra = ["openai"] },
     { name = "grpcio-tools" },
     { name = "httpx" },
     { name = "mypy" },
@@ -218,12 +278,13 @@ dev = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "atlas-agent-adapters", editable = "packages/atlas-agent-adapters" },
+    { name = "atlas-agent", editable = "packages/atlas-agent" },
+    { name = "atlas-agent-adapters", extras = ["grpc", "rest"], editable = "packages/atlas-agent-adapters" },
     { name = "atlas-agent-config", editable = "packages/atlas-agent-config" },
     { name = "atlas-agent-core", editable = "packages/atlas-agent-core" },
     { name = "atlas-agent-evaluation", editable = "packages/atlas-agent-evaluation" },
     { name = "atlas-agent-mcp", editable = "packages/atlas-agent-mcp" },
-    { name = "atlas-agent-providers", editable = "packages/atlas-agent-providers" },
+    { name = "atlas-agent-providers", extras = ["openai"], editable = "packages/atlas-agent-providers" },
     { name = "grpcio-tools", specifier = ">=1.74,<2" },
     { name = "httpx", specifier = ">=0.28,<1" },
     { name = "mypy", specifier = ">=1.15" },
@@ -240,7 +301,6 @@ dev = [
 
 [[package]]
 name = "atlas-agent-mcp"
-version = "0.1.0"
 source = { editable = "packages/atlas-agent-mcp" }
 dependencies = [
     { name = "atlas-agent-core" },
@@ -252,25 +312,31 @@ dependencies = [
 requires-dist = [
     { name = "atlas-agent-core", editable = "packages/atlas-agent-core" },
     { name = "mcp", specifier = ">=2.2.0,<3" },
-    { name = "pydantic", specifier = ">=2.10" },
+    { name = "pydantic", specifier = ">=2.13,<3" },
 ]
 
 [[package]]
 name = "atlas-agent-providers"
-version = "0.1.0"
 source = { editable = "packages/atlas-agent-providers" }
 dependencies = [
     { name = "atlas-agent-core" },
-    { name = "openai" },
+    { name = "packaging" },
     { name = "pydantic" },
+]
+
+[package.optional-dependencies]
+openai = [
+    { name = "openai" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "atlas-agent-core", editable = "packages/atlas-agent-core" },
-    { name = "openai", specifier = ">=3.13.0,<4" },
-    { name = "pydantic", specifier = ">=2.10" },
+    { name = "openai", marker = "extra == 'openai'", specifier = ">=3.13.0,<4" },
+    { name = "packaging", specifier = ">=26.0,<27" },
+    { name = "pydantic", specifier = ">=2.13,<3" },
 ]
+provides-extras = ["openai"]
 
 [[package]]
 name = "attrs"

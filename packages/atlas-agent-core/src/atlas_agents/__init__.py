@@ -1,6 +1,5 @@
 """Provider-agnostic primitives for building and running AI agents."""
 
-from importlib.metadata import version as _distribution_version
 from pkgutil import extend_path
 
 __path__ = extend_path(__path__, __name__)
@@ -44,6 +43,7 @@ from atlas_agents.approvals import (
     ToolApprovalSubject,
     UnsupportedCheckpointVersionError,
 )
+from atlas_agents.deprecation import AtlasDeprecationWarning
 from atlas_agents.events import AgentEvent, AgentEventFactory, AgentEventType
 from atlas_agents.exceptions import (
     AtlasAgentError,
@@ -308,8 +308,7 @@ from atlas_agents.tools import (
     ToolRegistryError,
     ToolUnavailableError,
 )
-
-__version__: str = _distribution_version("atlas-agent-core")
+from atlas_agents.version import __version__
 
 __all__ = [
     "CURRENT_CHECKPOINT_VERSION",
@@ -344,6 +343,7 @@ __all__ = [
     "ApprovalRequired",
     "ApprovalRequirement",
     "AtlasAgentError",
+    "AtlasDeprecationWarning",
     "AudioContent",
     "CheckpointError",
     "CheckpointNotFoundError",

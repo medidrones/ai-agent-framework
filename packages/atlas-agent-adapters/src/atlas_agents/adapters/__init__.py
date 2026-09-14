@@ -1,5 +1,6 @@
 """External transport adapters over one application execution facade."""
 
+from atlas_agents.adapters._version import __version__
 from atlas_agents.adapters.errors import (
     AdapterConfigurationError,
     AdapterError,
@@ -38,6 +39,7 @@ from atlas_agents.adapters.models import (
     TransportPrincipal,
     UsageDTO,
 )
+from atlas_agents.adapters.optional import MissingAdapterDependencyError
 from atlas_agents.adapters.policies import (
     AgentAccessPolicy,
     AgentOperation,
@@ -49,7 +51,11 @@ from atlas_agents.adapters.policies import (
     SubjectExecutionIdentityMapper,
 )
 from atlas_agents.adapters.registry import AgentRegistry
-from atlas_agents.adapters.service import AgentExecutionService, AgentRuntimePort
+from atlas_agents.adapters.service import (
+    AgentExecutionService,
+    AgentRegistryPort,
+    AgentRuntimePort,
+)
 
 __all__ = [
     "AdapterConfigurationError",
@@ -65,6 +71,7 @@ __all__ = [
     "AgentNotRegisteredError",
     "AgentOperation",
     "AgentRegistry",
+    "AgentRegistryPort",
     "AgentRuntimePort",
     "AllowAllAgentAccessPolicy",
     "ApprovalRequestDTO",
@@ -88,6 +95,7 @@ __all__ = [
     "IdentityMappingError",
     "InMemoryIdempotencyStore",
     "InvalidExternalRequestError",
+    "MissingAdapterDependencyError",
     "ReadinessResponse",
     "RequestedExecutionBudget",
     "RequestedExecutionLimits",
@@ -95,4 +103,5 @@ __all__ = [
     "SubjectExecutionIdentityMapper",
     "TransportPrincipal",
     "UsageDTO",
+    "__version__",
 ]

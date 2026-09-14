@@ -96,7 +96,24 @@ autoritativo e citações `K1`, `K2`… Ainda não existem retries automáticos,
 fallback ou backends concretos de retrieval. O provider OpenAI é a primeira
 integração concreta com modelos.
 
-## Requisitos
+## Distribuições
+
+| Pacote | Finalidade | Instalação |
+| --- | --- | --- |
+| `atlas-agent-core` | contratos e runtime mínimo | `pip install atlas-agent-core` |
+| `atlas-agent-providers` | providers oficiais | `pip install atlas-agent-providers[openai]` |
+| `atlas-agent-mcp` | integração MCP | `pip install atlas-agent-mcp` |
+| `atlas-agent-adapters` | transportes externos | `pip install atlas-agent-adapters[rest]` |
+| `atlas-agent-config` | configuração declarativa | `pip install atlas-agent-config` |
+| `atlas-agent-evaluation` | avaliação | `pip install atlas-agent-evaluation` |
+| `atlas-agent` | meta-package opcional | `pip install atlas-agent[full]` |
+
+O core não instala OpenAI, MCP, FastAPI, gRPC ou PyYAML. Consulte a
+[estratégia de pacotes](docs/distribution/packages.md), os
+[extras disponíveis](docs/distribution/optional-dependencies.md) e a
+[matriz de compatibilidade](docs/distribution/compatibility.md).
+
+## Requisitos do ambiente
 
 - Python 3.12 ou superior
 - [uv](https://docs.astral.sh/uv/)
@@ -119,9 +136,14 @@ Os mesmos comandos podem ser executados pelos alvos do `Makefile`. Por exemplo,
 `make quality` executa lint, validação de formato, verificação de tipos e
 testes.
 
+`make artifacts` constrói e inspeciona os wheels e sdists. O alvo
+`make packaging-smoke` instala os wheels em ambientes temporários e valida
+core mínimo, imports opcionais, namespace compartilhado e entry points.
+
 O workspace raiz é um agregador. Use `make build` para selecionar explicitamente
 as distribuições `atlas-agent-adapters`, `atlas-agent-config`, `atlas-agent-core`,
-`atlas-agent-evaluation`, `atlas-agent-providers` e `atlas-agent-mcp`, evitando
+`atlas-agent-evaluation`, `atlas-agent-providers`, `atlas-agent-mcp` e o
+meta-package opcional `atlas-agent`, evitando
 publicar o agregador por engano.
 
 O pacote utiliza o layout `src` e pode ser importado da seguinte forma:

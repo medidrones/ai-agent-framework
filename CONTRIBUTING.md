@@ -2,6 +2,18 @@
 
 Obrigado por contribuir com o Atlas Agent Framework.
 
+## Alterações de distribuição
+
+A versão editável vive somente em `VERSION`. Alterações de release devem rodar
+`make sync-version`, atualizar o changelog e seguir
+[`docs/distribution/release-process.md`](docs/distribution/release-process.md).
+Não edite módulos `_version.py` manualmente nem adicione dependências de
+integração ao core.
+
+Novas dependências de runtime precisam de range compatível, justificativa de
+ownership e teste de instalação. Ferramentas de teste, lint, geração protobuf e
+documentação pertencem aos grupos de desenvolvimento, não à metadata publicada.
+
 ## Pré-requisitos
 
 - Python 3.12 ou superior

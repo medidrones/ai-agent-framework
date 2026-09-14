@@ -29,6 +29,12 @@ Providers implementam os contratos
 O core não importa adapters nem providers concretos. Providers e adapters
 dependem dos contratos públicos do core e permanecem substituíveis.
 
+As sete distribuições usam o mesmo release lockstep, mas não formam uma
+instalação monolítica. SDKs de providers e transportes ficam em extras do pacote
+que os possui; o meta-package `atlas-agent` depende somente do core por padrão.
+O grafo e as regras de namespace estão em
+[`packages.md`](docs/distribution/packages.md).
+
 A distribuição opcional `atlas-agent-config` é a composition root declarativa.
 Ela valida YAML, JSON ou objetos Python e usa factories tipadas registradas pelo
 host para construir registries, runtime e integrações. Não há service locator,

@@ -1,5 +1,7 @@
 """Declarative, strict, and optional Atlas composition APIs."""
 
+from atlas_agents.config._version import __version__
+from atlas_agents.config.agents import ConfiguredAgentRegistry
 from atlas_agents.config.composition import (
     AtlasComposition,
     AtlasCompositionBuilder,
@@ -113,6 +115,7 @@ __all__ = [
     "ConfigurationBuildContext",
     "ConfigurationFactoryRegistry",
     "ConfigurationValidator",
+    "ConfiguredAgentRegistry",
     "DuplicateComponentConfigError",
     "DuplicateFactoryError",
     "ExecutionBudgetConfig",
@@ -143,6 +146,7 @@ __all__ = [
     "SecretValue",
     "ToolFactory",
     "UnsupportedConfigVersionError",
+    "__version__",
     "configuration_fingerprint",
     "load_config",
     "load_json",

@@ -4,26 +4,35 @@ build-backend = "hatchling.build"
 
 [project]
 name = "atlas-agent-mcp"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Integração opcional do Atlas Agent Framework com MCP"
 requires-python = ">=3.12"
 license = "MIT"
+license-files = ["LICENSE"]
+readme = "README.md"
 authors = [{ name = "Jorge Medina" }]
+maintainers = [{ name = "Jorge Medina" }]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Typing :: Typed",
 ]
 dependencies = [
-    "atlas-agent-core>=0.1.0",
+    "atlas-agent-core~=0.1.0",
     "mcp>=2.2.0,<3",
-    "pydantic>=2.10",
+    "pydantic>=2.13,<3",
 ]
 
 [project.urls]
 Repository = "https://github.com/Medicode/ai-agent-framework"
+Documentation = "https://github.com/Medicode/ai-agent-framework/tree/main/docs/mcp"
+Issues = "https://github.com/Medicode/ai-agent-framework/issues"
+
+[tool.hatch.version]
+path = "src/atlas_agents/mcp/_version.py"
 
 [tool.hatch.build]
 dev-mode-dirs = ["src"]
@@ -32,4 +41,4 @@ dev-mode-dirs = ["src"]
 packages = ["src/atlas_agents"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/atlas_agents/mcp", "tests", "pyproject.toml"]
+include = ["src/atlas_agents/mcp", "LICENSE", "README.md", "pyproject.toml"]

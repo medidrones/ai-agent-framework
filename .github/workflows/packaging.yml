@@ -1,0 +1,56 @@
+name: Empacotamento
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  compatibilidade-python:
+    strategy:
+      matrix:
+        python: ["3.12", "3.13"]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Configurar Python
+        run: uv python install ${{ matrix.python }}
+
+      - name: Instalar workspace
+        run: uv sync --locked --python ${{ matrix.python }}
+
+      - name: Executar testes
+        run: uv run --python ${{ matrix.python }} pytest
+
+  wheels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Configurar Python
+        run: uv python install 3.12
+
+      - name: Instalar workspace
+        run: uv sync --locked
+
+      - name: Construir, inspecionar e reproduzir artefatos
+        run: make reproducible
+
+      - name: Executar smoke tests isolados
+        run: make packaging-smoke

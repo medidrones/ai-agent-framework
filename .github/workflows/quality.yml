@@ -38,5 +38,5 @@ jobs:
       - name: Executar testes
         run: uv run pytest --cov --cov-report=term-missing --cov-report=xml
 
-      - name: Construir pacote core
-        run: uv build --package atlas-agent-core
+      - name: Construir e inspecionar todas as distribuições
+        run: make artifacts

@@ -12,6 +12,10 @@ O fluxo público é explícito:
    `AtlasCompositionBuilder`;
 4. construa uma `AtlasComposition` e feche-a com `async with` ou `close()`.
 
+Para habilitar a construção do serviço usado por adapters externos, instale
+`atlas-agent-config[adapters]`. O import e o uso básico do pacote não dependem
+de FastAPI ou gRPC.
+
 O schema atual é a versão inteira `1`. Campos desconhecidos, IDs vazios,
 referências inválidas, factories ausentes e versões desconhecidas falham antes
 da criação de componentes. Adapters e MCP são desabilitados por padrão;

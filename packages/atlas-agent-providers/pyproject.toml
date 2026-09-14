@@ -4,29 +4,41 @@ build-backend = "hatchling.build"
 
 [project]
 name = "atlas-agent-providers"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Providers oficiais opcionais para o Atlas Agent Framework"
 requires-python = ">=3.12"
 license = "MIT"
+license-files = ["LICENSE"]
+readme = "README.md"
 authors = [{ name = "Jorge Medina" }]
+maintainers = [{ name = "Jorge Medina" }]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Typing :: Typed",
 ]
 dependencies = [
-    "atlas-agent-core>=0.1.0",
-    "openai>=3.13.0,<4",
-    "pydantic>=2.10",
+    "atlas-agent-core~=0.1.0",
+    "packaging>=26.0,<27",
+    "pydantic>=2.13,<3",
 ]
+
+[project.optional-dependencies]
+openai = ["openai>=3.13.0,<4"]
 
 [project.entry-points."atlas_agents.plugins"]
 openai = "atlas_agents.providers.openai:create_plugin"
 
 [project.urls]
 Repository = "https://github.com/Medicode/ai-agent-framework"
+Documentation = "https://github.com/Medicode/ai-agent-framework/tree/main/docs/providers"
+Issues = "https://github.com/Medicode/ai-agent-framework/issues"
+
+[tool.hatch.version]
+path = "src/atlas_agents/providers/_version.py"
 
 [tool.hatch.build]
 dev-mode-dirs = ["src"]
@@ -35,4 +47,4 @@ dev-mode-dirs = ["src"]
 packages = ["src/atlas_agents"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/atlas_agents/providers", "tests", "pyproject.toml"]
+include = ["src/atlas_agents/providers", "LICENSE", "README.md", "pyproject.toml"]

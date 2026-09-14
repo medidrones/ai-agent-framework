@@ -4,11 +4,11 @@ import asyncio
 from collections.abc import Mapping
 from contextlib import suppress
 from dataclasses import dataclass
-from importlib.metadata import version as distribution_version
 from typing import Any, Protocol
 
 from pydantic import JsonValue
 
+from atlas_agents import version as atlas_version_module
 from atlas_agents.guardrails import GuardrailRegistry
 from atlas_agents.models import ModelProviderRegistry
 from atlas_agents.plugins._models import non_empty
@@ -91,7 +91,7 @@ class PluginManager:
         self._discovery = plugin_discovery or PluginDiscovery()
         self._loader = plugin_loader or PluginLoader()
         self._compatibility = compatibility_checker or PluginCompatibilityChecker()
-        self._atlas_version = atlas_version or distribution_version("atlas-agent-core")
+        self._atlas_version = atlas_version or atlas_version_module.__version__
         self._model_providers = model_provider_registry
         self._tools = tool_registry
         self._guardrails = guardrail_registry

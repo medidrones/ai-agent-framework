@@ -4,30 +4,41 @@ build-backend = "hatchling.build"
 
 [project]
 name = "atlas-agent-config"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Configuração declarativa e composition root do Atlas"
 requires-python = ">=3.12"
 license = "MIT"
+license-files = ["LICENSE"]
+readme = "README.md"
 authors = [{ name = "Jorge Medina" }]
+maintainers = [{ name = "Jorge Medina" }]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Typing :: Typed",
 ]
 dependencies = [
-    "atlas-agent-adapters>=0.1.0",
-    "atlas-agent-core>=0.1.0",
-    "pydantic>=2.10,<3",
+    "atlas-agent-core~=0.1.0",
+    "pydantic>=2.13,<3",
     "pyyaml>=6.0,<7",
 ]
 
+[project.optional-dependencies]
+adapters = ["atlas-agent-adapters~=0.1.0"]
+
 [project.urls]
 Repository = "https://github.com/Medicode/ai-agent-framework"
+Documentation = "https://github.com/Medicode/ai-agent-framework/tree/main/docs/config"
+Issues = "https://github.com/Medicode/ai-agent-framework/issues"
+
+[tool.hatch.version]
+path = "src/atlas_agents/config/_version.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/atlas_agents"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/atlas_agents/config", "tests", "pyproject.toml"]
+include = ["src/atlas_agents/config", "LICENSE", "README.md", "pyproject.toml"]

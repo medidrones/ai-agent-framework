@@ -1,5 +1,6 @@
 """Public runtime-independent evaluation framework."""
 
+from atlas_agents.evaluation._version import __version__
 from atlas_agents.evaluation.case import (
     EvaluationCase,
     EvaluationExpectation,
@@ -126,5 +127,6 @@ __all__ = [
     "MetricDirection",
     "ObservedToolCall",
     "ToolUsageEvaluator",
+    "__version__",
     "build_summary",
 ]

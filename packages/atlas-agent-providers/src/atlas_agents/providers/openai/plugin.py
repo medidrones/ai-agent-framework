@@ -1,6 +1,7 @@
 """Plugin entry point for explicit OpenAI provider composition."""
 
 from openai import AsyncOpenAI
+from packaging.version import Version
 from pydantic import ValidationError
 
 from atlas_agents.plugins import (
@@ -13,11 +14,18 @@ from atlas_agents.plugins import (
     PluginManifest,
     PluginMetadata,
 )
+from atlas_agents.providers._version import __version__
 from atlas_agents.providers.openai.config import (
     OpenAIPluginConfig,
     OpenAIProviderConfig,
 )
 from atlas_agents.providers.openai.provider import OpenAIModelProvider
+
+
+def _atlas_compatibility_range() -> str:
+    release = Version(__version__).release
+    major, minor = release[0], release[1]
+    return f">={major}.{minor}.0,<{major}.{minor + 1}.0"
 
 
 class OpenAIPlugin(Plugin):
@@ -34,13 +42,13 @@ class OpenAIPlugin(Plugin):
             metadata=PluginMetadata(
                 plugin_id="openai",
                 name="Provider oficial OpenAI",
-                version="0.1.0",
+                version=__version__,
                 description="Integra o Atlas à API Responses da OpenAI.",
                 author="Atlas Agent Framework",
                 homepage="https://github.com/Medicode/ai-agent-framework",
             ),
             capabilities=(PluginCapability.MODEL_PROVIDER,),
-            required_atlas_version=">=0.1.0,<0.2.0",
+            required_atlas_version=_atlas_compatibility_range(),
             optional_dependencies=("openai>=3.13.0,<4",),
         )
 

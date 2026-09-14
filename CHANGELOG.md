@@ -9,6 +9,24 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ### Adicionado
 
+- Estratégia oficial de sete distribuições modulares, incluindo o meta-package
+  opcional `atlas-agent` e extras `openai`, `rest`, `grpc`, `config`,
+  `evaluation`, `mcp` e `full`.
+- Fonte única `VERSION`, geração sincronizada de versões PEP 440 e política de
+  releases lockstep orientada por SemVer.
+- Inspeção automatizada de wheels/sdists, smoke tests em ambientes isolados,
+  verificação de namespace, `py.typed`, licenças e entry points.
+- Documentação de instalação, pacotes, compatibilidade, depreciação, API pública
+  e processo de release.
+
+### Alterado
+
+- OpenAI, FastAPI e gRPC passaram a dependências opcionais de seus respectivos
+  extras; o core deixou de declarar PyYAML e o pacote config deixou de exigir
+  adapters externos.
+- Sdists passaram a excluir testes e incluir README e licença de cada
+  distribuição.
+
 - Distribuição opcional `atlas-agent-config` com schema v1 fechado, modelos
   Pydantic, loaders seguros para YAML/JSON e overrides determinísticos.
 - Registry local de factories tipadas e composition root assíncrona para

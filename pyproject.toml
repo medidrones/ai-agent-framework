@@ -1,6 +1,6 @@
 [project]
 name = "atlas-agent-framework-workspace"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Configuração do workspace do Atlas Agent Framework"
 requires-python = ">=3.12"
 
@@ -11,6 +11,7 @@ package = false
 members = ["packages/*"]
 
 [tool.uv.sources]
+atlas-agent = { workspace = true }
 atlas-agent-core = { workspace = true }
 atlas-agent-adapters = { workspace = true }
 atlas-agent-config = { workspace = true }
@@ -20,12 +21,13 @@ atlas-agent-providers = { workspace = true }
 
 [dependency-groups]
 dev = [
-    "atlas-agent-adapters",
+    "atlas-agent",
+    "atlas-agent-adapters[grpc,rest]",
     "atlas-agent-config",
     "atlas-agent-core",
     "atlas-agent-evaluation",
     "atlas-agent-mcp",
-    "atlas-agent-providers",
+    "atlas-agent-providers[openai]",
     "grpcio-tools>=1.74,<2",
     "httpx>=0.28,<1",
     "mypy>=1.15",
@@ -49,6 +51,7 @@ extend-exclude = [
     "packages/atlas-agent-adapters/src/atlas_agents/adapters/grpc/v1/agent_execution_pb2_grpc.py",
 ]
 src = [
+    "packages/atlas-agent/src",
     "packages/atlas-agent-adapters/src",
     "packages/atlas-agent-config/src",
     "packages/atlas-agent-core/src",
@@ -100,6 +103,7 @@ python_version = "3.12"
 strict = true
 explicit_package_bases = true
 mypy_path = [
+    "packages/atlas-agent/src",
     "packages/atlas-agent-adapters/src",
     "packages/atlas-agent-config/src",
     "packages/atlas-agent-core/src",
