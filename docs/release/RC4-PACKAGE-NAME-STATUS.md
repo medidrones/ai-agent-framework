@@ -64,4 +64,7 @@ PYPI PUBLICATION        NOT_AUTHORIZED_FOR_RC
   reconfirmada imediatamente antes da publicação.
 - A tag e a GitHub Release `v1.0.0` existentes não foram removidas nem
   reescritas.
-- O RC4 ainda requer tag anotada, certificação remota e novos sign-offs.
+- A tag anotada `v1.0.0rc4` foi publicada e permanece imutável.
+- Os gates de qualidade, segurança e matriz remota passaram, mas a certificação
+  final falhou porque o montador de evidências ainda procurava
+  `atlas_agent-*`. A correção segue no `1.0.0rc5`.

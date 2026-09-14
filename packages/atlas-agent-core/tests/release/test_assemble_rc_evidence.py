@@ -108,3 +108,21 @@ def test_generated_reports_do_not_invalidate_clean_source() -> None:
     assert module.unexpected_source_changes(status) == [
         " M packages/atlas-agent-core/pyproject.toml"
     ]
+
+
+def test_artifact_inventory_uses_public_meta_package_name(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _load_module()
+    monkeypatch.setattr(module, "DIST", tmp_path)
+    version = "1.0.0rc5"
+    for distribution in module.DISTRIBUTIONS:
+        (tmp_path / f"{distribution}-{version}-py3-none-any.whl").write_bytes(b"wheel")
+        (tmp_path / f"{distribution}-{version}.tar.gz").write_bytes(b"sdist")
+
+    inventory = module._artifact_inventory(version)
+
+    names = {item["file"] for item in inventory}
+    assert f"atlas_agent_framework-{version}-py3-none-any.whl" in names
+    assert f"atlas_agent_framework-{version}.tar.gz" in names
+    assert not any(name.startswith(f"atlas_agent-{version}") for name in names)

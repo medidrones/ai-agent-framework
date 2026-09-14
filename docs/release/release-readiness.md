@@ -1,10 +1,14 @@
-# Prontidão da candidata 1.0.0rc4
+# Prontidão da candidata 1.0.0rc5
 
 ## Decisão
 
-**READY_FOR_RC.** A candidata corrige o nome público do meta-package de
+**READY_FOR_RC.** A candidata preserva a correção do nome público do meta-package de
 `atlas-agent` para `atlas-agent-framework`. O namespace importável
 `atlas_agent`, as APIs e o comportamento funcional permanecem inalterados.
+
+O `rc5` corrige exclusivamente o nome normalizado usado pelo montador do bundle
+de evidências. O `rc4` passou pelos gates de qualidade, segurança e matriz, mas
+falhou na etapa final ao procurar o arquivo inexistente `atlas_agent-*`.
 
 O nome anterior pertence a um projeto de terceiros no PyPI. A release
 `v1.0.0` publicada no GitHub não foi enviada ao registry Python.
@@ -15,10 +19,11 @@ O nome anterior pertence a um projeto de terceiros no PyPI. A release
 | --- | --- | --- |
 | Disponibilidade dos sete nomes no PyPI | PASS | API oficial e simulação de upload |
 | Nome legado ausente da metadata pública | PASS | teste de regressão dedicado |
-| Workspace e lockfile | PASS | sete distribuições `1.0.0rc4` |
+| Workspace e lockfile | PASS | sete distribuições `1.0.0rc5` |
+| Inventário do bundle | PASS | `atlas_agent_framework` coberto por regressão |
 | Lint e formatação | PASS | Ruff |
 | Tipagem | PASS | mypy, 332 arquivos |
-| Regressão | PASS | 1.140 testes, cobertura de 93% |
+| Regressão | PASS | 1.141 testes, cobertura de 93% |
 | Build | PASS | sete wheels e sete sdists |
 | Reprodutibilidade | PASS | metadata e manifestos reproduzíveis |
 | Instalação limpa | PASS | core, extensões e conjunto completo |
@@ -31,7 +36,7 @@ O nome anterior pertence a um projeto de terceiros no PyPI. A release
 
 ## Próximo gate
 
-1. criar a tag anotada `v1.0.0rc4` somente após autorização;
+1. criar a tag anotada `v1.0.0rc5` somente após autorização;
 2. certificar o bundle imutável na matriz remota;
 3. registrar novamente os cinco owner sign-offs;
 4. definir a estratégia para substituir a tag/release `v1.0.0` existente;

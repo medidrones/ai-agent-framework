@@ -17,7 +17,7 @@ DIST = REPOSITORY / "dist"
 REPORTS = REPOSITORY / "reports" / "release"
 RELEASES = REPOSITORY / "release"
 DISTRIBUTIONS = (
-    "atlas_agent",
+    "atlas_agent_framework",
     "atlas_agent_adapters",
     "atlas_agent_config",
     "atlas_agent_core",

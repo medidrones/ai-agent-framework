@@ -1,3 +1,3 @@
 """Package version generated from the repository VERSION file."""
 
-__version__ = "1.0.0rc4"
+__version__ = "1.0.0rc5"

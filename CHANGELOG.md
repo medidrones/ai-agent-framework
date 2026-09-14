@@ -7,6 +7,21 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não publicado]
 
+## [1.0.0rc5] - 2026-09-14
+
+### Corrigido
+
+- O montador do bundle de evidências passou a procurar o meta-package pelo nome
+  normalizado `atlas_agent_framework`, correspondente à distribuição pública
+  `atlas-agent-framework`.
+- Adicionado teste de regressão que valida o inventário completo de wheels e
+  sdists e impede o retorno acidental ao identificador ocupado `atlas_agent`.
+
+### Governança
+
+- A tag imutável `v1.0.0rc4` foi preservada após a falha restrita ao montador de
+  evidências; a nova certificação será executada sobre `v1.0.0rc5`.
+
 ## [1.0.0rc4] - 2026-09-14
 
 ### Corrigido
