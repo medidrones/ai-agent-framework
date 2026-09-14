@@ -16,6 +16,12 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Versões e restrições internas das sete distribuições foram sincronizadas em
   lockstep, sem alteração funcional, de API, dependência ou contrato.
 
+### Corrigido
+
+- Os testes temporais de timeout em streaming e retomada HITL receberam margem
+  suficiente para runners Windows sob carga, preservando as mesmas asserções e
+  sem alterar o comportamento do runtime.
+
 ### Governança
 
 - A candidata deriva do conteúdo técnico certificado do `1.0.0rc5`; novos

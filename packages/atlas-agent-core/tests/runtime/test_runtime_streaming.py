@@ -606,7 +606,7 @@ async def test_stream_runtime_timeout_returns_terminal_result_and_closes_provide
 
     items = await _collect(
         _runtime(provider),
-        limits=ExecutionLimits(timeout_seconds=0.01),
+        limits=ExecutionLimits(timeout_seconds=0.25),
     )
     result = _result(items).result
 

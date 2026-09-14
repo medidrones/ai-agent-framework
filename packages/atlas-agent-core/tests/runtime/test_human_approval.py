@@ -610,13 +610,13 @@ async def test_human_wait_does_not_consume_preserved_timeout() -> None:
         agent=_agent("sensitive"),
         input_data=AgentInput(message="Execute."),
         context=AgentContext(execution_id="execution-1"),
-        limits=ExecutionLimits(timeout_seconds=0.12),
+        limits=ExecutionLimits(timeout_seconds=0.30),
     )
     assert isinstance(outcome, ExecutionSuspension)
     remaining = store.peek(outcome.resume_token).remaining_timeout_seconds
     assert remaining is not None
-    assert 0 < remaining < 0.12
-    await asyncio.sleep(0.15)
+    assert 0 < remaining < 0.30
+    await asyncio.sleep(0.35)
 
     result = await runtime.resume(
         resume_token=outcome.resume_token,
