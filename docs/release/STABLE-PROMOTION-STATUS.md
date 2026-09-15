@@ -47,6 +47,13 @@ internas e documentação de release mudaram.
 - Metadata: `Name`, `Requires-Python`, dependências e entry points coincidem
   após normalizar exclusivamente o sufixo de versão
 
+A decisão `READY_TO_PUBLISH` vincula-se **exatamente** aos artefatos do commit
+`43fd7008f8573f2b2a9906ee8c257986777f04e9` arquivados no workflow
+`35017413644`. O commit posterior que registra este relatório modifica apenas
+documentação; ele não é a fonte dos artefatos certificados. Uma futura tag
+estável deve apontar ao commit certificado, ou qualquer novo build sobre outro
+commit deverá passar novamente pelo gate de artefatos antes de publicação.
+
 ## Certificação local
 
 | Gate | Resultado |
