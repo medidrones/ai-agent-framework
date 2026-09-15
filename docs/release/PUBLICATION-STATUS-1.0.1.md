@@ -56,15 +56,19 @@ até verificar os sete projetos, os 14 arquivos e publicar o rascunho.
   um job separado, com environment protegido próprio. Os lotes posteriores
   exigem os dois hashes de cada projeto anterior no PyPI. O environment
   `pypi` é exclusivo do core.
-- Os Pending Publishers de `atlas-agent-core`, `atlas-agent-adapters` e
-  `atlas-agent-config` foram registrados na conta PyPI `medicode` e conferidos
-  na lista de publicadores, cada um com seu environment próprio. O PyPI recusou
-  a tentativa de registrar `atlas-agent-evaluation`: esta conta não pode manter
-  mais de três publicadores pendentes simultaneamente. Os outros três também
-  permanecem sem registro. A conta `medicode` reconfirmou a senha para ações
-  sensíveis e a interface autenticada passou a listar exatamente os três
-  projetos com publicadores ativos e nenhum Pending Publisher. Os três slots
-  foram liberados; os novos vínculos ainda exigem confirmação antes do envio.
+- Os Pending Publishers iniciais de `atlas-agent-core`,
+  `atlas-agent-adapters` e `atlas-agent-config` foram convertidos em
+  publicadores ativos após os uploads. A conta `medicode` reconfirmou a senha
+  para ações sensíveis; a interface autenticada mostrou exatamente esses três
+  projetos ativos e nenhum Pending Publisher. Com os slots liberados e a
+  confirmação específica do responsável, foram registrados e conferidos os
+  Pending Publishers de `atlas-agent-evaluation` (`pypi-evaluation`),
+  `atlas-agent-framework` (`pypi-framework`) e `atlas-agent-mcp` (`pypi-mcp`),
+  todos com owner `medidrones`, repositório `ai-agent-framework` e workflow
+  `publish-pypi.yml`. `atlas-agent-providers` ainda não foi registrado.
+- Os três novos environments GitHub exigem revisão de `medidrones` e
+  permitem deploy somente em `main`; a configuração foi conferida antes de
+  considerar os registros prontos para o lote seguinte.
 - Os sete environments GitHub existem, exigem aprovação de `medidrones` e
   permitem deploy apenas em `main`. O workflow seletivo está `ACTIVE` no
   GitHub; Qualidade e Empacotamento do commit `3074a4e92421d986e7a106828ec1208a7612767a`
@@ -83,18 +87,19 @@ até verificar os sete projetos, os 14 arquivos e publicar o rascunho.
 
 ## Próxima ação
 
-Após confirmação específica do responsável para gravar os novos vínculos
-OIDC, registrar os próximos três (`evaluation`, `framework`, `mcp`). Cada projeto
-usa um environment GitHub próprio para distinguir sua identidade OIDC:
+Solicitar decisão explícita de publicação para o lote `integracoes`. O
+registro dos três novos Pending Publishers não autoriza o primeiro upload.
+Cada projeto usa um environment GitHub próprio para distinguir sua identidade
+OIDC:
 
 | Projeto PyPI | Environment | Versão 1.0.1 | Publisher |
 | --- | --- | --- | --- |
 | `atlas-agent-core` | `pypi` | `2/2 HASH_VERIFIED` | `ACTIVE` |
 | `atlas-agent-adapters` | `pypi-adapters` | `2/2 HASH_VERIFIED` | `ACTIVE` |
 | `atlas-agent-config` | `pypi-config` | `2/2 HASH_VERIFIED` | `ACTIVE` |
-| `atlas-agent-evaluation` | `pypi-evaluation` | `NOT_PUBLISHED` | `NOT_REGISTERED` |
-| `atlas-agent-framework` | `pypi-framework` | `NOT_PUBLISHED` | `NOT_REGISTERED` |
-| `atlas-agent-mcp` | `pypi-mcp` | `NOT_PUBLISHED` | `NOT_REGISTERED` |
+| `atlas-agent-evaluation` | `pypi-evaluation` | `NOT_PUBLISHED` | `PENDING_REGISTERED` |
+| `atlas-agent-framework` | `pypi-framework` | `NOT_PUBLISHED` | `PENDING_REGISTERED` |
+| `atlas-agent-mcp` | `pypi-mcp` | `NOT_PUBLISHED` | `PENDING_REGISTERED` |
 | `atlas-agent-providers` | `pypi-providers` | `NOT_PUBLISHED` | `NOT_REGISTERED` |
 
 O [formulário de Pending Publisher](https://pypi.org/manage/account/publishing/)
@@ -103,8 +108,8 @@ reserva um projeto antes do primeiro upload. O próprio PyPI informou o limite
 de três publicadores pendentes simultâneos por conta. A publicação controlada
 em lotes foi autorizada; o primeiro upload de cada projeto deve converter o
 publicador pendente em ativo e liberar espaço. A interface autenticada
-confirmou essa conversão para `fundacao`. A autorização atual abrangeu somente `fundacao`,
-não os lotes subsequentes.
+confirmou essa conversão para `fundacao`. A autorização de upload atual
+abrangeu somente `fundacao`, não os lotes subsequentes.
 Nenhum lote deve publicar a GitHub Release em rascunho antes da
 verificação dos sete projetos e dos 14 hashes. Não inserir tokens em
 documentação, commit, issue ou conversa.
