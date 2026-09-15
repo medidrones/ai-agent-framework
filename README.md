@@ -1,8 +1,10 @@
 # Atlas Agent Framework
 
 > Versão estável em preparação: `1.0.1`, derivada da candidata certificada
-> `1.0.1rc1`. O nome público é `atlas-agent-framework`; o namespace Python
-> `atlas_agent` permanece inalterado.
+> `1.0.1rc1`. O gate ainda está `NOT_READY_TO_PUBLISH` após uma falha temporal
+> na primeira matriz Windows 3.12. O nome público é
+> `atlas-agent-framework`; o namespace Python `atlas_agent` permanece
+> inalterado.
 > Consulte as [notas de release](docs/release/releases/1.0.1.md).
 
 A distribuição opcional `atlas-agent-config` oferece schema versionado,

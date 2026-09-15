@@ -20,6 +20,9 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 - A tag `v1.0.0` permanece imutável. A versão `1.0.1` exige certificação dos
   próprios artefatos estáveis e autorização separada para publicação no PyPI.
+- A primeira matriz remota de `1.0.1` encontrou uma asserção temporal instável
+  no Windows 3.12. A repetição passou, mas o gate de promoção permaneceu
+  `NOT_READY_TO_PUBLISH`; não foi criada tag estável.
 
 ## [1.0.1rc1] - 2026-09-14
 
