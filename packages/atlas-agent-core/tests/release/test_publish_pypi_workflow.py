@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -11,15 +13,19 @@ WORKFLOW = (
 )
 CERTIFIED_COMMIT = "43fd7008f8573f2b2a9906ee8c257986777f04e9"
 CERTIFIED_MANIFEST = "5931aa6a6a66c923831cae1dfeba96571eb10fb812c1cd8816fd0d707aa1094d"
-EXPECTED_PROJECTS = [
-    ("atlas-agent-core", "atlas_agent_core", "pypi"),
-    ("atlas-agent-adapters", "atlas_agent_adapters", "pypi-adapters"),
-    ("atlas-agent-config", "atlas_agent_config", "pypi-config"),
-    ("atlas-agent-evaluation", "atlas_agent_evaluation", "pypi-evaluation"),
-    ("atlas-agent-framework", "atlas_agent_framework", "pypi-framework"),
-    ("atlas-agent-mcp", "atlas_agent_mcp", "pypi-mcp"),
-    ("atlas-agent-providers", "atlas_agent_providers", "pypi-providers"),
-]
+EXPECTED_BATCHES = {
+    "fundacao": [
+        ("atlas-agent-core", "atlas_agent_core", "pypi"),
+        ("atlas-agent-adapters", "atlas_agent_adapters", "pypi-adapters"),
+        ("atlas-agent-config", "atlas_agent_config", "pypi-config"),
+    ],
+    "integracoes": [
+        ("atlas-agent-evaluation", "atlas_agent_evaluation", "pypi-evaluation"),
+        ("atlas-agent-framework", "atlas_agent_framework", "pypi-framework"),
+        ("atlas-agent-mcp", "atlas_agent_mcp", "pypi-mcp"),
+    ],
+    "final": [("atlas-agent-providers", "atlas_agent_providers", "pypi-providers")],
+}
 
 
 def _validate_publication_controls(source: str) -> None:
@@ -27,7 +33,14 @@ def _validate_publication_controls(source: str) -> None:
     events = document.get("on", document.get(True))
     assert isinstance(events, dict)
     assert set(events) == {"workflow_dispatch"}
-    assert not events["workflow_dispatch"]
+    dispatch = events["workflow_dispatch"]
+    assert set(dispatch["inputs"]) == {"lote"}
+    assert dispatch["inputs"]["lote"] == {
+        "description": "Lote autorizado para publicação",
+        "required": True,
+        "type": "choice",
+        "options": list(EXPECTED_BATCHES),
+    }
     assert document["permissions"] == {}
     jobs = document["jobs"]
     assert set(jobs) == {"verificar-bundle", "publicar"}
@@ -35,18 +48,65 @@ def _validate_publication_controls(source: str) -> None:
     verify = jobs["verificar-bundle"]
     publish = jobs["publicar"]
     assert verify["permissions"] == {"contents": "read", "actions": "read"}
+    assert verify["outputs"]["matrix"] == "${{ steps.selecionar-lote.outputs.matrix }}"
     assert publish["needs"] == "verificar-bundle"
     assert publish["environment"]["name"] == "${{ matrix.environment }}"
     assert publish["permissions"] == {"id-token": "write", "actions": "read"}
     strategy = publish["strategy"]
     assert strategy["fail-fast"] is True
     assert strategy["max-parallel"] == 1
-    matrix = strategy["matrix"]["include"]
-    assert [
-        (entry["project"], entry["distribution"], entry["environment"])
-        for entry in matrix
-    ] == EXPECTED_PROJECTS
-    assert len({entry["environment"] for entry in matrix}) == 7
+    assert (
+        strategy["matrix"] == "${{ fromJSON(needs.verificar-bundle.outputs.matrix) }}"
+    )
+
+    selector = next(
+        step for step in verify["steps"] if step.get("id") == "selecionar-lote"
+    )
+    assert selector["env"]["LOTE"] == "${{ inputs.lote }}"
+    assert "*) exit 1 ;;" in selector["run"]
+    assert 'printf \'matrix=%s\\n\' "$matrix" >> "$GITHUB_OUTPUT"' in selector["run"]
+    selected_projects = []
+    for batch, entries in EXPECTED_BATCHES.items():
+        matrix = json.loads(selector["env"][f"MATRIZ_{batch.upper()}"])
+        assert set(matrix) == {"include"}
+        actual = [
+            (entry["project"], entry["distribution"], entry["environment"])
+            for entry in matrix["include"]
+        ]
+        assert actual == entries
+        selected_projects.extend(actual)
+    assert len(selected_projects) == 7
+    assert len({entry[2] for entry in selected_projects}) == 7
+
+    predecessor_gate = next(
+        step
+        for step in verify["steps"]
+        if step["name"] == "Exigir publicação e hashes dos lotes anteriores"
+    )
+    assert predecessor_gate["env"]["LOTE"] == "${{ inputs.lote }}"
+    gate_script = predecessor_gate["run"]
+    gate_cases = {
+        batch: re.search(rf"{batch}\)\s+predecessors=\((.*?)\)\s*;;", gate_script, re.S)
+        for batch in ("integracoes", "final")
+    }
+    assert all(match is not None for match in gate_cases.values())
+    for batch, match in gate_cases.items():
+        assert match is not None
+        predecessor_entries = re.findall(
+            r"atlas-agent-[\w-]+:atlas_agent_\w+", match.group(1)
+        )
+        expected = [
+            f"{project}:{distribution}"
+            for previous in (
+                ("fundacao",) if batch == "integracoes" else ("fundacao", "integracoes")
+            )
+            for project, distribution, _ in EXPECTED_BATCHES[previous]
+        ]
+        assert predecessor_entries == expected
+    assert "fundacao) predecessors=() ;;" in gate_script
+    assert "${project}/1.0.1/json" in gate_script
+    assert "'.urls[] | select(.filename == $filename) | .digests.sha256'" in gate_script
+    assert verify["steps"].index(predecessor_gate) < verify["steps"].index(selector)
 
     verify_steps = "\n".join(str(step) for step in verify["steps"])
     publish_steps = "\n".join(str(step) for step in publish["steps"])
@@ -77,8 +137,14 @@ def test_publication_workflow_has_manual_immutable_oidc_gate() -> None:
         (CERTIFIED_COMMIT, "0" * 40),
         (CERTIFIED_MANIFEST, "0" * 64),
         ("id-token: write", "contents: write"),
-        ("environment: pypi-adapters", "environment: pypi"),
-        ("distribution: atlas_agent_adapters", "distribution: atlas_agent_core"),
+        ('"environment":"pypi-adapters"', '"environment":"pypi"'),
+        ('"distribution":"atlas_agent_adapters"', '"distribution":"atlas_agent_core"'),
+        ("atlas-agent-core:atlas_agent_core", "atlas-agent-core:atlas_agent_mcp"),
+        ("- integracoes", "- final"),
+        (
+            "fundacao) predecessors=() ;;",
+            "fundacao) predecessors=(atlas-agent-core) ;;",
+        ),
     ],
 )
 def test_publication_controls_reject_unsafe_changes(

@@ -2,7 +2,7 @@
 
 ## Decisão
 
-**BLOCKED_PYPI_PENDING_LIMIT.** O gate técnico da versão estável está
+**PUBLICAÇÃO EM LOTES AUTORIZADA; PRIMEIRO LOTE AINDA NÃO PUBLICADO.** O gate técnico da versão estável está
 `READY_TO_PUBLISH` e o usuário autorizou a publicação oficial. A tag e os
 assets foram preparados no GitHub, mas a GitHub Release permanece em rascunho
 e nenhum pacote foi enviado ao PyPI. Não marcar como `PUBLISHED` até verificar
@@ -41,8 +41,12 @@ o registry e publicar o rascunho.
   não é um ambiente suportado para emitir o token.
 - O workflow manual
   [`publish-pypi.yml`](../../.github/workflows/publish-pypi.yml) revalida o
-  bundle certificado sem OIDC e publica cada distribuição em um job separado,
-  com environment protegido próprio. O environment `pypi` é exclusivo do core.
+  bundle certificado sem OIDC. A execução manual seleciona um dos lotes
+  fixos `fundacao` (core, adapters, config), `integracoes` (evaluation,
+  framework, mcp) ou `final` (providers); cada distribuição é publicada em
+  um job separado, com environment protegido próprio. Os lotes posteriores
+  exigem os dois hashes de cada projeto anterior no PyPI. O environment
+  `pypi` é exclusivo do core.
 - Os Pending Publishers de `atlas-agent-core`, `atlas-agent-adapters` e
   `atlas-agent-config` foram registrados na conta PyPI `medicode` e conferidos
   na lista de publicadores, cada um com seu environment próprio. O PyPI recusou
@@ -54,16 +58,19 @@ o registry e publicar o rascunho.
   GitHub no commit `1b215b7ae261611130b8c045bff17f8ae993c5be`; os gates
   de Qualidade e Empacotamento desse commit passaram.
 - Upload: `NOT_ATTEMPTED`. O workflow manual foi temporariamente desativado
-  no GitHub (`disabled_manually`) para impedir uma publicação parcial com
-  somente três dos sete Pending Publishers. A desativação é reversível e não
-  altera a tag, o commit certificado ou os artefatos.
+  no GitHub (`disabled_manually`) enquanto a seleção de lotes e o bloqueio
+  dos lotes posteriores são preparados. Será reativado apenas depois da
+  validação do seletor e executado inicialmente somente com `fundacao`.
+  A desativação é reversível e não altera a tag, o commit certificado ou os
+  artefatos.
 
 ## Próxima ação
 
-Registrar separadamente os sete Pending Publishers no PyPI, todos com owner
-GitHub `medidrones`, repositório `ai-agent-framework` e workflow
-`publish-pypi.yml`. Cada projeto ainda inexistente usa um environment
-GitHub próprio para distinguir sua identidade OIDC:
+Publicar exclusivamente o lote `fundacao` após aprovação humana dos três
+environments no GitHub. O usuário autorizou esse primeiro lote, ciente de
+que haverá disponibilidade parcial no PyPI até o término da publicação dos
+sete projetos. Cada projeto usa um environment GitHub próprio para distinguir
+sua identidade OIDC:
 
 | Projeto PyPI | Environment | Pending Publisher |
 | --- | --- | --- |
@@ -78,10 +85,10 @@ GitHub próprio para distinguir sua identidade OIDC:
 O [formulário de Pending Publisher](https://pypi.org/manage/account/publishing/)
 é preenchido pela conta PyPI responsável. Essa configuração não cria nem
 reserva um projeto antes do primeiro upload. O próprio PyPI informou o limite
-de três publicadores pendentes simultâneos por conta. O próximo passo depende
-de uma decisão de governança: solicitar uma exceção ao PyPI ou autorizar
-publicação controlada em lotes, na qual cada primeiro upload converte o
-publicador pendente em ativo e libera espaço para os próximos registros.
-Nenhum desses caminhos deve publicar a GitHub Release em rascunho antes da
+de três publicadores pendentes simultâneos por conta. A publicação controlada
+em lotes foi autorizada; o primeiro upload de cada projeto converte o
+publicador pendente em ativo e libera espaço para os próximos registros. A
+autorização atual abrange somente `fundacao`, não os lotes subsequentes.
+Nenhum lote deve publicar a GitHub Release em rascunho antes da
 verificação dos sete projetos e dos 14 hashes. Não inserir tokens em
 documentação, commit, issue ou conversa.

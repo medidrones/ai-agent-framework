@@ -28,9 +28,11 @@ Publicação é ação separada e explicitamente autorizada.
 ## Publicação oficial no PyPI por OIDC
 
 O workflow [`Publicação oficial no PyPI`](../../.github/workflows/publish-pypi.yml)
-é exclusivamente manual. Seu primeiro job não recebe permissão OIDC: confirma
+é exclusivamente manual e exige a escolha de um lote fixo. Seu primeiro job não recebe permissão OIDC: confirma
 a tag anotada da versão estável, o commit certificado, o run de empacotamento,
-o ID do artefato e todos os checksums do bundle. Os sete jobs de publicação,
+o ID do artefato e todos os checksums do bundle. Antes dos lotes
+`integracoes` e `final`, também confere no PyPI os dois arquivos e respectivos
+hashes de cada projeto dos lotes anteriores. Os jobs de publicação do lote,
 um por projeto e environment protegido, recebem `id-token: write` somente
 após aprovação. Eles não fazem checkout nem rebuild; cada job publica apenas
 seu wheel e sdist do bundle verificado e compara seus SHA-256 com os arquivos
@@ -54,8 +56,10 @@ Na configuração inicial dos sete projetos da versão `1.0.1`, o PyPI limitou a
 conta a três publicadores pendentes simultâneos. Um primeiro upload converte
 o registro pendente em publicador ativo, mas publicar em lotes cria um período
 de disponibilidade parcial no registry. Esse desvio do plano original exige
-decisão explícita de governança e adaptação do workflow manual para selecionar
-somente o lote autorizado. Não executar a matriz completa com registros
+decisão explícita de governança. O primeiro lote `fundacao` (core, adapters,
+config) foi autorizado. Os demais são `integracoes` (evaluation, framework,
+mcp) e `final` (providers); cada execução precisa de autorização específica e
+da aprovação humana dos environments. Não executar os lotes com registros
 pendentes ausentes. Consulte o estado em
 [`PUBLICATION-STATUS-1.0.1.md`](PUBLICATION-STATUS-1.0.1.md).
 

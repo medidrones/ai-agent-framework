@@ -2,6 +2,15 @@ name: Publicação oficial no PyPI
 
 on:
   workflow_dispatch:
+    inputs:
+      lote:
+        description: Lote autorizado para publicação
+        required: true
+        type: choice
+        options:
+          - fundacao
+          - integracoes
+          - final
 
 concurrency:
   group: atlas-pypi-1.0.1
@@ -13,6 +22,8 @@ jobs:
   verificar-bundle:
     name: Conferir fonte e artefatos certificados
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.selecionar-lote.outputs.matrix }}
     permissions:
       contents: read
       actions: read
@@ -72,6 +83,65 @@ jobs:
           jq -e '.bomFormat == "CycloneDX" and .metadata.component.version == "1.0.1"' \
             atlas-agent-framework.cdx.json
 
+      - name: Exigir publicação e hashes dos lotes anteriores
+        shell: bash
+        env:
+          LOTE: ${{ inputs.lote }}
+        run: |
+          set -euo pipefail
+          case "$LOTE" in
+            fundacao) predecessors=() ;;
+            integracoes)
+              predecessors=(
+                atlas-agent-core:atlas_agent_core
+                atlas-agent-adapters:atlas_agent_adapters
+                atlas-agent-config:atlas_agent_config
+              ) ;;
+            final)
+              predecessors=(
+                atlas-agent-core:atlas_agent_core
+                atlas-agent-adapters:atlas_agent_adapters
+                atlas-agent-config:atlas_agent_config
+                atlas-agent-evaluation:atlas_agent_evaluation
+                atlas-agent-framework:atlas_agent_framework
+                atlas-agent-mcp:atlas_agent_mcp
+              ) ;;
+            *) exit 1 ;;
+          esac
+          cd certificado/dist
+          for entry in "${predecessors[@]}"; do
+            IFS=: read -r project distribution <<< "$entry"
+            curl --fail --silent --show-error --retry-all-errors --retry 12 \
+              --retry-delay 5 \
+              "https://pypi.org/pypi/${project}/1.0.1/json" > "${project}.json"
+            test "$(jq '.urls | length' "${project}.json")" -eq 2
+            test "$(grep -c "  ${distribution}-1.0.1" SHA256SUMS)" -eq 2
+            while read -r expected filename; do
+              test "$(jq -r --arg filename "$filename" \
+                '.urls[] | select(.filename == $filename) | .digests.sha256' \
+                "${project}.json")" = "$expected"
+            done < <(grep "  ${distribution}-1.0.1" SHA256SUMS)
+            rm -- "${project}.json"
+          done
+
+      - name: Selecionar somente o lote autorizado
+        id: selecionar-lote
+        shell: bash
+        env:
+          LOTE: ${{ inputs.lote }}
+          MATRIZ_FUNDACAO: '{"include":[{"project":"atlas-agent-core","distribution":"atlas_agent_core","environment":"pypi"},{"project":"atlas-agent-adapters","distribution":"atlas_agent_adapters","environment":"pypi-adapters"},{"project":"atlas-agent-config","distribution":"atlas_agent_config","environment":"pypi-config"}]}'
+          MATRIZ_INTEGRACOES: '{"include":[{"project":"atlas-agent-evaluation","distribution":"atlas_agent_evaluation","environment":"pypi-evaluation"},{"project":"atlas-agent-framework","distribution":"atlas_agent_framework","environment":"pypi-framework"},{"project":"atlas-agent-mcp","distribution":"atlas_agent_mcp","environment":"pypi-mcp"}]}'
+          MATRIZ_FINAL: '{"include":[{"project":"atlas-agent-providers","distribution":"atlas_agent_providers","environment":"pypi-providers"}]}'
+        run: |
+          set -euo pipefail
+          case "$LOTE" in
+            fundacao) matrix="$MATRIZ_FUNDACAO" ;;
+            integracoes) matrix="$MATRIZ_INTEGRACOES" ;;
+            final) matrix="$MATRIZ_FINAL" ;;
+            *) exit 1 ;;
+          esac
+          printf 'matrix=%s\n' "$matrix" >> "$GITHUB_OUTPUT"
+
       - name: Transferir somente o bundle verificado
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -87,29 +157,7 @@ jobs:
     strategy:
       fail-fast: true
       max-parallel: 1
-      matrix:
-        include:
-          - project: atlas-agent-core
-            distribution: atlas_agent_core
-            environment: pypi
-          - project: atlas-agent-adapters
-            distribution: atlas_agent_adapters
-            environment: pypi-adapters
-          - project: atlas-agent-config
-            distribution: atlas_agent_config
-            environment: pypi-config
-          - project: atlas-agent-evaluation
-            distribution: atlas_agent_evaluation
-            environment: pypi-evaluation
-          - project: atlas-agent-framework
-            distribution: atlas_agent_framework
-            environment: pypi-framework
-          - project: atlas-agent-mcp
-            distribution: atlas_agent_mcp
-            environment: pypi-mcp
-          - project: atlas-agent-providers
-            distribution: atlas_agent_providers
-            environment: pypi-providers
+      matrix: ${{ fromJSON(needs.verificar-bundle.outputs.matrix) }}
     environment:
       name: ${{ matrix.environment }}
     permissions:
