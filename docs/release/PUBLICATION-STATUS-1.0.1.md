@@ -2,7 +2,7 @@
 
 ## Decisão
 
-**PENDING_PYPI_AUTH.** O gate técnico da versão estável está
+**PENDING_PYPI_PUBLISHERS.** O gate técnico da versão estável está
 `READY_TO_PUBLISH` e o usuário autorizou a publicação oficial. A tag e os
 assets foram preparados no GitHub, mas a GitHub Release permanece em rascunho
 e nenhum pacote foi enviado ao PyPI. Não marcar como `PUBLISHED` até verificar
@@ -35,18 +35,39 @@ o registry e publicar o rascunho.
   `atlas-agent-mcp` e `atlas-agent-providers` retornaram `404` no endpoint
   oficial de projetos do PyPI na consulta de 2026-09-15.
 - O dry-run do `uv publish` conferiu 14 distribuições exatas do bundle.
-- Não havia `UV_PUBLISH_TOKEN`, credenciais Twine/PyPI, `.pypirc`, secret
-  do repositório ou environment PyPI configurado neste ambiente.
+- Não havia `UV_PUBLISH_TOKEN`, credenciais Twine/PyPI ou `.pypirc` neste
+  ambiente; nenhuma credencial estática será necessária para o canal escolhido.
 - Trusted Publishing tentou obter identidade OIDC, mas esta execução local
   não é um ambiente suportado para emitir o token.
-- Upload: `NOT_ATTEMPTED` por falta de autenticação protegida.
+- O workflow manual
+  [`publish-pypi.yml`](../../.github/workflows/publish-pypi.yml) foi preparado
+  para revalidar o bundle certificado antes de obter OIDC no environment
+  `pypi`. O environment GitHub foi criado com aprovação obrigatória da conta
+  `medidrones` e política de deploy exclusiva para `main`. A configuração dos
+  sete Pending Publishers no PyPI ainda depende da conta proprietária dos
+  projetos.
+- Upload: `NOT_ATTEMPTED` até essa configuração estar concluída.
 
 ## Próxima ação
 
-Definir um canal protegido de autenticação para publicar os sete projetos:
-Trusted Publishing em GitHub Actions ou token PyPI disponibilizado por um
-secret/ambiente local seguro. Não inserir tokens em documentação, commit,
-issue ou conversa. Após configurar o canal, conferir novamente os 14 arquivos
-e os nomes no registry, fazer upload dos artefatos certificados e verificar
-cada projeto e cada arquivo no PyPI. Somente depois publicar o rascunho da
-GitHub Release e registrar a decisão `PUBLISHED`.
+Registrar separadamente os sete Pending Publishers no PyPI, todos com owner
+GitHub `medidrones`, repositório `ai-agent-framework`, arquivo de workflow
+`publish-pypi.yml` e environment `pypi`. Somente o nome do projeto PyPI muda:
+
+| Projeto PyPI |
+| --- |
+| `atlas-agent-framework` |
+| `atlas-agent-adapters` |
+| `atlas-agent-config` |
+| `atlas-agent-core` |
+| `atlas-agent-evaluation` |
+| `atlas-agent-mcp` |
+| `atlas-agent-providers` |
+
+O [formulário de Pending Publisher](https://pypi.org/manage/account/publishing/)
+é preenchido pela conta PyPI responsável. Essa configuração não cria nem
+reserva um projeto antes do primeiro upload. Após confirmação dos sete
+registros, executar manualmente o workflow em `main`, aprovar o job do
+environment `pypi`, conferir os 14 hashes no PyPI e somente então publicar o
+rascunho da GitHub Release. Não inserir tokens em documentação, commit, issue
+ou conversa.

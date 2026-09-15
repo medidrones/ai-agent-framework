@@ -25,6 +25,26 @@ Uma RC pode manter P2 documentado. A `1.0.0` exige período de validação nas
 plataformas suportadas, auditoria de dependências atualizada e nenhum P0/P1.
 Publicação é ação separada e explicitamente autorizada.
 
+## Publicação oficial no PyPI por OIDC
+
+O workflow [`Publicação oficial no PyPI`](../../.github/workflows/publish-pypi.yml)
+é exclusivamente manual. Seu primeiro job não recebe permissão OIDC: confirma
+a tag anotada da versão estável, o commit certificado, o run de empacotamento,
+o ID do artefato e todos os checksums do bundle. Somente o segundo job, após
+aprovação no environment GitHub `pypi`, recebe `id-token: write`. Ele não faz
+checkout nem rebuild; publica apenas os wheels e sdists do bundle verificado
+e compara seus SHA-256 com os arquivos registrados no PyPI.
+
+Para um projeto ainda inexistente no PyPI, a pessoa proprietária deve criar
+um Pending Publisher para **cada** uma das sete distribuições, usando o nome
+exato do projeto e a mesma identidade GitHub: owner `medidrones`, repositório
+`ai-agent-framework`, workflow `publish-pypi.yml` e environment `pypi`.
+Consulte os nomes e o estado em
+[`PUBLICATION-STATUS-1.0.1.md`](PUBLICATION-STATUS-1.0.1.md). A criação dos
+Pending Publishers não publica nada; o primeiro upload é uma decisão manual
+posterior. A GitHub Release em rascunho só pode ser tornada pública depois da
+verificação positiva dos sete projetos e dos 14 arquivos no PyPI.
+
 `READY_FOR_RC` autoriza construir o candidato, mas não equivale a
 `READY_FOR_STABLE`. Qualquer correção material depois da certificação exige uma
 nova versão RC, novo build e nova certificação; evidências de um RC anterior não
