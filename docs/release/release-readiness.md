@@ -33,8 +33,8 @@ gate estão nos registros versionados posteriores.
 
 ## Próximo gate
 
-O gate técnico de promoção `1.0.1rc2 → 1.0.1` está em execução, com delta
-estritamente limitado a versionamento, metadados e documentação de release.
-Certificar os artefatos estáveis instalados antes de qualquer tag ou
-publicação. A publicação no PyPI continua dependente de autorização
-explícita separada.
+O [gate técnico de promoção](STABLE-PROMOTION-STATUS.md)
+`1.0.1rc2 → 1.0.1` passou com delta restrito a versionamento, metadados e
+documentação de release. Os artefatos estáveis estão `READY_TO_PUBLISH`, mas
+não foram publicados. Tag estável, GitHub Release e envio ao PyPI exigem ação
+separada e autorização explícita.
