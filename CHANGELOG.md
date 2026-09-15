@@ -17,8 +17,9 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ### Governança
 
 - Aberta nova candidata após a falha temporal na primeira matriz Windows 3.12
-  da promoção estável. `v1.0.1rc1` permanece imutável; certificação remota e
-  cinco novas aprovações serão exigidas para `v1.0.1rc2`.
+  da promoção estável. `v1.0.1rc1` permanece imutável. A certificação remota
+  de `v1.0.1rc2` passou no primeiro attempt; cinco novas aprovações ainda são
+  exigidas antes da promoção.
 
 ## [1.0.1] - 2026-09-15
 

@@ -2,8 +2,8 @@
 
 ## Decisão
 
-**NOT_READY.** A candidata `1.0.1rc2` está em preparação e ainda exige
-certificação técnica própria, tag imutável e cinco novas aprovações formais.
+**NOT_READY.** A tag anotada `v1.0.1rc2` concluiu sua certificação técnica
+em `PASS` no primeiro attempt, mas ainda exige cinco novas aprovações formais.
 A certificação e os sign-offs da `1.0.1rc1` não são transferíveis.
 
 O teste temporal que falhou na primeira matriz Windows 3.12 da promoção
@@ -11,16 +11,22 @@ O teste temporal que falhou na primeira matriz Windows 3.12 da promoção
 o runtime, a API pública, dependências externas ou os contratos. O histórico
 do gate anterior permanece em [STABLE-PROMOTION-STATUS.md](STABLE-PROMOTION-STATUS.md).
 
-## Gates pendentes
+## Gates
 
 | Gate | Estado | Evidência requerida |
 | --- | --- | --- |
-| Regressão local | PENDENTE | suíte completa e repetição do teste temporal |
-| Qualidade remota | PENDENTE | matriz integral, inclusive Windows 3.12 |
-| Artefatos | PENDENTE | sete wheels, sete sdists, checksums e SBOM |
-| Certificação da tag | PENDENTE | workflow sobre `v1.0.1rc2` |
+| Regressão local | PASS | 1.141 testes, cobertura 93%; teste temporal 20/20 |
+| Qualidade remota | PASS | matriz integral na primeira execução, inclusive Windows 3.12 |
+| Artefatos | PASS | sete wheels, sete sdists, 15 checksums e SBOM |
+| Certificação da tag | PASS | workflow `35010523479` sobre `v1.0.1rc2` |
 | Owner sign-offs | NOT_VERIFIED | cinco registros vinculados ao commit RC2 |
-| P0/P1 abertas | PENDENTE | confirmação `0/0` no gate |
+| P0/P1 abertas | PENDENTE | confirmação `0/0` no gate humano |
+
+O inventário, o digest do manifesto e a identidade da fonte estão preservados
+em [evidence/1.0.1rc2/README.md](evidence/1.0.1rc2/README.md). A versão
+arquivada da prontidão dentro do bundle da tag representa o estado anterior
+à conclusão da própria certificação; o resultado final está em
+`automated-gates.json` do mesmo bundle e nesta atualização posterior.
 
 ## Próximo gate
 

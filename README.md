@@ -1,8 +1,8 @@
 # Atlas Agent Framework
 
-> Candidata em preparação: `1.0.1rc2`, para recertificar a rota até `1.0.1`
+> Candidata tecnicamente certificada: `1.0.1rc2`, para recertificar a rota até `1.0.1`
 > após uma falha temporal na primeira matriz Windows 3.12 da promoção anterior.
-> A versão estável continua `NOT_READY_TO_PUBLISH`. O nome público é
+> A promoção estável aguarda cinco novos sign-offs formais. O nome público é
 > `atlas-agent-framework`; o namespace Python `atlas_agent` permanece
 > inalterado.
 > Consulte as [notas da candidata](docs/release/releases/1.0.1rc2.md).
