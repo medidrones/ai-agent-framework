@@ -16,13 +16,17 @@ o commit nem a tag anotada da candidata.
 - Segredos nos artefatos: zero findings
 - Regressão certificada: 1.141 testes, zero falhas ou erros
 - Status técnico: `PASS`
-- Owner sign-offs: `NOT_VERIFIED`
-- Decisão final: `NOT_READY`
+- Owner sign-offs: `PASS` — cinco decisões distintas de Jorge Medina,
+  registradas em [SIGN-OFF-STATUS.md](SIGN-OFF-STATUS.md)
+- Decisão final: `READY_FOR_STABLE`
 
 O SBOM é armazenado no bundle como `sbom.cdx.json`; a linha correspondente
 em `SHA256SUMS` usa o nome original `atlas-agent-framework.cdx.json`. O
 checksum do conteúdo copiado foi verificado, sem alteração dos bytes.
 
 Os relatórios técnicos completos estão no artefato arquivado pelo workflow.
-As cinco aprovações da `1.0.1rc1` não substituem decisões humanas referentes
-à nova fonte certificada. Não há tag estável `v1.0.1` nem publicação no PyPI.
+As cinco aprovações da `1.0.1rc1` não substituíram decisões referentes à nova
+fonte certificada. Jorge Medina confirmou explicitamente os cinco papéis para
+`1.0.1rc2` nesta tarefa. O bundle original registra `NOT_VERIFIED` porque foi
+gerado antes da decisão humana; estes registros versionados documentam o gate
+administrativo posterior. Não há tag estável `v1.0.1` nem publicação no PyPI.
