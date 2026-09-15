@@ -53,19 +53,23 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          echo "Conferindo execução certificada"
           run_json=$(gh api repos/medidrones/ai-agent-framework/actions/runs/35017413644)
           test "$(jq -r '.status' <<< "$run_json")" = completed
           test "$(jq -r '.conclusion' <<< "$run_json")" = success
           test "$(jq -r '.head_sha' <<< "$run_json")" = "43fd7008f8573f2b2a9906ee8c257986777f04e9"
+          echo "Conferindo artefato certificado"
           artifact_json=$(gh api repos/medidrones/ai-agent-framework/actions/artifacts/10416406388)
           test "$(jq -r '.name' <<< "$artifact_json")" = atlas-release-candidate
           test "$(jq -r '.expired' <<< "$artifact_json")" = false
           test "$(jq -r '.workflow_run.id' <<< "$artifact_json")" = 35017413644
+          echo "Conferindo rascunho da release"
           release_json=$(gh api repos/medidrones/ai-agent-framework/releases/389449556)
           test "$(jq -r '.draft' <<< "$release_json")" = true
           test "$(jq -r '.tag_name' <<< "$release_json")" = v1.0.1
           test "$(jq -r '.target_commitish' <<< "$release_json")" = "43fd7008f8573f2b2a9906ee8c257986777f04e9"
           test "$(jq '.assets | length' <<< "$release_json")" -eq 16
+          echo "Baixando bundle certificado"
           gh run download 35017413644 --repo medidrones/ai-agent-framework \
             --name atlas-release-candidate --dir certificado
 
