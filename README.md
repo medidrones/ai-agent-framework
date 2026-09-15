@@ -1,12 +1,12 @@
 # Atlas Agent Framework
 
-> Versão estável `1.0.1` certificada a partir da candidata `1.0.1rc2`.
-> O gate técnico está `READY_TO_PUBLISH`. A tag estável existe, mas a GitHub
-> Release segue em rascunho e o PyPI aguarda autenticação protegida.
-> O nome público é
+> Versão estável `1.0.1` certificada a partir da candidata `1.0.1rc2` e
+> publicada no PyPI em sete distribuições. A
+> [GitHub Release `v1.0.1`](https://github.com/medidrones/ai-agent-framework/releases/tag/v1.0.1)
+> também está pública. O nome da distribuição principal é
 > `atlas-agent-framework`; o namespace Python `atlas_agent` permanece
-> inalterado.
-> Consulte as [notas da versão estável](docs/release/releases/1.0.1.md).
+> inalterado. Consulte as [notas da versão](docs/release/releases/1.0.1.md)
+> e o [registro de publicação](docs/release/PUBLICATION-STATUS-1.0.1.md).
 
 A distribuição opcional `atlas-agent-config` oferece schema versionado,
 carregamento seguro de YAML/JSON, referências de segredos, factories tipadas e
@@ -46,17 +46,18 @@ identidade confiável, autorização e limites explícitos. Consulte a
 Atlas é um framework Python reutilizável e independente de provedor para
 definir, compor, executar e avaliar agentes de IA.
 
-Este repositório contém a infraestrutura de um framework, não uma aplicação de
-negócio. O pacote principal define contratos estáveis, enquanto pacotes
-opcionais integrarão provedores de modelos, sistemas de armazenamento,
-transportes e ferramentas de observabilidade.
+Este repositório contém um SDK, não uma aplicação de negócio. O pacote core
+define contratos estáveis; distribuições opcionais oferecem providers,
+adapters, MCP, configuração e avaliação. Armazenamento e observabilidade são
+integrados por contratos e dependências injetadas, sem infraestrutura
+obrigatória no core.
 
 ## Objetivo
 
 O objetivo do Atlas é oferecer um núcleo tecnológico incorporável para definir
-e executar agentes sem impor uma stack de aplicação. Providers, persistência,
-transportes e integrações serão adicionados por pacotes opcionais que
-implementam contratos do core.
+e executar agentes sem impor uma stack de aplicação. Providers e transportes
+concretos estão em pacotes opcionais; persistência e outras integrações podem
+ser fornecidas por implementações dos contratos do core.
 
 O Atlas é um framework e não uma aplicação final. Ele não contém interface,
 autenticação, infraestrutura obrigatória nem regras de um domínio de negócio.
@@ -72,9 +73,9 @@ autenticação, infraestrutura obrigatória nem regras de um domínio de negóci
 
 ## Situação atual
 
-O projeto possui a fundação do workspace e os primeiros contratos públicos do
-core. Já é possível descrever agentes, entradas, contexto, identidade, resultados,
-uso e eventos, além de implementar o contrato abstrato `Agent`. O lifecycle
+Na versão `1.0.1` publicada, o core reúne contratos públicos para agentes,
+entradas, contexto, identidade, resultados, uso e eventos, além do contrato
+abstrato `Agent` e de um runtime executável. O lifecycle
 formal valida mudanças de estado, registra um histórico imutável e permite gerar
 eventos monotônicos por execução. A abstração de modelos já representa
 capabilities, mensagens multimodais, requests, responses, streaming e providers

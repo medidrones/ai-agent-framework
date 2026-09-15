@@ -31,13 +31,14 @@ arquivada da prontidão dentro do bundle da tag representa o estado anterior
 `automated-gates.json` do mesmo bundle. As decisões humanas e a conclusão do
 gate estão nos registros versionados posteriores.
 
-## Próximo gate
+## Desdobramento da candidata
 
 O [gate técnico de promoção](STABLE-PROMOTION-STATUS.md)
 `1.0.1rc2 → 1.0.1` passou com delta restrito a versionamento, metadados e
-documentação de release. Os artefatos estáveis estão `READY_TO_PUBLISH`, mas
-não foram enviados ao PyPI. Após autorização separada, a tag estável foi
-criada no commit certificado e a GitHub Release foi preparada como rascunho
-com 16 assets íntegros. O envio ao PyPI e a publicação do rascunho aguardam
-um canal de autenticação protegido; consulte o
-[estado da publicação](PUBLICATION-STATUS-1.0.1.md).
+documentação de release. A decisão técnica `READY_TO_PUBLISH` foi preservada
+como resultado histórico desse gate. Após autorização, a tag estável foi
+criada no commit certificado e os sete projetos `1.0.1` foram publicados no
+PyPI por Trusted Publishing, com 14/14 arquivos conferidos. Uma autorização
+separada permitiu publicar a GitHub Release com 16/16 assets íntegros.
+O [estado final da publicação](PUBLICATION-STATUS-1.0.1.md) é `PUBLISHED` nos
+dois canais; isso não altera a decisão original de prontidão da candidata.
