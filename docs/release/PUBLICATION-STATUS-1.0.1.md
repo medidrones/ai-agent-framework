@@ -2,11 +2,11 @@
 
 ## Decisão
 
-**PUBLICAÇÃO EM LOTES AUTORIZADA; PRIMEIRO LOTE AINDA NÃO PUBLICADO.** O gate técnico da versão estável está
-`READY_TO_PUBLISH` e o usuário autorizou a publicação oficial. A tag e os
-assets foram preparados no GitHub, mas a GitHub Release permanece em rascunho
-e nenhum pacote foi enviado ao PyPI. Não marcar como `PUBLISHED` até verificar
-o registry e publicar o rascunho.
+**PUBLICAÇÃO PARCIAL VERIFICADA (3/7).** O gate técnico da versão estável está
+`READY_TO_PUBLISH`. O lote autorizado `fundacao` foi publicado, com os seis
+hashes dos três projetos conferidos contra o manifesto certificado. A GitHub
+Release permanece em rascunho. Não marcar o release completo como `PUBLISHED`
+até verificar os sete projetos, os 14 arquivos e publicar o rascunho.
 
 ## Fonte imutável
 
@@ -27,6 +27,9 @@ o registry e publicar o rascunho.
 - Integridade: 16/16 digests SHA-256 dos assets do GitHub coincidem com os
   arquivos do bundle certificado.
 - Release pública: `NOT_PUBLISHED`.
+- Lote `fundacao`: [execução manual 35027170998](https://github.com/medidrones/ai-agent-framework/actions/runs/35027170998)
+  `SUCCESS` após revisão humana dos três environments. O primeiro job conferiu
+  fonte, run, artefato e inventário do bundle certificado.
 - O token `GITHUB_TOKEN` com `contents: read` do gate não conseguiu consultar
   o rascunho da Release (`HTTP 403` em duas execuções sem upload). O estado
   `DRAFT`, a tag, o commit e os 16 assets foram conferidos separadamente pela
@@ -36,7 +39,7 @@ o registry e publicar o rascunho.
 
 ## PyPI
 
-- Os sete nomes `atlas-agent-framework`, `atlas-agent-adapters`,
+- Antes da publicação, os sete nomes `atlas-agent-framework`, `atlas-agent-adapters`,
   `atlas-agent-config`, `atlas-agent-core`, `atlas-agent-evaluation`,
   `atlas-agent-mcp` e `atlas-agent-providers` retornaram `404` no endpoint
   oficial de projetos do PyPI na consulta de 2026-09-15.
@@ -58,43 +61,50 @@ o registry e publicar o rascunho.
   na lista de publicadores, cada um com seu environment próprio. O PyPI recusou
   a tentativa de registrar `atlas-agent-evaluation`: esta conta não pode manter
   mais de três publicadores pendentes simultaneamente. Os outros três também
-  permanecem sem registro.
+  permanecem sem registro. A conversão dos três registros pendentes em
+  publicadores dos projetos existentes ainda precisa ser verificada na
+  interface da conta PyPI.
 - Os sete environments GitHub existem, exigem aprovação de `medidrones` e
-  permitem deploy apenas em `main`. O workflow corrigido foi aceito pelo
-  GitHub no commit `1b215b7ae261611130b8c045bff17f8ae993c5be`; os gates
-  de Qualidade e Empacotamento desse commit passaram.
-- Upload: `NOT_ATTEMPTED`. O workflow manual foi temporariamente desativado
-  no GitHub (`disabled_manually`) enquanto a seleção de lotes e o bloqueio
-  dos lotes posteriores são preparados. Será reativado apenas depois da
-  validação do seletor e executado inicialmente somente com `fundacao`.
-  A desativação é reversível e não altera a tag, o commit certificado ou os
-  artefatos.
+  permitem deploy apenas em `main`. O workflow seletivo está `ACTIVE` no
+  GitHub; Qualidade e Empacotamento do commit `3074a4e92421d986e7a106828ec1208a7612767a`
+  passaram. A execução bem-sucedida usou o commit de workflow
+  `7f70a5517956f84a78db5b3f2a6942b5f492766f`, sem mover a tag estável.
+- Upload `fundacao`: `SUCCESS`. As duas execuções anteriores falharam na
+  consulta ao rascunho com `HTTP 403`, antes de qualquer upload; o gate foi
+  ajustado mantendo permissões mínimas e o rascunho foi conferido pela conta
+  autorizada antes da execução bem-sucedida.
+- SHA-256 `VERIFIED` para os wheels e sdists dos três projetos:
+  `atlas_agent_core` (`2a1cd36c…`, `d77036e4…`),
+  `atlas_agent_adapters` (`4a123ff5…`, `8aa8281d…`) e
+  `atlas_agent_config` (`3d28b6f3…`, `c918c251…`). O endpoint JSON oficial
+  do PyPI retornou exatamente dois arquivos para cada versão `1.0.1`, com
+  nome e digest idênticos ao `SHA256SUMS` certificado.
 
 ## Próxima ação
 
-Publicar exclusivamente o lote `fundacao` após aprovação humana dos três
-environments no GitHub. O usuário autorizou esse primeiro lote, ciente de
-que haverá disponibilidade parcial no PyPI até o término da publicação dos
-sete projetos. Cada projeto usa um environment GitHub próprio para distinguir
-sua identidade OIDC:
+Após a conta `medicode` reconfirmar a senha exigida pelo PyPI para gerenciar
+publicadores, verificar a conversão dos três Pending Publishers publicados e
+registrar os próximos três (`evaluation`, `framework`, `mcp`). Cada projeto
+usa um environment GitHub próprio para distinguir sua identidade OIDC:
 
-| Projeto PyPI | Environment | Pending Publisher |
-| --- | --- | --- |
-| `atlas-agent-core` | `pypi` | `REGISTERED` |
-| `atlas-agent-adapters` | `pypi-adapters` | `REGISTERED` |
-| `atlas-agent-config` | `pypi-config` | `REGISTERED` |
-| `atlas-agent-evaluation` | `pypi-evaluation` | `NOT_VERIFIED` |
-| `atlas-agent-framework` | `pypi-framework` | `NOT_VERIFIED` |
-| `atlas-agent-mcp` | `pypi-mcp` | `NOT_VERIFIED` |
-| `atlas-agent-providers` | `pypi-providers` | `NOT_VERIFIED` |
+| Projeto PyPI | Environment | Versão 1.0.1 | Publisher |
+| --- | --- | --- | --- |
+| `atlas-agent-core` | `pypi` | `2/2 HASH_VERIFIED` | Conversão não verificada |
+| `atlas-agent-adapters` | `pypi-adapters` | `2/2 HASH_VERIFIED` | Conversão não verificada |
+| `atlas-agent-config` | `pypi-config` | `2/2 HASH_VERIFIED` | Conversão não verificada |
+| `atlas-agent-evaluation` | `pypi-evaluation` | `NOT_PUBLISHED` | `NOT_REGISTERED` |
+| `atlas-agent-framework` | `pypi-framework` | `NOT_PUBLISHED` | `NOT_REGISTERED` |
+| `atlas-agent-mcp` | `pypi-mcp` | `NOT_PUBLISHED` | `NOT_REGISTERED` |
+| `atlas-agent-providers` | `pypi-providers` | `NOT_PUBLISHED` | `NOT_REGISTERED` |
 
 O [formulário de Pending Publisher](https://pypi.org/manage/account/publishing/)
 é preenchido pela conta PyPI responsável. Essa configuração não cria nem
 reserva um projeto antes do primeiro upload. O próprio PyPI informou o limite
 de três publicadores pendentes simultâneos por conta. A publicação controlada
-em lotes foi autorizada; o primeiro upload de cada projeto converte o
-publicador pendente em ativo e libera espaço para os próximos registros. A
-autorização atual abrange somente `fundacao`, não os lotes subsequentes.
+em lotes foi autorizada; o primeiro upload de cada projeto deve converter o
+publicador pendente em ativo e liberar espaço, mas é necessário confirmar o
+estado autenticado na conta. A autorização atual abrangeu somente `fundacao`,
+não os lotes subsequentes.
 Nenhum lote deve publicar a GitHub Release em rascunho antes da
 verificação dos sete projetos e dos 14 hashes. Não inserir tokens em
 documentação, commit, issue ou conversa.
