@@ -7,6 +7,20 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não publicado]
 
+## [1.0.1] - 2026-09-15
+
+### Alterado
+
+- Promovidas as sete distribuições da candidata certificada `1.0.1rc1` para
+  `1.0.1`, com versões e restrições internas sincronizadas em lockstep.
+- Preservado o nome público `atlas-agent-framework` e o namespace Python
+  `atlas_agent`, sem alteração funcional, de API pública ou dependência externa.
+
+### Governança
+
+- A tag `v1.0.0` permanece imutável. A versão `1.0.1` exige certificação dos
+  próprios artefatos estáveis e autorização separada para publicação no PyPI.
+
 ## [1.0.1rc1] - 2026-09-14
 
 ### Alterado

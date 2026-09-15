@@ -1,90 +1,78 @@
-# Atlas Agent Framework — Status da promoção estável
+# Atlas Agent Framework — Gate de promoção estável 1.0.1
 
-> Status substituído em 14 de setembro de 2026. A release `v1.0.0` foi
-> publicada no GitHub, mas o envio ao PyPI foi bloqueado porque o nome
-> `atlas-agent` pertence a um projeto de terceiros. A correção segue no ciclo
-> `1.0.1rc1` com o nome público `atlas-agent-framework`, preservando a tag
-> histórica `v1.0.0` sem reescrita.
-
-## Escopo
-
-Promoção administrativa de `1.0.0rc3` para `1.0.0`, sem nova funcionalidade,
-refactoring ou alteração de API, dependência externa, arquitetura, contrato,
-schema, configuração, workflow ou política de segurança.
-
-## Fonte certificada
+## Origem certificada
 
 | Campo | Valor |
 | --- | --- |
-| RC | `1.0.0rc3` |
-| Tag | `v1.0.0rc3` |
-| Commit certificado | `8177cbda41324039f66698122b128ec9d832f729` |
-| Status técnico | `PASS` |
-| Owner sign-offs | `PASS` |
-| Responsável pelos cinco papéis | Jorge Medina |
-| Integridade do artefato do RC | `VERIFIED` |
-| Alterações materiais | `NONE` |
+| RC | `1.0.1rc1` |
+| Tag | `v1.0.1rc1` |
+| Commit certificado | `16d1c4d26868cec65ca9385bc76f9e9db8f81d97` |
+| Workflow de certificação | [34896013098](https://github.com/medidrones/ai-agent-framework/actions/runs/34896013098) |
+| Owner sign-offs | `PASS`, Jorge Medina nos cinco papéis |
+| Integridade do RC | `VERIFIED`, 14 artefatos e 15 checksums |
+| Alterações materiais após o RC | `NONE` |
 | P0/P1 abertas | `0/0` |
 
-O SHA acima é o objeto efetivamente apontado pela tag anotada `v1.0.0rc3`. Ele
-corrige a transposição presente no valor textual
-`8177cbd4a1324039f66698122b128ec9d832f729`, que não identifica um objeto Git
-válido neste repositório.
+As aprovações formais estão em
+[`docs/release/evidence/1.0.1rc1/`](evidence/1.0.1rc1/README.md).
+As tags `v1.0.0` e `v1.0.1rc1` permanecem imutáveis.
 
-## Delta autorizado
+## Delta de promoção autorizado
 
-As diferenças entre a fonte certificada e a versão estável são restritas a:
+- remoção do sufixo `rc1` em `VERSION` e nos sete módulos de versão;
+- atualização lockstep das restrições internas dos sete pacotes;
+- changelog, README, compatibilidade, notas e evidências de release;
+- novos wheels, sdists, checksums e SBOM específicos de `1.0.1`.
 
-- remoção do sufixo `rc3` em `VERSION` e nos sete módulos de versão;
-- atualização lockstep das restrições internas entre os sete pacotes;
-- changelog, README, notas, evidências e relatórios de release;
-- inventário, checksums e SBOM dos novos artefatos.
+O comparador dos wheels encontrou **zero diferenças funcionais em 221 membros
+de payload** após excluir os módulos de versão e a metadata gerada. Para as
+sete distribuições, `Name`, `Requires-Python` e `Requires-Dist` coincidiram
+após normalizar apenas `1.0.1rc1 → 1.0.1`. Não houve mudança em código de
+runtime, API, dependências externas, arquitetura, schemas, wire contracts,
+políticas de segurança ou testes.
 
-Não há alteração em implementação funcional, API pública, dependência externa,
-arquitetura, schema, wire contract, política de segurança ou testes.
-
-## Certificação dos artefatos estáveis
+## Certificação local dos artefatos estáveis
 
 | Verificação | Resultado |
 | --- | --- |
 | `uv sync --locked` | PASS |
-| `ruff check` | PASS |
-| `ruff format --check` | PASS |
-| `mypy packages` | PASS — 332 arquivos |
-| suíte de regressão | PASS — 1.139 testes, 93% de cobertura |
-| build reproduzível | PASS — 14 distribuições |
-| validação de metadata | PASS |
-| instalação limpa sem editable | PASS |
-| namespace e `py.typed` | PASS |
-| extras e plugin entry points | PASS |
+| Ruff lint e formato | PASS |
+| mypy | PASS — 332 arquivos |
+| Regressão | PASS — 1.141 testes, 93% de cobertura |
+| Build | PASS — sete wheels e sete sdists |
+| Metadata, licença, `py.typed` e entry points | PASS |
+| Reprodutibilidade de metadata e manifestos | PASS |
+| Instalação limpa, sem editable | PASS — core, base e full |
+| Namespace, extras e imports opcionais | PASS |
+| Auditoria de arquitetura e API | PASS |
 | Bandit | PASS — zero findings |
 | pip-audit | PASS — nenhuma vulnerabilidade conhecida |
-| scanner de segredos | PASS — zero findings em 14 distribuições |
-| checksums SHA-256 | PASS — 15 entradas |
-| SBOM CycloneDX | PASS — 79 componentes |
-| exemplos .NET REST e gRPC | PASS — zero erros e warnings |
+| Scanner de segredos | PASS — zero findings em 14 artefatos |
+| SHA-256 | PASS — 15 entradas verificadas |
+| SBOM CycloneDX | PASS — versão `1.0.1`, 79 componentes |
+| Exemplos .NET REST e gRPC | PASS — zero erros e avisos |
+| Matriz remota do commit estável | PENDING |
 
-Os artefatos certificados permanecem locais em `dist/`. Nenhum pacote foi
-enviado ao PyPI ou a outro registry.
+Os artefatos e relatórios desta etapa estão locais em `dist/` e
+`reports/release/`. Os artefatos antigos foram preservados em
+`release/archived-dist-before-1.0.1/`. Nenhum pacote foi enviado ao PyPI.
 
-## Decisão final
+## Decisão provisória
 
 ```text
-STABLE PROMOTION       PASS
-SOURCE RC              1.0.0rc3
-TARGET                 1.0.0
-RC COMMIT              8177cbda41324039f66698122b128ec9d832f729
+STABLE PROMOTION       PENDING
+SOURCE RC              1.0.1rc1
+TARGET                 1.0.1
 OWNER SIGN-OFFS        PASS
-P0 OPEN                0
-P1 OPEN                0
+P0/P1 OPEN             0/0
 PROMOTION DELTA        VERIFIED
-STABLE ARTIFACTS       VERIFIED
-CLEAN INSTALL          PASS
-SMOKE TESTS            PASS
-ARTIFACT SECRET SCAN   PASS
+LOCAL ARTIFACTS        VERIFIED
+REMOTE CERTIFICATION   PENDING
 
-FINAL DECISION         READY_TO_PUBLISH
+FINAL DECISION         NOT_READY_TO_PUBLISH
 ```
 
-`READY_TO_PUBLISH` não significa `PUBLISHED`. A criação da tag estável e a
-publicação oficial permanecem ações separadas, sujeitas a autorização explícita.
+O gate será fechado somente após a matriz remota da fonte estável passar.
+`READY_TO_PUBLISH` não significa `PUBLISHED`: tag estável, GitHub Release e
+publicação no PyPI continuam etapas separadas. O envio ao PyPI exige
+autorização explícita e autenticação protegida.
