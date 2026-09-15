@@ -1,49 +1,31 @@
-# Prontidão da candidata 1.0.1rc1
+# Prontidão da candidata 1.0.1rc2
 
 ## Decisão
 
-**READY_FOR_STABLE.** A candidata concluiu a certificação técnica e o gate
-formal de aprovações para a rota não destrutiva até `1.0.1`. Ela
-preserva o nome público `atlas-agent-framework`. O namespace importável
-`atlas_agent`, as APIs e o comportamento funcional permanecem inalterados.
+**NOT_READY.** A candidata `1.0.1rc2` está em preparação e ainda exige
+certificação técnica própria, tag imutável e cinco novas aprovações formais.
+A certificação e os sign-offs da `1.0.1rc1` não são transferíveis.
 
-O conteúdo técnico deriva do `1.0.0rc5`, cuja certificação e sign-offs passaram.
-A nova candidata existe para permitir a promoção `1.0.1rc1 → 1.0.1` sem mover
-ou reescrever a tag `v1.0.0` já publicada.
+O teste temporal que falhou na primeira matriz Windows 3.12 da promoção
+`1.0.1` recebeu margem maior. A alteração é restrita ao teste; não modifica
+o runtime, a API pública, dependências externas ou os contratos. O histórico
+do gate anterior permanece em [STABLE-PROMOTION-STATUS.md](STABLE-PROMOTION-STATUS.md).
 
-O nome anterior pertence a um projeto de terceiros no PyPI. A release
-`v1.0.0` publicada no GitHub não foi enviada ao registry Python.
+## Gates pendentes
 
-## Gates locais
-
-| Gate | Estado | Evidência |
+| Gate | Estado | Evidência requerida |
 | --- | --- | --- |
-| Disponibilidade dos sete nomes no PyPI | PASS | API oficial e simulação de upload |
-| Nome legado ausente da metadata pública | PASS | teste de regressão dedicado |
-| Workspace e lockfile | PASS | sete distribuições `1.0.1rc1` |
-| Inventário do bundle | PASS | `atlas_agent_framework` coberto por regressão |
-| Lint e formatação | PASS | Ruff |
-| Tipagem | PASS | mypy, 332 arquivos |
-| Regressão | PASS | 1.141 testes, cobertura de 93% |
-| Build | PASS | sete wheels e sete sdists |
-| Reprodutibilidade | PASS | metadata e manifestos reproduzíveis |
-| Instalação limpa | PASS | core, extensões e conjunto completo |
-| Namespace e extras | PASS | `atlas_agent`, `py.typed` e entry points |
-| Segurança estática | PASS | Bandit, zero findings |
-| Dependências | PASS | pip-audit, nenhuma vulnerabilidade conhecida |
-| Segredos nos artefatos | PASS | zero findings em 14 distribuições |
-| Checksums e SBOM | PASS | 15 checksums; CycloneDX com 79 componentes |
-| Exemplos .NET | PASS | REST e gRPC, zero erros e warnings |
-| Certificação remota | PASS | workflow `34896013098` sobre `v1.0.1rc1` |
-| Owner sign-offs | PASS | cinco papéis aprovados por Jorge Medina |
-| P0/P1 abertas | PASS | `0/0` na origem certificada |
+| Regressão local | PENDENTE | suíte completa e repetição do teste temporal |
+| Qualidade remota | PENDENTE | matriz integral, inclusive Windows 3.12 |
+| Artefatos | PENDENTE | sete wheels, sete sdists, checksums e SBOM |
+| Certificação da tag | PENDENTE | workflow sobre `v1.0.1rc2` |
+| Owner sign-offs | NOT_VERIFIED | cinco registros vinculados ao commit RC2 |
+| P0/P1 abertas | PENDENTE | confirmação `0/0` no gate |
 
 ## Próximo gate
 
-1. executar o gate de promoção para `1.0.1` sem alteração funcional;
-2. construir e certificar os artefatos estáveis derivados do RC;
-3. configurar autenticação protegida do PyPI antes da publicação;
-4. exigir autorização explícita separada para publicar no registry.
-
-`READY_FOR_STABLE` não autoriza publicação no PyPI nem a movimentação de tags já
-publicadas.
+Depois da certificação técnica da `v1.0.1rc2`, coletar separadamente os
+cinco sign-offs de Architecture, Engineering, QA, Security e Release Owner.
+Somente com todos os gates em `PASS` será possível declarar
+`READY_FOR_STABLE` e repetir a promoção para `1.0.1`. A publicação no PyPI
+continua dependente de autorização explícita separada.

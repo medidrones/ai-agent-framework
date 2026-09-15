@@ -21,13 +21,13 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "atlas-agent-core~=1.0.1",
+    "atlas-agent-core~=1.0.1rc2",
     "pydantic>=2.13,<3",
     "pyyaml>=6.0,<7",
 ]
 
 [project.optional-dependencies]
-adapters = ["atlas-agent-adapters~=1.0.1"]
+adapters = ["atlas-agent-adapters~=1.0.1rc2"]
 
 [project.urls]
 Repository = "https://github.com/Medicode/ai-agent-framework"

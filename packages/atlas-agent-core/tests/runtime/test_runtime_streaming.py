@@ -620,11 +620,11 @@ async def test_stream_runtime_timeout_returns_terminal_result_and_closes_provide
 
 
 async def test_stream_timeout_covers_selection_before_provider_invocation() -> None:
-    provider = _provider(list_delay_seconds=0.05)
+    provider = _provider(list_delay_seconds=0.5)
 
     items = await _collect(
         _runtime(provider),
-        limits=ExecutionLimits(timeout_seconds=0.001),
+        limits=ExecutionLimits(timeout_seconds=0.25),
     )
 
     assert _result(items).result.status is ExecutionStatus.TIMED_OUT

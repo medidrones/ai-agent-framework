@@ -7,6 +7,19 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não publicado]
 
+## [1.0.1rc2] - 2026-09-15
+
+### Corrigido
+
+- Ampliada a margem do teste de timeout durante a seleção do modelo em
+  streaming. As asserções e o comportamento do runtime permanecem inalterados.
+
+### Governança
+
+- Aberta nova candidata após a falha temporal na primeira matriz Windows 3.12
+  da promoção estável. `v1.0.1rc1` permanece imutável; certificação remota e
+  cinco novas aprovações serão exigidas para `v1.0.1rc2`.
+
 ## [1.0.1] - 2026-09-15
 
 ### Alterado
@@ -18,6 +31,7 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ### Governança
 
+- Preparação não publicada, sem tag estável ou envio ao PyPI.
 - A tag `v1.0.0` permanece imutável. A versão `1.0.1` exige certificação dos
   próprios artefatos estáveis e autorização separada para publicação no PyPI.
 - A primeira matriz remota de `1.0.1` encontrou uma asserção temporal instável
