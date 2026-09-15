@@ -27,6 +27,12 @@ o registry e publicar o rascunho.
 - Integridade: 16/16 digests SHA-256 dos assets do GitHub coincidem com os
   arquivos do bundle certificado.
 - Release pública: `NOT_PUBLISHED`.
+- O token `GITHUB_TOKEN` com `contents: read` do gate não conseguiu consultar
+  o rascunho da Release (`HTTP 403` em duas execuções sem upload). O estado
+  `DRAFT`, a tag, o commit e os 16 assets foram conferidos separadamente pela
+  conta autorizada antes de iniciar o lote. O gate do workflow permanece
+  limitado a fonte, run, artefato certificado e hashes, sem ampliar a
+  permissão para `contents: write`.
 
 ## PyPI
 

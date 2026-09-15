@@ -39,6 +39,14 @@ seu wheel e sdist do bundle verificado e compara seus SHA-256 com os arquivos
 registrados no PyPI. A matriz usa uma execução por vez e interrompe os jobs
 restantes se algum falhar, limitando o alcance de um upload parcial.
 
+Antes de disparar cada lote, a pessoa responsável confere separadamente,
+com acesso ao rascunho, que a GitHub Release permanece `DRAFT`, com a tag,
+o commit certificado e 16 assets esperados. O token de leitura do job não
+conseguiu consultar o rascunho pelo endpoint de Releases (`HTTP 403`), embora
+tenha acessado o run e o artefato certificados. Não ampliar sua permissão
+para `contents: write` apenas para essa conferência; os checks do bundle
+continuam no workflow.
+
 Para um projeto ainda inexistente no PyPI, a pessoa proprietária deve criar
 um Pending Publisher para **cada** uma das sete distribuições, usando o nome
 exato do projeto, owner GitHub `medidrones`, repositório

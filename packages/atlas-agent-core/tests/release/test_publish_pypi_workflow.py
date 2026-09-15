@@ -114,6 +114,7 @@ def _validate_publication_controls(source: str) -> None:
     assert "35017413644" in verify_steps
     assert "10416406388" in verify_steps
     assert CERTIFIED_MANIFEST in verify_steps
+    assert "releases/389449556" not in verify_steps
     assert CERTIFIED_MANIFEST in publish_steps
     assert "sha256sum --check SHA256SUMS" in verify_steps
     assert "sha256sum --check SHA256SUMS" in publish_steps
