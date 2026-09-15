@@ -10,7 +10,8 @@ os cinco owner sign-offs para a nova fonte. A certificação e as aprovações d
 O teste temporal que falhou na primeira matriz Windows 3.12 da promoção
 `1.0.1` recebeu margem maior. A alteração é restrita ao teste; não modifica
 o runtime, a API pública, dependências externas ou os contratos. O histórico
-do gate anterior permanece em [STABLE-PROMOTION-STATUS.md](STABLE-PROMOTION-STATUS.md).
+do gate anterior permanece em
+[STABLE-PROMOTION-STATUS-1.0.1rc1.md](history/STABLE-PROMOTION-STATUS-1.0.1rc1.md).
 
 ## Gates
 
@@ -32,7 +33,8 @@ gate estão nos registros versionados posteriores.
 
 ## Próximo gate
 
-Executar o gate técnico de promoção `1.0.1rc2 → 1.0.1`, com delta estritamente
-limitado a versionamento, metadados e documentação de release. Certificar os
-artefatos estáveis instalados antes de qualquer tag ou publicação. A
-publicação no PyPI continua dependente de autorização explícita separada.
+O gate técnico de promoção `1.0.1rc2 → 1.0.1` está em execução, com delta
+estritamente limitado a versionamento, metadados e documentação de release.
+Certificar os artefatos estáveis instalados antes de qualquer tag ou
+publicação. A publicação no PyPI continua dependente de autorização
+explícita separada.

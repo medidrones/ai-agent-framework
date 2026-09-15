@@ -25,19 +25,20 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ### Alterado
 
-- Promovidas as sete distribuições da candidata certificada `1.0.1rc1` para
+- Promovidas as sete distribuições da candidata certificada `1.0.1rc2` para
   `1.0.1`, com versões e restrições internas sincronizadas em lockstep.
 - Preservado o nome público `atlas-agent-framework` e o namespace Python
   `atlas_agent`, sem alteração funcional, de API pública ou dependência externa.
 
 ### Governança
 
-- Preparação não publicada, sem tag estável ou envio ao PyPI.
+- Preparação estável em novo gate; ainda sem tag estável ou envio ao PyPI.
 - A tag `v1.0.0` permanece imutável. A versão `1.0.1` exige certificação dos
   próprios artefatos estáveis e autorização separada para publicação no PyPI.
 - A primeira matriz remota de `1.0.1` encontrou uma asserção temporal instável
   no Windows 3.12. A repetição passou, mas o gate de promoção permaneceu
-  `NOT_READY_TO_PUBLISH`; não foi criada tag estável.
+  `NOT_READY_TO_PUBLISH`; não foi criada tag estável naquela tentativa. O teste
+  foi estabilizado e recertificado na `v1.0.1rc2` antes deste novo gate.
 
 ## [1.0.1rc1] - 2026-09-14
 

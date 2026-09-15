@@ -1,12 +1,11 @@
 # Atlas Agent Framework
 
-> Candidata tecnicamente certificada: `1.0.1rc2`, para recertificar a rota até `1.0.1`
-> após uma falha temporal na primeira matriz Windows 3.12 da promoção anterior.
-> O gate de sign-offs está `READY_FOR_STABLE`; a promoção dos artefatos
-> estáveis ainda não foi executada. O nome público é
+> Versão estável `1.0.1` em preparação a partir da candidata certificada
+> `1.0.1rc2`. O gate de sign-offs está `READY_FOR_STABLE`; os artefatos
+> estáveis ainda exigem certificação. O nome público é
 > `atlas-agent-framework`; o namespace Python `atlas_agent` permanece
 > inalterado.
-> Consulte as [notas da candidata](docs/release/releases/1.0.1rc2.md).
+> Consulte as [notas da versão estável](docs/release/releases/1.0.1.md).
 
 A distribuição opcional `atlas-agent-config` oferece schema versionado,
 carregamento seguro de YAML/JSON, referências de segredos, factories tipadas e
