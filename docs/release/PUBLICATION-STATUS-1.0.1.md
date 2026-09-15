@@ -71,8 +71,11 @@ até verificar os sete projetos, os 14 arquivos e publicar o rascunho.
   `atlas-agent-framework` (`pypi-framework`) e `atlas-agent-mcp` (`pypi-mcp`),
   todos com owner `medidrones`, repositório `ai-agent-framework` e workflow
   `publish-pypi.yml`. Após o segundo lote, a interface autenticada mostrou
-  seis projetos com publicadores ativos e nenhum Pending Publisher.
-  `atlas-agent-providers` ainda não foi registrado.
+  seis projetos com publicadores ativos e nenhum Pending Publisher. Com a
+  confirmação específica do responsável, `atlas-agent-providers` foi
+  registrado como único Pending Publisher restante, com owner `medidrones`,
+  repositório `ai-agent-framework`, workflow `publish-pypi.yml` e environment
+  `pypi-providers`. O projeto ainda não foi criado por upload.
 - Os três novos environments GitHub exigem revisão de `medidrones` e
   permitem deploy somente em `main`; a configuração foi conferida antes de
   considerar os registros prontos para o lote seguinte.
@@ -100,12 +103,10 @@ até verificar os sete projetos, os 14 arquivos e publicar o rascunho.
 
 ## Próxima ação
 
-Solicitar confirmação específica para registrar o Pending Publisher de
-`atlas-agent-providers`, com owner `medidrones`, repo `ai-agent-framework`,
-workflow `publish-pypi.yml` e environment protegido `pypi-providers`. O
-formulário está preparado, mas ainda não foi enviado. Em seguida, solicitar
-decisão explícita de publicação do lote `final`; o registro não autoriza o
-upload.
+Solicitar decisão explícita de publicação do lote `final` para
+`atlas-agent-providers`. O registro do Pending Publisher não autoriza o
+primeiro upload; o environment `pypi-providers` continua exigindo revisão
+humana de `medidrones` e permite apenas `main`.
 Cada projeto usa um environment GitHub próprio para distinguir sua identidade
 OIDC:
 
@@ -117,7 +118,7 @@ OIDC:
 | `atlas-agent-evaluation` | `pypi-evaluation` | `2/2 HASH_VERIFIED` | `ACTIVE` |
 | `atlas-agent-framework` | `pypi-framework` | `2/2 HASH_VERIFIED` | `ACTIVE` |
 | `atlas-agent-mcp` | `pypi-mcp` | `2/2 HASH_VERIFIED` | `ACTIVE` |
-| `atlas-agent-providers` | `pypi-providers` | `NOT_PUBLISHED` | `NOT_REGISTERED` |
+| `atlas-agent-providers` | `pypi-providers` | `NOT_PUBLISHED` | `PENDING_REGISTERED` |
 
 O [formulário de Pending Publisher](https://pypi.org/manage/account/publishing/)
 é preenchido pela conta PyPI responsável. Essa configuração não cria nem
