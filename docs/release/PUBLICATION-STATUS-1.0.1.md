@@ -2,12 +2,12 @@
 
 ## Decisão
 
-**PUBLICAÇÃO PARCIAL VERIFICADA (6/7).** O gate técnico da versão estável está
-`READY_TO_PUBLISH`. Os lotes autorizados `fundacao` e `integracoes` foram
-publicados, com os 12 hashes dos seis projetos conferidos contra o manifesto
-certificado. A GitHub Release permanece em rascunho. Não marcar o release
-completo como `PUBLISHED`
-até verificar os sete projetos, os 14 arquivos e publicar o rascunho.
+**PUBLICAÇÃO NO PYPI VERIFICADA (7/7).** O gate técnico da versão estável está
+`READY_TO_PUBLISH`. Os três lotes autorizados foram publicados e os nomes e
+SHA-256 dos 14 arquivos dos sete projetos coincidem com o manifesto
+certificado. A GitHub Release permanece em rascunho. A versão não está
+`PUBLISHED` como release pública no GitHub; sua publicação exige decisão
+explícita separada.
 
 ## Fonte imutável
 
@@ -35,6 +35,11 @@ até verificar os sete projetos, os 14 arquivos e publicar o rascunho.
   `SUCCESS` após revisão humana de `pypi-evaluation`, `pypi-framework` e
   `pypi-mcp`. O primeiro job conferiu também os seis hashes do lote anterior
   no PyPI antes de permitir esses uploads.
+- Lote `final`: [execução manual 35028969660](https://github.com/medidrones/ai-agent-framework/actions/runs/35028969660)
+  `SUCCESS` após revisão humana de `pypi-providers`. Os jobs de verificação
+  e publicação terminaram com sucesso, sem deployment pendente. A conferência
+  posterior no endpoint JSON oficial do PyPI encontrou 14/14 nomes e hashes
+  iguais aos do manifesto certificado.
 - O token `GITHUB_TOKEN` com `contents: read` do gate não conseguiu consultar
   o rascunho da Release (`HTTP 403` em duas execuções sem upload). O estado
   `DRAFT`, a tag, o commit e os 16 assets foram conferidos separadamente pela
@@ -61,21 +66,11 @@ até verificar os sete projetos, os 14 arquivos e publicar o rascunho.
   um job separado, com environment protegido próprio. Os lotes posteriores
   exigem os dois hashes de cada projeto anterior no PyPI. O environment
   `pypi` é exclusivo do core.
-- Os Pending Publishers iniciais de `atlas-agent-core`,
-  `atlas-agent-adapters` e `atlas-agent-config` foram convertidos em
-  publicadores ativos após os uploads. A conta `medicode` reconfirmou a senha
-  para ações sensíveis; a interface autenticada mostrou exatamente esses três
-  projetos ativos e nenhum Pending Publisher. Com os slots liberados e a
-  confirmação específica do responsável, foram registrados e conferidos os
-  Pending Publishers de `atlas-agent-evaluation` (`pypi-evaluation`),
-  `atlas-agent-framework` (`pypi-framework`) e `atlas-agent-mcp` (`pypi-mcp`),
-  todos com owner `medidrones`, repositório `ai-agent-framework` e workflow
-  `publish-pypi.yml`. Após o segundo lote, a interface autenticada mostrou
-  seis projetos com publicadores ativos e nenhum Pending Publisher. Com a
-  confirmação específica do responsável, `atlas-agent-providers` foi
-  registrado como único Pending Publisher restante, com owner `medidrones`,
-  repositório `ai-agent-framework`, workflow `publish-pypi.yml` e environment
-  `pypi-providers`. O projeto ainda não foi criado por upload.
+- Os Pending Publishers foram registrados em três lotes, respeitando o limite
+  de três pendentes simultâneos por conta. Os uploads converteram todos os
+  sete registros em publicadores ativos. A interface autenticada da conta
+  `medicode` mostrou os sete projetos ativos e nenhum Pending Publisher após
+  o lote `final`.
 - Os três novos environments GitHub exigem revisão de `medidrones` e
   permitem deploy somente em `main`; a configuração foi conferida antes de
   considerar os registros prontos para o lote seguinte.
@@ -100,13 +95,17 @@ até verificar os sete projetos, os 14 arquivos e publicar o rascunho.
   `atlas_agent_mcp` (`571269eb…`, `ea09f4c3…`) foram comparados com o
   endpoint JSON oficial do PyPI: dois nomes e dois SHA-256 exatos por projeto,
   iguais ao manifesto certificado.
+- Upload `final`: `SUCCESS`. O wheel e o sdist de `atlas_agent_providers`
+  (`c0275438…`, `107d0924…`) foram comparados com o endpoint JSON oficial
+  do PyPI: dois nomes e dois SHA-256 exatos, iguais ao manifesto certificado.
+  A conferência conjunta dos sete projetos retornou `14/14 HASH_VERIFIED`.
 
 ## Próxima ação
 
-Solicitar decisão explícita de publicação do lote `final` para
-`atlas-agent-providers`. O registro do Pending Publisher não autoriza o
-primeiro upload; o environment `pypi-providers` continua exigindo revisão
-humana de `medidrones` e permite apenas `main`.
+Solicitar autorização explícita e separada para publicar a GitHub Release
+`v1.0.1`, atualmente em rascunho. Antes dessa ação, reconfirmar tag, commit,
+metadados e integridade dos 16 assets. A publicação dos pacotes no PyPI não
+publica automaticamente a GitHub Release.
 Cada projeto usa um environment GitHub próprio para distinguir sua identidade
 OIDC:
 
@@ -118,16 +117,12 @@ OIDC:
 | `atlas-agent-evaluation` | `pypi-evaluation` | `2/2 HASH_VERIFIED` | `ACTIVE` |
 | `atlas-agent-framework` | `pypi-framework` | `2/2 HASH_VERIFIED` | `ACTIVE` |
 | `atlas-agent-mcp` | `pypi-mcp` | `2/2 HASH_VERIFIED` | `ACTIVE` |
-| `atlas-agent-providers` | `pypi-providers` | `NOT_PUBLISHED` | `PENDING_REGISTERED` |
+| `atlas-agent-providers` | `pypi-providers` | `2/2 HASH_VERIFIED` | `ACTIVE` |
 
 O [formulário de Pending Publisher](https://pypi.org/manage/account/publishing/)
-é preenchido pela conta PyPI responsável. Essa configuração não cria nem
-reserva um projeto antes do primeiro upload. O próprio PyPI informou o limite
-de três publicadores pendentes simultâneos por conta. A publicação controlada
-em lotes foi autorizada; o primeiro upload de cada projeto deve converter o
-publicador pendente em ativo e liberar espaço. A interface autenticada
-confirmou essa conversão para `fundacao` e `integracoes`. A autorização de
-upload atual abrangeu esses dois lotes, não o lote `final`.
-Nenhum lote deve publicar a GitHub Release em rascunho antes da
-verificação dos sete projetos e dos 14 hashes. Não inserir tokens em
-documentação, commit, issue ou conversa.
+é preenchido pela conta PyPI responsável. O primeiro upload de cada projeto
+converteu seu registro pendente em publicador ativo; a interface autenticada
+confirmou sete ativos e nenhum pendente. A integridade da GitHub Release em
+rascunho foi reconfirmada após o lote `final`: tag e commit certificados,
+`draft=true`, 16/16 SHA-256 válidos e manifesto íntegro. Não inserir tokens
+em documentação, commit, issue ou conversa.
