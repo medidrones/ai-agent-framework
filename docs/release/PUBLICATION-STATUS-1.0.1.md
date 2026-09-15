@@ -2,12 +2,11 @@
 
 ## Decisão
 
-**PUBLICAÇÃO NO PYPI VERIFICADA (7/7).** O gate técnico da versão estável está
-`READY_TO_PUBLISH`. Os três lotes autorizados foram publicados e os nomes e
-SHA-256 dos 14 arquivos dos sete projetos coincidem com o manifesto
-certificado. A GitHub Release permanece em rascunho. A versão não está
-`PUBLISHED` como release pública no GitHub; sua publicação exige decisão
-explícita separada.
+**PUBLICAÇÃO COMPLETA VERIFICADA.** O gate técnico da versão estável passou.
+Os três lotes autorizados foram publicados no PyPI e os nomes e SHA-256 dos
+14 arquivos dos sete projetos coincidem com o manifesto certificado. Após
+autorização separada, a GitHub Release `v1.0.1` também foi publicada com os
+16 assets íntegros. Estado final: `PUBLISHED` nos dois canais.
 
 ## Fonte imutável
 
@@ -22,12 +21,14 @@ explícita separada.
 ## GitHub
 
 - Tag `v1.0.1`: `PUSHED`, sem mover tags anteriores.
-- GitHub Release ID `389449556`: `DRAFT`, associada à tag e ao commit
-  certificado.
+- [GitHub Release `v1.0.1`](https://github.com/medidrones/ai-agent-framework/releases/tag/v1.0.1),
+  ID `389449556`: `PUBLISHED` em `2026-09-15T22:11:56Z`, associada à tag e
+  ao commit certificado; `prerelease=false`.
 - Assets: 7 wheels, 7 sdists, `SHA256SUMS` e SBOM CycloneDX.
 - Integridade: 16/16 digests SHA-256 dos assets do GitHub coincidem com os
   arquivos do bundle certificado.
-- Release pública: `NOT_PUBLISHED`.
+- Release pública: `PUBLISHED`; após a publicação, 16/16 digests SHA-256 dos
+  assets foram novamente conferidos, sem alteração da tag ou do commit.
 - Lote `fundacao`: [execução manual 35027170998](https://github.com/medidrones/ai-agent-framework/actions/runs/35027170998)
   `SUCCESS` após revisão humana dos três environments. O primeiro job conferiu
   fonte, run, artefato e inventário do bundle certificado.
@@ -100,12 +101,14 @@ explícita separada.
   do PyPI: dois nomes e dois SHA-256 exatos, iguais ao manifesto certificado.
   A conferência conjunta dos sete projetos retornou `14/14 HASH_VERIFIED`.
 
-## Próxima ação
+## Encerramento
 
-Solicitar autorização explícita e separada para publicar a GitHub Release
-`v1.0.1`, atualmente em rascunho. Antes dessa ação, reconfirmar tag, commit,
-metadados e integridade dos 16 assets. A publicação dos pacotes no PyPI não
-publica automaticamente a GitHub Release.
+O responsável autorizou separadamente a publicação da GitHub Release. Antes
+da ação, foram reconfirmados tag, commit, notas e 16/16 digests; a frase
+obsoleta sobre upload pendente no PyPI foi substituída nas notas públicas.
+A consulta posterior confirmou `draft=false`, URL pública, tag e commit
+certificados, `prerelease=false`, notas corrigidas e 16/16 assets íntegros.
+Nenhuma nova versão, tag ou distribuição foi criada.
 Cada projeto usa um environment GitHub próprio para distinguir sua identidade
 OIDC:
 
@@ -122,7 +125,7 @@ OIDC:
 O [formulário de Pending Publisher](https://pypi.org/manage/account/publishing/)
 é preenchido pela conta PyPI responsável. O primeiro upload de cada projeto
 converteu seu registro pendente em publicador ativo; a interface autenticada
-confirmou sete ativos e nenhum pendente. A integridade da GitHub Release em
-rascunho foi reconfirmada após o lote `final`: tag e commit certificados,
-`draft=true`, 16/16 SHA-256 válidos e manifesto íntegro. Não inserir tokens
+confirmou sete ativos e nenhum pendente. A integridade da GitHub Release
+pública foi reconfirmada: tag e commit certificados, `draft=false`, 16/16
+SHA-256 válidos e manifesto íntegro. Não inserir tokens
 em documentação, commit, issue ou conversa.

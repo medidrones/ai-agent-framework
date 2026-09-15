@@ -33,11 +33,12 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ### Governança
 
 - O novo gate estável passou no primeiro attempt da matriz Ubuntu/Windows
-  3.12/3.13. Os artefatos `1.0.1` estão `READY_TO_PUBLISH`; a tag estável e
-  o rascunho da GitHub Release foram criados. O envio ao PyPI ainda aguarda
-  autenticação protegida.
-- A tag `v1.0.0` permanece imutável. A versão `1.0.1` exige certificação dos
-  próprios artefatos estáveis e autorização separada para publicação no PyPI.
+  3.12/3.13. Os sete projetos `1.0.1` foram publicados no PyPI por Trusted
+  Publishing, com 14/14 nomes e SHA-256 certificados. Após autorização
+  separada, a GitHub Release foi publicada com 16/16 assets íntegros.
+- A tag `v1.0.0` permanece imutável. A versão `1.0.1` foi publicada somente
+  após certificação dos próprios artefatos estáveis e decisões distintas para
+  o PyPI e a GitHub Release.
 - A primeira matriz remota de `1.0.1` encontrou uma asserção temporal instável
   no Windows 3.12. A repetição passou, mas o gate de promoção permaneceu
   `NOT_READY_TO_PUBLISH`; não foi criada tag estável naquela tentativa. O teste
