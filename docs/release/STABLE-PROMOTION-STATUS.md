@@ -100,6 +100,7 @@ FINAL DECISION         READY_TO_PUBLISH
 ```
 
 Os avisos de depreciação do Node.js 20 nas GitHub Actions e um aviso local de
-cache do pytest foram não bloqueantes. Não foram criados tag `v1.0.1`, GitHub
-Release ou upload no PyPI. Essas ações pertencem ao ciclo separado de
-publicação oficial e exigem autorização explícita.
+cache do pytest foram não bloqueantes. Ao concluir este gate, não havia tag
+`v1.0.1`, GitHub Release ou upload no PyPI. Após autorização separada, a tag
+e um rascunho da GitHub Release foram preparados; o estado atual da publicação
+está em [PUBLICATION-STATUS-1.0.1.md](PUBLICATION-STATUS-1.0.1.md).

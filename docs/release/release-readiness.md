@@ -36,5 +36,8 @@ gate estão nos registros versionados posteriores.
 O [gate técnico de promoção](STABLE-PROMOTION-STATUS.md)
 `1.0.1rc2 → 1.0.1` passou com delta restrito a versionamento, metadados e
 documentação de release. Os artefatos estáveis estão `READY_TO_PUBLISH`, mas
-não foram publicados. Tag estável, GitHub Release e envio ao PyPI exigem ação
-separada e autorização explícita.
+não foram enviados ao PyPI. Após autorização separada, a tag estável foi
+criada no commit certificado e a GitHub Release foi preparada como rascunho
+com 16 assets íntegros. O envio ao PyPI e a publicação do rascunho aguardam
+um canal de autenticação protegido; consulte o
+[estado da publicação](PUBLICATION-STATUS-1.0.1.md).

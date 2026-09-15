@@ -1,7 +1,8 @@
 # Atlas Agent Framework
 
 > Versão estável `1.0.1` certificada a partir da candidata `1.0.1rc2`.
-> O gate técnico está `READY_TO_PUBLISH`; a publicação ainda não ocorreu.
+> O gate técnico está `READY_TO_PUBLISH`. A tag estável existe, mas a GitHub
+> Release segue em rascunho e o PyPI aguarda autenticação protegida.
 > O nome público é
 > `atlas-agent-framework`; o namespace Python `atlas_agent` permanece
 > inalterado.
