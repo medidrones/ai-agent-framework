@@ -61,9 +61,10 @@ até verificar os sete projetos, os 14 arquivos e publicar o rascunho.
   na lista de publicadores, cada um com seu environment próprio. O PyPI recusou
   a tentativa de registrar `atlas-agent-evaluation`: esta conta não pode manter
   mais de três publicadores pendentes simultaneamente. Os outros três também
-  permanecem sem registro. A conversão dos três registros pendentes em
-  publicadores dos projetos existentes ainda precisa ser verificada na
-  interface da conta PyPI.
+  permanecem sem registro. A conta `medicode` reconfirmou a senha para ações
+  sensíveis e a interface autenticada passou a listar exatamente os três
+  projetos com publicadores ativos e nenhum Pending Publisher. Os três slots
+  foram liberados; os novos vínculos ainda exigem confirmação antes do envio.
 - Os sete environments GitHub existem, exigem aprovação de `medidrones` e
   permitem deploy apenas em `main`. O workflow seletivo está `ACTIVE` no
   GitHub; Qualidade e Empacotamento do commit `3074a4e92421d986e7a106828ec1208a7612767a`
@@ -82,16 +83,15 @@ até verificar os sete projetos, os 14 arquivos e publicar o rascunho.
 
 ## Próxima ação
 
-Após a conta `medicode` reconfirmar a senha exigida pelo PyPI para gerenciar
-publicadores, verificar a conversão dos três Pending Publishers publicados e
-registrar os próximos três (`evaluation`, `framework`, `mcp`). Cada projeto
+Após confirmação específica do responsável para gravar os novos vínculos
+OIDC, registrar os próximos três (`evaluation`, `framework`, `mcp`). Cada projeto
 usa um environment GitHub próprio para distinguir sua identidade OIDC:
 
 | Projeto PyPI | Environment | Versão 1.0.1 | Publisher |
 | --- | --- | --- | --- |
-| `atlas-agent-core` | `pypi` | `2/2 HASH_VERIFIED` | Conversão não verificada |
-| `atlas-agent-adapters` | `pypi-adapters` | `2/2 HASH_VERIFIED` | Conversão não verificada |
-| `atlas-agent-config` | `pypi-config` | `2/2 HASH_VERIFIED` | Conversão não verificada |
+| `atlas-agent-core` | `pypi` | `2/2 HASH_VERIFIED` | `ACTIVE` |
+| `atlas-agent-adapters` | `pypi-adapters` | `2/2 HASH_VERIFIED` | `ACTIVE` |
+| `atlas-agent-config` | `pypi-config` | `2/2 HASH_VERIFIED` | `ACTIVE` |
 | `atlas-agent-evaluation` | `pypi-evaluation` | `NOT_PUBLISHED` | `NOT_REGISTERED` |
 | `atlas-agent-framework` | `pypi-framework` | `NOT_PUBLISHED` | `NOT_REGISTERED` |
 | `atlas-agent-mcp` | `pypi-mcp` | `NOT_PUBLISHED` | `NOT_REGISTERED` |
@@ -102,8 +102,8 @@ O [formulário de Pending Publisher](https://pypi.org/manage/account/publishing/
 reserva um projeto antes do primeiro upload. O próprio PyPI informou o limite
 de três publicadores pendentes simultâneos por conta. A publicação controlada
 em lotes foi autorizada; o primeiro upload de cada projeto deve converter o
-publicador pendente em ativo e liberar espaço, mas é necessário confirmar o
-estado autenticado na conta. A autorização atual abrangeu somente `fundacao`,
+publicador pendente em ativo e liberar espaço. A interface autenticada
+confirmou essa conversão para `fundacao`. A autorização atual abrangeu somente `fundacao`,
 não os lotes subsequentes.
 Nenhum lote deve publicar a GitHub Release em rascunho antes da
 verificação dos sete projetos e dos 14 hashes. Não inserir tokens em
