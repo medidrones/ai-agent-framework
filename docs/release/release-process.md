@@ -50,6 +50,15 @@ Pending Publishers não publica nada; o primeiro upload é uma decisão manual
 posterior. A GitHub Release em rascunho só pode ser tornada pública depois da
 verificação positiva dos sete projetos e dos 14 arquivos no PyPI.
 
+Na configuração inicial dos sete projetos da versão `1.0.1`, o PyPI limitou a
+conta a três publicadores pendentes simultâneos. Um primeiro upload converte
+o registro pendente em publicador ativo, mas publicar em lotes cria um período
+de disponibilidade parcial no registry. Esse desvio do plano original exige
+decisão explícita de governança e adaptação do workflow manual para selecionar
+somente o lote autorizado. Não executar a matriz completa com registros
+pendentes ausentes. Consulte o estado em
+[`PUBLICATION-STATUS-1.0.1.md`](PUBLICATION-STATUS-1.0.1.md).
+
 `READY_FOR_RC` autoriza construir o candidato, mas não equivale a
 `READY_FOR_STABLE`. Qualquer correção material depois da certificação exige uma
 nova versão RC, novo build e nova certificação; evidências de um RC anterior não
