@@ -81,11 +81,37 @@ jobs:
           retention-days: 30
 
   publicar:
-    name: Publicar artefatos certificados via OIDC
+    name: Publicar ${{ matrix.project }} via OIDC
     needs: verificar-bundle
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      max-parallel: 1
+      matrix:
+        include:
+          - project: atlas-agent-core
+            distribution: atlas_agent_core
+            environment: pypi
+          - project: atlas-agent-adapters
+            distribution: atlas_agent_adapters
+            environment: pypi-adapters
+          - project: atlas-agent-config
+            distribution: atlas_agent_config
+            environment: pypi-config
+          - project: atlas-agent-evaluation
+            distribution: atlas_agent_evaluation
+            environment: pypi-evaluation
+          - project: atlas-agent-framework
+            distribution: atlas_agent_framework
+            environment: pypi-framework
+          - project: atlas-agent-mcp
+            distribution: atlas_agent_mcp
+            environment: pypi-mcp
+          - project: atlas-agent-providers
+            distribution: atlas_agent_providers
+            environment: pypi-providers
     environment:
-      name: pypi
+      name: ${{ matrix.environment }}
     permissions:
       id-token: write
       actions: read
@@ -98,13 +124,16 @@ jobs:
 
       - name: Conferir novamente antes do upload
         shell: bash
+        env:
+          DISTRIBUTION: ${{ matrix.distribution }}
         run: |
           set -euo pipefail
           cd dist
           test "$(sha256sum SHA256SUMS | cut -d ' ' -f 1)" = "5931aa6a6a66c923831cae1dfeba96571eb10fb812c1cd8816fd0d707aa1094d"
           test "$(find . -maxdepth 1 -type f | wc -l)" -eq 16
-          test "$(find . -maxdepth 1 -name '*.whl' | wc -l)" -eq 7
-          test "$(find . -maxdepth 1 -name '*.tar.gz' | wc -l)" -eq 7
+          test "$(grep -c "  ${DISTRIBUTION}-1.0.1" SHA256SUMS)" -eq 2
+          test -f "${DISTRIBUTION}-1.0.1-py3-none-any.whl"
+          test -f "${DISTRIBUTION}-1.0.1.tar.gz"
           sha256sum --check SHA256SUMS
 
       - name: Instalar uv sem acesso ao código-fonte
@@ -112,30 +141,32 @@ jobs:
         with:
           version: "0.12.7"
 
-      - name: Publicar sete projetos no PyPI
+      - name: Publicar somente os dois arquivos do projeto
         shell: bash
+        env:
+          DISTRIBUTION: ${{ matrix.distribution }}
         run: |
           set -euo pipefail
           uv publish --trusted-publishing always \
             --publish-url https://upload.pypi.org/legacy/ \
             --check-url https://pypi.org/simple/ \
-            dist/*.whl dist/*.tar.gz
+            "dist/${DISTRIBUTION}-1.0.1-py3-none-any.whl" \
+            "dist/${DISTRIBUTION}-1.0.1.tar.gz"
 
-      - name: Confirmar no PyPI os 14 hashes publicados
+      - name: Confirmar os dois hashes no PyPI
         shell: bash
+        env:
+          PROJECT: ${{ matrix.project }}
+          DISTRIBUTION: ${{ matrix.distribution }}
         run: |
           set -euo pipefail
-          for project in atlas-agent-adapters atlas-agent-config atlas-agent-core \
-            atlas-agent-evaluation atlas-agent-framework atlas-agent-mcp \
-            atlas-agent-providers; do
-            curl --fail --silent --show-error --retry-all-errors --retry 12 \
-              --retry-delay 5 \
-              "https://pypi.org/pypi/${project}/1.0.1/json" > "${project}.json"
-            test "$(jq '.urls | length' "${project}.json")" -eq 2
-            test "$(grep -c "  ${project//-/_}-1.0.1" dist/SHA256SUMS)" -eq 2
-            while read -r expected filename; do
-              test "$(jq -r --arg filename "$filename" \
-                '.urls[] | select(.filename == $filename) | .digests.sha256' \
-                "${project}.json")" = "$expected"
-            done < <(grep "  ${project//-/_}-1.0.1" dist/SHA256SUMS)
-          done
+          curl --fail --silent --show-error --retry-all-errors --retry 12 \
+            --retry-delay 5 \
+            "https://pypi.org/pypi/${PROJECT}/1.0.1/json" > "${PROJECT}.json"
+          test "$(jq '.urls | length' "${PROJECT}.json")" -eq 2
+          test "$(grep -c "  ${DISTRIBUTION}-1.0.1" dist/SHA256SUMS)" -eq 2
+          while read -r expected filename; do
+            test "$(jq -r --arg filename "$filename" \
+              '.urls[] | select(.filename == $filename) | .digests.sha256' \
+              "${PROJECT}.json")" = "$expected"
+          done < <(grep "  ${DISTRIBUTION}-1.0.1" dist/SHA256SUMS)

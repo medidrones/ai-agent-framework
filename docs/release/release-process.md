@@ -30,15 +30,20 @@ Publicação é ação separada e explicitamente autorizada.
 O workflow [`Publicação oficial no PyPI`](../../.github/workflows/publish-pypi.yml)
 é exclusivamente manual. Seu primeiro job não recebe permissão OIDC: confirma
 a tag anotada da versão estável, o commit certificado, o run de empacotamento,
-o ID do artefato e todos os checksums do bundle. Somente o segundo job, após
-aprovação no environment GitHub `pypi`, recebe `id-token: write`. Ele não faz
-checkout nem rebuild; publica apenas os wheels e sdists do bundle verificado
-e compara seus SHA-256 com os arquivos registrados no PyPI.
+o ID do artefato e todos os checksums do bundle. Os sete jobs de publicação,
+um por projeto e environment protegido, recebem `id-token: write` somente
+após aprovação. Eles não fazem checkout nem rebuild; cada job publica apenas
+seu wheel e sdist do bundle verificado e compara seus SHA-256 com os arquivos
+registrados no PyPI. A matriz usa uma execução por vez e interrompe os jobs
+restantes se algum falhar, limitando o alcance de um upload parcial.
 
 Para um projeto ainda inexistente no PyPI, a pessoa proprietária deve criar
 um Pending Publisher para **cada** uma das sete distribuições, usando o nome
-exato do projeto e a mesma identidade GitHub: owner `medidrones`, repositório
-`ai-agent-framework`, workflow `publish-pypi.yml` e environment `pypi`.
+exato do projeto, owner GitHub `medidrones`, repositório
+`ai-agent-framework` e workflow `publish-pypi.yml`. Projetos pendentes não
+podem compartilhar a mesma identidade OIDC antes do primeiro upload: o core
+usa `pypi` e os demais environments têm nomes próprios. Todos exigem
+aprovação da conta `medidrones` e são restritos à branch `main`.
 Consulte os nomes e o estado em
 [`PUBLICATION-STATUS-1.0.1.md`](PUBLICATION-STATUS-1.0.1.md). A criação dos
 Pending Publishers não publica nada; o primeiro upload é uma decisão manual

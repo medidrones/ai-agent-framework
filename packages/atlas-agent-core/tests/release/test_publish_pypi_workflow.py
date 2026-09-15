@@ -11,6 +11,15 @@ WORKFLOW = (
 )
 CERTIFIED_COMMIT = "43fd7008f8573f2b2a9906ee8c257986777f04e9"
 CERTIFIED_MANIFEST = "5931aa6a6a66c923831cae1dfeba96571eb10fb812c1cd8816fd0d707aa1094d"
+EXPECTED_PROJECTS = [
+    ("atlas-agent-core", "atlas_agent_core", "pypi"),
+    ("atlas-agent-adapters", "atlas_agent_adapters", "pypi-adapters"),
+    ("atlas-agent-config", "atlas_agent_config", "pypi-config"),
+    ("atlas-agent-evaluation", "atlas_agent_evaluation", "pypi-evaluation"),
+    ("atlas-agent-framework", "atlas_agent_framework", "pypi-framework"),
+    ("atlas-agent-mcp", "atlas_agent_mcp", "pypi-mcp"),
+    ("atlas-agent-providers", "atlas_agent_providers", "pypi-providers"),
+]
 
 
 def _validate_publication_controls(source: str) -> None:
@@ -27,8 +36,17 @@ def _validate_publication_controls(source: str) -> None:
     publish = jobs["publicar"]
     assert verify["permissions"] == {"contents": "read", "actions": "read"}
     assert publish["needs"] == "verificar-bundle"
-    assert publish["environment"]["name"] == "pypi"
+    assert publish["environment"]["name"] == "${{ matrix.environment }}"
     assert publish["permissions"] == {"id-token": "write", "actions": "read"}
+    strategy = publish["strategy"]
+    assert strategy["fail-fast"] is True
+    assert strategy["max-parallel"] == 1
+    matrix = strategy["matrix"]["include"]
+    assert [
+        (entry["project"], entry["distribution"], entry["environment"])
+        for entry in matrix
+    ] == EXPECTED_PROJECTS
+    assert len({entry["environment"] for entry in matrix}) == 7
 
     verify_steps = "\n".join(str(step) for step in verify["steps"])
     publish_steps = "\n".join(str(step) for step in publish["steps"])
@@ -40,8 +58,9 @@ def _validate_publication_controls(source: str) -> None:
     assert "sha256sum --check SHA256SUMS" in verify_steps
     assert "sha256sum --check SHA256SUMS" in publish_steps
     assert "--trusted-publishing always" in publish_steps
-    assert "dist/*.whl dist/*.tar.gz" in publish_steps
-    assert "https://pypi.org/pypi/${project}/1.0.1/json" in publish_steps
+    assert '"dist/${DISTRIBUTION}-1.0.1-py3-none-any.whl"' in publish_steps
+    assert '"dist/${DISTRIBUTION}-1.0.1.tar.gz"' in publish_steps
+    assert "https://pypi.org/pypi/${PROJECT}/1.0.1/json" in publish_steps
     assert "actions/checkout@" not in publish_steps
     assert "uv build" not in publish_steps
     assert "--no-attestations" not in publish_steps
@@ -58,7 +77,8 @@ def test_publication_workflow_has_manual_immutable_oidc_gate() -> None:
         (CERTIFIED_COMMIT, "0" * 40),
         (CERTIFIED_MANIFEST, "0" * 64),
         ("id-token: write", "contents: write"),
-        ("name: pypi", "name: unprotected"),
+        ("environment: pypi-adapters", "environment: pypi"),
+        ("distribution: atlas_agent_adapters", "distribution: atlas_agent_core"),
     ],
 )
 def test_publication_controls_reject_unsafe_changes(

@@ -40,34 +40,36 @@ o registry e publicar o rascunho.
 - Trusted Publishing tentou obter identidade OIDC, mas esta execução local
   não é um ambiente suportado para emitir o token.
 - O workflow manual
-  [`publish-pypi.yml`](../../.github/workflows/publish-pypi.yml) foi preparado
-  para revalidar o bundle certificado antes de obter OIDC no environment
-  `pypi`. O environment GitHub foi criado com aprovação obrigatória da conta
-  `medidrones` e política de deploy exclusiva para `main`. A configuração dos
-  sete Pending Publishers no PyPI ainda depende da conta proprietária dos
-  projetos.
-- Upload: `NOT_ATTEMPTED` até essa configuração estar concluída.
+  [`publish-pypi.yml`](../../.github/workflows/publish-pypi.yml) revalida o
+  bundle certificado sem OIDC e publica cada distribuição em um job separado,
+  com environment protegido próprio. O environment `pypi` é exclusivo do core.
+- O Pending Publisher de `atlas-agent-core` foi registrado na conta PyPI
+  `medicode` e conferido na lista de publicadores. O PyPI recusou o segundo
+  projeto com a mesma identidade OIDC, informando que ela já estava registrada
+  para outro projeto pendente. Os seis restantes exigem environments distintos.
+- Upload: `NOT_ATTEMPTED` até os sete registros estarem concluídos.
 
 ## Próxima ação
 
 Registrar separadamente os sete Pending Publishers no PyPI, todos com owner
-GitHub `medidrones`, repositório `ai-agent-framework`, arquivo de workflow
-`publish-pypi.yml` e environment `pypi`. Somente o nome do projeto PyPI muda:
+GitHub `medidrones`, repositório `ai-agent-framework` e workflow
+`publish-pypi.yml`. Cada projeto ainda inexistente usa um environment
+GitHub próprio para distinguir sua identidade OIDC:
 
-| Projeto PyPI |
-| --- |
-| `atlas-agent-framework` |
-| `atlas-agent-adapters` |
-| `atlas-agent-config` |
-| `atlas-agent-core` |
-| `atlas-agent-evaluation` |
-| `atlas-agent-mcp` |
-| `atlas-agent-providers` |
+| Projeto PyPI | Environment | Pending Publisher |
+| --- | --- | --- |
+| `atlas-agent-core` | `pypi` | `REGISTERED` |
+| `atlas-agent-adapters` | `pypi-adapters` | `NOT_VERIFIED` |
+| `atlas-agent-config` | `pypi-config` | `NOT_VERIFIED` |
+| `atlas-agent-evaluation` | `pypi-evaluation` | `NOT_VERIFIED` |
+| `atlas-agent-framework` | `pypi-framework` | `NOT_VERIFIED` |
+| `atlas-agent-mcp` | `pypi-mcp` | `NOT_VERIFIED` |
+| `atlas-agent-providers` | `pypi-providers` | `NOT_VERIFIED` |
 
 O [formulário de Pending Publisher](https://pypi.org/manage/account/publishing/)
 é preenchido pela conta PyPI responsável. Essa configuração não cria nem
 reserva um projeto antes do primeiro upload. Após confirmação dos sete
-registros, executar manualmente o workflow em `main`, aprovar o job do
-environment `pypi`, conferir os 14 hashes no PyPI e somente então publicar o
+registros, executar manualmente o workflow em `main`, aprovar os sete jobs nos
+environments respectivos, conferir os 14 hashes no PyPI e somente então publicar o
 rascunho da GitHub Release. Não inserir tokens em documentação, commit, issue
 ou conversa.
