@@ -1,6 +1,7 @@
 # Estado dos sign-offs da 1.0.1rc2
 
-RC: `1.0.1rc2`  
+RC: `1.0.1rc2`
+
 Commit: `31ccac66c0fc2002fe908e68e40a07c95f684c72`
 
 | Papel | Responsável | Decisão |
