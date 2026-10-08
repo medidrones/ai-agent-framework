@@ -1,6 +1,7 @@
 """Reusable test doubles for checkpoint and approval policies."""
 
 import asyncio
+from collections.abc import Callable
 
 from atlas_agents import (
     ApprovalContext,
@@ -47,6 +48,26 @@ class FakeCheckpointStore:
 
     def peek(self, resume_token: ResumeToken) -> ExecutionCheckpoint:
         return self._checkpoints[resume_token.value]
+
+
+class FakeAtomicAuthorizedCheckpointStore(FakeCheckpointStore):
+    async def consume_authorized(
+        self,
+        *,
+        resume_token: ResumeToken,
+        authorize: Callable[[ExecutionCheckpoint], None],
+    ) -> ExecutionCheckpoint:
+        self.consume_calls += 1
+        async with self._lock:
+            try:
+                checkpoint = self._checkpoints[resume_token.value]
+            except KeyError as error:
+                raise CheckpointNotFoundError(
+                    "O token é desconhecido ou já foi consumido."
+                ) from error
+            authorize(checkpoint)
+            del self._checkpoints[resume_token.value]
+            return checkpoint
 
 
 class FixedApprovalPolicy:

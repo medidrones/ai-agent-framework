@@ -210,6 +210,17 @@ class _AsyncClosable(Protocol):
         """Close an asynchronous provider iterator."""
 
 
+@runtime_checkable
+class _AtomicAuthorizedCheckpointStore(Protocol):
+    async def consume_authorized(
+        self,
+        *,
+        resume_token: ResumeToken,
+        authorize: Callable[[ExecutionCheckpoint], None],
+    ) -> ExecutionCheckpoint:
+        """Consume only when synchronous authorization accepts the checkpoint."""
+
+
 class AgentRuntime:
     """Own the provider-agnostic multi-turn model and tool execution loop."""
 
@@ -374,6 +385,7 @@ class AgentRuntime:
         checkpoint = await self._consume_checkpoint(
             resume_token,
             expected_mode=ExecutionMode.RUN,
+            decision=decision,
         )
         state = self._state_restorer.restore(checkpoint)
         observation = self._start_runtime_observation(
@@ -438,6 +450,7 @@ class AgentRuntime:
         checkpoint = await self._consume_checkpoint(
             resume_token,
             expected_mode=ExecutionMode.STREAM,
+            decision=decision,
         )
         state = self._state_restorer.restore(checkpoint)
         observation = self._start_runtime_observation(
@@ -518,6 +531,7 @@ class AgentRuntime:
         resume_token: ResumeToken,
         *,
         expected_mode: ExecutionMode,
+        decision: ApprovalDecision,
     ) -> ExecutionCheckpoint:
         store = self._checkpoint_store
         if store is None:
@@ -533,7 +547,19 @@ class AgentRuntime:
             started_at=self._observability.now(),
         )
         try:
-            checkpoint = await store.consume(resume_token)
+            authorize = partial(
+                self._authorize_checkpoint_resume,
+                expected_mode=expected_mode,
+                decision=decision,
+            )
+            if isinstance(store, _AtomicAuthorizedCheckpointStore):
+                checkpoint = await store.consume_authorized(
+                    resume_token=resume_token,
+                    authorize=authorize,
+                )
+            else:
+                checkpoint = await store.consume(resume_token)
+                authorize(checkpoint)
         except asyncio.CancelledError:
             self._finish_operation_observation(
                 observation,
@@ -565,11 +591,23 @@ class AgentRuntime:
             "atlas.checkpoint.operations",
             attributes={"operation": "consume", "outcome": "completed"},
         )
+        return checkpoint
+
+    def _authorize_checkpoint_resume(
+        self,
+        checkpoint: ExecutionCheckpoint,
+        *,
+        expected_mode: ExecutionMode,
+        decision: ApprovalDecision,
+    ) -> None:
         if checkpoint.execution_mode is not expected_mode:
             raise InvalidCheckpointError(
                 "O checkpoint deve ser retomado pela mesma modalidade de execução."
             )
-        return checkpoint
+        self._approval_decision_validator.validate(
+            request=checkpoint.pending_approval,
+            decision=decision,
+        )
 
     def _checkpoint_policies(
         self,
@@ -593,10 +631,6 @@ class AgentRuntime:
         policies: _ExecutionPolicies,
     ) -> _PreparedExecution | RuntimeOutcome:
         request = checkpoint.pending_approval
-        self._approval_decision_validator.validate(
-            request=request,
-            decision=decision,
-        )
         self._record(
             state,
             factory,

@@ -136,6 +136,13 @@ revisão de armazenamento independente e compare-and-swap. Essa capability
 impede lost updates entre processos sem alterar `CheckpointStore` ou o
 `AgentRuntime`.
 
+A **DS-004 — Atomic Resume Consumption** integra o runtime a uma capability
+opcional de consumo autorizado. No PostgreSQL, a validação da decisão ocorre na
+mesma transação do `DELETE ... RETURNING`, antes do commit. Falhas de identidade,
+decisão, modalidade ou cancelamento causam rollback; somente um consumidor
+autorizado confirma a remoção. Stores que implementam apenas o contrato 1.x
+continuam compatíveis com a semântica histórica.
+
 Multi-agent runtime, delegation, workflow graphs, coordenação distribuída,
 marketplace e control plane hospedado ficam fora deste ciclo. Esses temas são
 candidatos ao Roadmap 3 — **Atlas 2.x: Advanced Orchestration**.
