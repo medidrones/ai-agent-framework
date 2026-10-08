@@ -29,6 +29,7 @@ dependencies = [
 rest = ["fastapi>=0.141,<1"]
 grpc = ["grpcio>=1.81.1,<2", "protobuf>=6.33.5,<7"]
 postgresql = ["psycopg[binary,pool]>=3.3,<4"]
+redis = ["redis>=5.2,<7"]
 
 [project.urls]
 Repository = "https://github.com/Medicode/ai-agent-framework"

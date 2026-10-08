@@ -126,6 +126,50 @@ jobs:
           name: testes-postgresql
           path: reports/postgresql-junit.xml
 
+  redis:
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis:7.4-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      ATLAS_TEST_REDIS_URL: redis://127.0.0.1:6379/15
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Configurar Python
+        run: uv python install 3.12
+
+      - name: Instalar workspace
+        run: uv sync --locked --python 3.12
+
+      - name: Executar integração Redis real
+        run: >-
+          uv run pytest
+          packages/atlas-agent-adapters/tests/test_redis_checkpoint_store.py
+          packages/atlas-agent-adapters/tests/test_redis_checkpoint_integration.py
+          packages/atlas-agent-adapters/tests/test_redis_hitl_integration.py
+          --no-cov --junitxml=reports/redis-junit.xml
+
+      - name: Arquivar relatório Redis
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testes-redis
+          path: reports/redis-junit.xml
+
   seguranca:
     runs-on: ubuntu-latest
     steps:

@@ -28,10 +28,11 @@ mcp = ["atlas-agent-mcp~=1.0.1"]
 rest = ["atlas-agent-adapters[rest]~=1.0.1"]
 grpc = ["atlas-agent-adapters[grpc]~=1.0.1"]
 postgresql = ["atlas-agent-adapters[postgresql]~=1.0.1"]
+redis = ["atlas-agent-adapters[redis]~=1.0.1"]
 config = ["atlas-agent-config~=1.0.1"]
 evaluation = ["atlas-agent-evaluation~=1.0.1"]
 full = [
-    "atlas-agent-adapters[grpc,postgresql,rest]~=1.0.1",
+    "atlas-agent-adapters[grpc,postgresql,redis,rest]~=1.0.1",
     "atlas-agent-config~=1.0.1",
     "atlas-agent-evaluation~=1.0.1",
     "atlas-agent-mcp~=1.0.1",

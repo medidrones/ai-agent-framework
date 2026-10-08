@@ -27,6 +27,7 @@ OPTIONAL_VENDOR_PACKAGES = {
     "openai",
     "psycopg",
     "pyyaml",
+    "redis",
 }
 DEV_TOOLS = {"grpcio-tools", "mypy", "pytest", "ruff", "twine"}
 
@@ -118,10 +119,15 @@ def test_core_is_minimal_and_vendor_dependencies_are_isolated() -> None:
         item.name.casefold() for item in requirements(providers["dependencies"])
     }
     assert set(providers["optional-dependencies"]) == {"openai"}
-    assert {"fastapi", "grpcio", "psycopg"}.isdisjoint(
+    assert {"fastapi", "grpcio", "psycopg", "redis"}.isdisjoint(
         item.name.casefold() for item in requirements(adapters["dependencies"])
     )
-    assert set(adapters["optional-dependencies"]) == {"grpc", "postgresql", "rest"}
+    assert set(adapters["optional-dependencies"]) == {
+        "grpc",
+        "postgresql",
+        "redis",
+        "rest",
+    }
 
 
 def test_internal_distribution_graph_is_acyclic() -> None:
@@ -178,6 +184,7 @@ def test_optional_import_boundaries_are_not_eager() -> None:
     assert "adapters.rest" not in adapters
     assert "adapters.grpc" not in adapters
     assert "adapters.checkpoints.postgresql" not in adapters
+    assert "adapters.checkpoints.redis" not in adapters
 
 
 def test_every_typed_distribution_declares_and_contains_py_typed() -> None:
