@@ -111,6 +111,7 @@ jobs:
           packages/atlas-agent-adapters/tests/test_postgresql_checkpoint_integration.py
           packages/atlas-agent-adapters/tests/test_postgresql_checkpoint_concurrency.py
           packages/atlas-agent-adapters/tests/test_postgresql_atomic_resume.py
+          packages/atlas-agent-adapters/tests/test_postgresql_checkpoint_lease.py
           --no-cov --junitxml=reports/postgresql-junit.xml
 
       - name: Arquivar relatório PostgreSQL

@@ -20,6 +20,7 @@ o pool recebido.
 from psycopg_pool import AsyncConnectionPool
 
 from atlas_agents.adapters.checkpoints.postgresql import (
+    PostgreSQLCheckpointLeaseManager,
     PostgreSQLCheckpointMigrator,
     PostgreSQLCheckpointStore,
 )
@@ -38,6 +39,7 @@ try:
         pool,
         token_hmac_key=segredo_hmac_de_32_bytes,
     )
+    lease_manager = PostgreSQLCheckpointLeaseManager(pool)
     runtime = AgentRuntime(
         # demais dependências explícitas
         checkpoint_store=checkpoint_store,
@@ -107,6 +109,38 @@ updated = await checkpoint_store.compare_and_swap(
 `checkpoint_version`, que continua representando o formato do payload. Somente
 um writer com a revisão esperada confirma a atualização; os demais recebem
 `CheckpointConcurrencyConflictError`. O adapter não aplica retry automático.
+
+## Lease, ownership e fencing
+
+`PostgreSQLCheckpointLeaseManager` coordena ownership temporário usando o
+relógio do PostgreSQL. O checkpoint deve existir e estar ativo. Uma aquisição
+concorrente tem exatamente um vencedor; release e expiração permitem nova
+aquisição com fencing token estritamente maior.
+
+```python
+from datetime import timedelta
+
+lease = await lease_manager.acquire(
+    checkpoint_id=checkpoint.execution_id,
+    owner_id=worker_id,
+    duration=timedelta(seconds=30),
+)
+try:
+    snapshot = await checkpoint_store.compare_and_swap_leased(
+        resume_token=resume_token,
+        checkpoint=updated_checkpoint,
+        expected_revision=current_revision,
+        lease=lease,
+    )
+finally:
+    await lease_manager.release(lease=lease)
+```
+
+Para o caminho HITL, `consume_authorized_leased()` combina autorização,
+consumo atômico e validação do fencing token. As variantes com lease são
+capabilities aditivas; métodos existentes permanecem compatíveis com Atlas
+1.x. Um lease não protege efeitos em serviços externos que não implementem
+fencing ou idempotência.
 
 ## Retenção e operação
 

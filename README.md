@@ -47,7 +47,9 @@ O extra `atlas-agent-adapters[postgresql]` oferece checkpoints duráveis para
 HITL, com migrations versionadas, persistência transacional e consumo único
 atômico. A capability PostgreSQL também oferece compare-and-swap por revisão
 para impedir lost updates entre workers e consumo autorizado com rollback antes
-do commit quando a decisão de retomada é inválida. Consulte o guia de
+do commit quando a decisão de retomada é inválida. Lease distribuído, expiração
+pelo relógio do PostgreSQL e fencing tokens monotônicos protegem CAS e consumo
+contra workers obsoletos, sem alterar os contratos 1.x. Consulte o guia de
 [`checkpoint PostgreSQL`](docs/adapters/postgresql-checkpoints.md).
 
 Atlas é um framework Python reutilizável e independente de provedor para
