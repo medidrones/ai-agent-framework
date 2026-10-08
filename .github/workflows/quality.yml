@@ -109,6 +109,7 @@ jobs:
           uv run pytest
           packages/atlas-agent-adapters/tests/test_postgresql_checkpoint_store.py
           packages/atlas-agent-adapters/tests/test_postgresql_checkpoint_integration.py
+          packages/atlas-agent-adapters/tests/test_postgresql_checkpoint_concurrency.py
           --no-cov --junitxml=reports/postgresql-junit.xml
 
       - name: Arquivar relatório PostgreSQL

@@ -115,8 +115,8 @@ async def test_migration_is_idempotent_and_records_checksum(
             WHERE component = 'postgresql_checkpoint_store'
             """
         )
-        row = await cursor.fetchone()
-    assert row == (1, 64)
+        rows = await cursor.fetchall()
+    assert rows == [(1, 64), (2, 64)]
 
 
 async def test_save_consume_and_replay_do_not_store_plain_token(

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 from datetime import UTC, datetime, timedelta
@@ -7,9 +8,14 @@ from pathlib import Path
 from typing import Any, cast
 
 import pytest
+from pydantic import ValidationError
 
 from atlas_agents import ExecutionCheckpoint, ResumeToken
-from atlas_agents.adapters.checkpoints.postgresql import PostgreSQLCheckpointStore
+from atlas_agents.adapters.checkpoints.postgresql import (
+    CheckpointConcurrencyConflictError,
+    PostgreSQLCheckpointSnapshot,
+    PostgreSQLCheckpointStore,
+)
 
 ROOT = Path(__file__).parents[2]
 FIXTURE = (
@@ -76,7 +82,7 @@ def test_invalid_configuration_is_rejected(
 
 
 def test_versioned_migration_is_packaged() -> None:
-    migration = (
+    migration_root = (
         ROOT
         / "atlas-agent-adapters"
         / "src"
@@ -85,11 +91,57 @@ def test_versioned_migration_is_packaged() -> None:
         / "checkpoints"
         / "postgresql"
         / "sql"
-        / "001_create_checkpoint_store.sql"
     )
 
-    sql = migration.read_text(encoding="utf-8")
+    initial = (migration_root / "001_create_checkpoint_store.sql").read_text(
+        encoding="utf-8"
+    )
+    revision = (migration_root / "002_add_checkpoint_revision.sql").read_text(
+        encoding="utf-8"
+    )
 
-    assert "CREATE TABLE atlas_agent.checkpoints" in sql
-    assert "token_digest BYTEA PRIMARY KEY" in sql
-    assert "payload JSONB NOT NULL" in sql
+    assert "CREATE TABLE atlas_agent.checkpoints" in initial
+    assert "token_digest BYTEA PRIMARY KEY" in initial
+    assert "payload JSONB NOT NULL" in initial
+    assert "ADD COLUMN revision BIGINT NOT NULL DEFAULT 1" in revision
+
+
+def test_expected_revision_must_be_positive() -> None:
+    value = store()
+
+    with pytest.raises(ValueError, match="revisão esperada"):
+        asyncio.run(
+            value.compare_and_swap(
+                resume_token=ResumeToken(value="token"),
+                checkpoint=checkpoint(),
+                expected_revision=0,
+            )
+        )
+
+
+def test_snapshot_is_immutable_and_requires_positive_revision() -> None:
+    snapshot = PostgreSQLCheckpointSnapshot(
+        checkpoint=checkpoint(),
+        revision=1,
+    )
+
+    assert snapshot.revision == 1
+    with pytest.raises(ValidationError):
+        snapshot.revision = 2
+    with pytest.raises(ValidationError):
+        PostgreSQLCheckpointSnapshot(checkpoint=checkpoint(), revision=0)
+
+
+def test_conflict_error_exposes_only_safe_revision_facts() -> None:
+    error = CheckpointConcurrencyConflictError(
+        checkpoint_id="execution-1",
+        expected_revision=3,
+        actual_revision=4,
+    )
+
+    assert error.error_code == "checkpoint_concurrency_conflict"
+    assert error.checkpoint_id == "execution-1"
+    assert error.expected_revision == 3
+    assert error.actual_revision == 4
+    assert "payload" not in str(error).casefold()
+    assert "postgresql://" not in str(error)

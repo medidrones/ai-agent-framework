@@ -45,7 +45,8 @@ identidade confiável, autorização e limites explícitos. Consulte a
 
 O extra `atlas-agent-adapters[postgresql]` oferece checkpoints duráveis para
 HITL, com migrations versionadas, persistência transacional e consumo único
-atômico. Consulte o guia de
+atômico. A capability PostgreSQL também oferece compare-and-swap por revisão
+para impedir lost updates entre workers. Consulte o guia de
 [`checkpoint PostgreSQL`](docs/adapters/postgresql-checkpoints.md).
 
 Atlas é um framework Python reutilizável e independente de provedor para

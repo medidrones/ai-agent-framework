@@ -131,6 +131,11 @@ inclusive quando workers concorrentes tentam consumir o mesmo checkpoint.
 Essa propriedade representa autorização de retomada no máximo uma vez e não
 declara exactly-once para efeitos externos.
 
+A **DS-003 — Checkpoint Optimistic Concurrency** complementa o adapter com uma
+revisão de armazenamento independente e compare-and-swap. Essa capability
+impede lost updates entre processos sem alterar `CheckpointStore` ou o
+`AgentRuntime`.
+
 Multi-agent runtime, delegation, workflow graphs, coordenação distribuída,
 marketplace e control plane hospedado ficam fora deste ciclo. Esses temas são
 candidatos ao Roadmap 3 — **Atlas 2.x: Advanced Orchestration**.
