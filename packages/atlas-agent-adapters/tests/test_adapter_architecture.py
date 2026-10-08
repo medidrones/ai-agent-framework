@@ -22,7 +22,10 @@ def test_core_has_no_adapter_or_transport_dependencies() -> None:
     text = source_text(CORE_SOURCE).lower()
     pyproject = (CORE / "pyproject.toml").read_text(encoding="utf-8").lower()
     assert "atlas_agents.adapters" not in text
-    assert all(name not in pyproject for name in ("fastapi", "grpcio", "kafka", "pika"))
+    assert all(
+        name not in pyproject
+        for name in ("fastapi", "grpcio", "kafka", "pika", "psycopg", "postgresql")
+    )
 
 
 def test_adapter_source_has_no_automatic_start_or_environment_magic() -> None:

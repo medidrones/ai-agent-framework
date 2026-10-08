@@ -5,11 +5,13 @@
 | `atlas-agent-providers[openai]` | `openai>=3.13.0,<4` |
 | `atlas-agent-adapters[rest]` | `fastapi>=0.141,<1` |
 | `atlas-agent-adapters[grpc]` | `grpcio>=1.81.1,<2`, `protobuf>=6.33.5,<7` |
+| `atlas-agent-adapters[postgresql]` | `psycopg[binary,pool]>=3.3,<4` |
 | `atlas-agent-config[adapters]` | `atlas-agent-adapters~=1.0.0` |
 | `atlas-agent-framework[openai]` | provider e extra OpenAI |
 | `atlas-agent-framework[mcp]` | integração MCP |
 | `atlas-agent-framework[rest]` | adapters e extra REST |
 | `atlas-agent-framework[grpc]` | adapters e extra gRPC |
+| `atlas-agent-framework[postgresql]` | adapters e extra PostgreSQL |
 | `atlas-agent-framework[config]` | configuração declarativa |
 | `atlas-agent-framework[evaluation]` | avaliação |
 | `atlas-agent-framework[full]` | todas as combinações acima |

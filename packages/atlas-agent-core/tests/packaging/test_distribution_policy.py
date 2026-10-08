@@ -20,7 +20,14 @@ DISTRIBUTIONS = {
     "atlas-agent-mcp": "atlas-agent-mcp",
     "atlas-agent-providers": "atlas-agent-providers",
 }
-OPTIONAL_VENDOR_PACKAGES = {"fastapi", "grpcio", "mcp", "openai", "pyyaml"}
+OPTIONAL_VENDOR_PACKAGES = {
+    "fastapi",
+    "grpcio",
+    "mcp",
+    "openai",
+    "psycopg",
+    "pyyaml",
+}
 DEV_TOOLS = {"grpcio-tools", "mypy", "pytest", "ruff", "twine"}
 
 
@@ -111,10 +118,10 @@ def test_core_is_minimal_and_vendor_dependencies_are_isolated() -> None:
         item.name.casefold() for item in requirements(providers["dependencies"])
     }
     assert set(providers["optional-dependencies"]) == {"openai"}
-    assert {"fastapi", "grpcio"}.isdisjoint(
+    assert {"fastapi", "grpcio", "psycopg"}.isdisjoint(
         item.name.casefold() for item in requirements(adapters["dependencies"])
     )
-    assert set(adapters["optional-dependencies"]) == {"grpc", "rest"}
+    assert set(adapters["optional-dependencies"]) == {"grpc", "postgresql", "rest"}
 
 
 def test_internal_distribution_graph_is_acyclic() -> None:
@@ -170,6 +177,7 @@ def test_optional_import_boundaries_are_not_eager() -> None:
     assert "providers.openai" not in providers
     assert "adapters.rest" not in adapters
     assert "adapters.grpc" not in adapters
+    assert "adapters.checkpoints.postgresql" not in adapters
 
 
 def test_every_typed_distribution_declares_and_contains_py_typed() -> None:
