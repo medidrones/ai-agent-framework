@@ -77,6 +77,25 @@ O cancelamento de uma operação pendente causa rollback da transação. Um payl
 corrompido é consumido e rejeitado de forma fail-closed, preservando o contrato
 1.x, que valida o checkpoint após o consumo.
 
+## Concorrência otimista
+
+O adapter oferece uma capability aditiva para coordenadores que precisam
+atualizar um checkpoint antes do consumo:
+
+```python
+snapshot = await checkpoint_store.read(resume_token)
+updated = await checkpoint_store.compare_and_swap(
+    resume_token=resume_token,
+    checkpoint=new_checkpoint,
+    expected_revision=snapshot.revision,
+)
+```
+
+`revision` é uma revisão de armazenamento iniciada em 1 e independente de
+`checkpoint_version`, que continua representando o formato do payload. Somente
+um writer com a revisão esperada confirma a atualização; os demais recebem
+`CheckpointConcurrencyConflictError`. O adapter não aplica retry automático.
+
 ## Retenção e operação
 
 O parâmetro opcional `retention` limita a vida do registro a partir de

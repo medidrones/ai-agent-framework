@@ -16,18 +16,24 @@ except ModuleNotFoundError as error:
 del _psycopg, _psycopg_pool
 
 from atlas_agents.adapters.checkpoints.postgresql.errors import (  # noqa: E402
+    CheckpointConcurrencyConflictError,
     PostgreSQLCheckpointStoreError,
     PostgreSQLMigrationError,
 )
 from atlas_agents.adapters.checkpoints.postgresql.migrations import (  # noqa: E402
     PostgreSQLCheckpointMigrator,
 )
+from atlas_agents.adapters.checkpoints.postgresql.models import (  # noqa: E402
+    PostgreSQLCheckpointSnapshot,
+)
 from atlas_agents.adapters.checkpoints.postgresql.store import (  # noqa: E402
     PostgreSQLCheckpointStore,
 )
 
 __all__ = [
+    "CheckpointConcurrencyConflictError",
     "PostgreSQLCheckpointMigrator",
+    "PostgreSQLCheckpointSnapshot",
     "PostgreSQLCheckpointStore",
     "PostgreSQLCheckpointStoreError",
     "PostgreSQLMigrationError",

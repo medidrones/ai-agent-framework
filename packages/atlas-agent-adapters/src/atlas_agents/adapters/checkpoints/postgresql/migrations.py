@@ -34,7 +34,10 @@ class _Migration:
     resource: str
 
 
-_MIGRATIONS: Final = (_Migration(1, "001_create_checkpoint_store.sql"),)
+_MIGRATIONS: Final = (
+    _Migration(1, "001_create_checkpoint_store.sql"),
+    _Migration(2, "002_add_checkpoint_revision.sql"),
+)
 
 
 class PostgreSQLCheckpointMigrator:
