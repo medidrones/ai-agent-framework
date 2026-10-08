@@ -23,9 +23,10 @@ Resultado específico: 13 PASS, 0 FAIL, 0 SKIP.
 
 ## Regressão PostgreSQL
 
-As nove suítes DS-002–DS-009 executaram em PostgreSQL real: 104 PASS, 0 FAIL e
-0 SKIP. A suíte integral executou 1.304 testes: 1.304 PASS, 0 FAIL, 0 SKIP, com
-92,77% de branch coverage.
+As suítes DS-002–DS-009 e os contratos unitários executaram em PostgreSQL real:
+124 PASS, 0 FAIL e 0 SKIP. A suíte integral executou 1.324 testes: 1.324 PASS,
+0 FAIL, 0 SKIP, com 92,85% de branch coverage. Sem PostgreSQL, o gate de
+compatibilidade executou 1.228 PASS e 96 skips esperados, com 90,04%.
 
 ## Benchmark
 

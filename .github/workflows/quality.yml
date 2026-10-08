@@ -115,6 +115,7 @@ jobs:
           packages/atlas-agent-adapters/tests/test_postgresql_execution_recovery.py
           packages/atlas-agent-adapters/tests/test_postgresql_checkpoint_retention.py
           packages/atlas-agent-adapters/tests/test_postgresql_checkpoint_purge.py
+          packages/atlas-agent-adapters/tests/test_postgresql_schema_contracts.py
           packages/atlas-agent-adapters/tests/test_postgresql_schema_migrations.py
           --no-cov --junitxml=reports/postgresql-junit.xml
 
