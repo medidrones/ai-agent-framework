@@ -199,6 +199,21 @@ def _recovery_process_worker(
     result_queue.put(asyncio.run(_process_recover(dsn, token_value, owner_id)))
 
 
+def _save_then_crash_worker(dsn: str, execution_id: str, token_value: str) -> None:
+    async def save_confirmed_checkpoint() -> None:
+        value = AsyncConnectionPool(dsn, min_size=1, max_size=2, open=False)
+        await value.open(wait=True)
+        await PostgreSQLCheckpointStore(value).save(
+            resume_token=ResumeToken(value=token_value),
+            checkpoint=checkpoint(execution_id=execution_id),
+        )
+
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    asyncio.run(save_confirmed_checkpoint())
+    os._exit(73)
+
+
 async def test_discovery_is_bounded_stable_and_tenant_scoped(
     postgres_pool: AsyncConnectionPool[Any],
 ) -> None:
@@ -282,6 +297,27 @@ async def test_multiprocess_recovery_consumes_checkpoint_once(
         )
         rows = await cursor.fetchall()
     assert rows == [(RecoveryOutcome.RECOVERED.value,)]
+
+
+async def test_confirmed_checkpoint_survives_abrupt_process_exit(
+    postgres_pool: AsyncConnectionPool[Any],
+) -> None:
+    assert DSN is not None
+    execution_id = "execution-abrupt-crash"
+    opaque_value = "opaque-abrupt-crash"
+    context = multiprocessing.get_context("spawn")
+    process = context.Process(
+        target=_save_then_crash_worker,
+        args=(DSN, execution_id, opaque_value),
+    )
+    process.start()
+    process.join(timeout=20)
+    assert process.exitcode == 73
+
+    recovered = await PostgreSQLCheckpointStore(postgres_pool).consume(
+        ResumeToken(value=opaque_value)
+    )
+    assert recovered.execution_id == execution_id
 
 
 async def test_attempt_limit_survives_new_recorder_instance(
