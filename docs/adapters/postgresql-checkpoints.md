@@ -180,3 +180,24 @@ O payload do checkpoint pode conter mensagens, argumentos e metadata sensíveis.
 Proteja backups, conexões, permissões e armazenamento com os controles da
 plataforma. O adapter evita persistir o bearer token, mas não faz redaction nem
 criptografia do payload da aplicação.
+## Compatibilidade do schema
+
+O adapter expõe `PostgreSQLSchemaCompatibilityChecker` para readiness explícita
+e somente leitura. Ele classifica o banco como `SCHEMA_COMPATIBLE`,
+`SCHEMA_DRIFT_DETECTED`, `SCHEMA_VERSION_UNSUPPORTED` ou
+`SCHEMA_NOT_INITIALIZED`. O checker não aplica migrations nem lê payloads.
+
+As migrations continuam administrativas e explícitas:
+
+```python
+from atlas_agents.adapters.checkpoints.postgresql import (
+    PostgreSQLCheckpointMigrator,
+    PostgreSQLSchemaCompatibilityChecker,
+)
+
+await PostgreSQLCheckpointMigrator(pool).migrate()
+status = await PostgreSQLSchemaCompatibilityChecker(pool).check()
+```
+
+Use uma identidade com DDL somente no migrator. O runtime precisa apenas de
+`USAGE` no schema e DML nas tabelas operacionais apropriadas.

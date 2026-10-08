@@ -111,6 +111,9 @@ def test_versioned_migration_is_packaged() -> None:
     purge = (migration_root / "006_create_checkpoint_purge.sql").read_text(
         encoding="utf-8"
     )
+    schema_certification = (
+        migration_root / "007_create_recovery_candidate_index.sql"
+    ).read_text(encoding="utf-8")
 
     assert "CREATE TABLE atlas_agent.checkpoints" in initial
     assert "token_digest BYTEA PRIMARY KEY" in initial
@@ -122,6 +125,7 @@ def test_versioned_migration_is_packaged() -> None:
     assert "CREATE TABLE atlas_agent.checkpoint_tombstones" in retention
     assert "CREATE TABLE atlas_agent.checkpoint_purge_audit" in purge
     assert "ADD COLUMN legal_hold BOOLEAN" in purge
+    assert "atlas_checkpoints_recovery_candidates_idx" in schema_certification
 
 
 def test_expected_revision_must_be_positive() -> None:
