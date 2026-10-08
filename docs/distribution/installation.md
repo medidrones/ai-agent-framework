@@ -14,6 +14,7 @@ pip install atlas-agent-mcp
 pip install atlas-agent-adapters[rest]
 pip install atlas-agent-adapters[grpc]
 pip install atlas-agent-adapters[postgresql]
+pip install atlas-agent-adapters[redis]
 pip install atlas-agent-config
 pip install atlas-agent-evaluation
 ```
@@ -21,7 +22,7 @@ pip install atlas-agent-evaluation
 O meta-package é opcional:
 
 ```bash
-pip install atlas-agent-framework[openai,config]
+pip install atlas-agent-framework[openai,config,redis]
 pip install atlas-agent-framework[full]
 ```
 

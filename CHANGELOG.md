@@ -9,6 +9,14 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ### Adicionado
 
+- `RedisCheckpointStore` opcional com keyspace opaco, serialização v1,
+  concorrência otimista, consumo único, tombstones de replay, TTL separado da
+  retenção e integração HITL após reinicialização do processo.
+- Lease/fencing Redis co-localizado, CAS e consumo protegidos contra workers
+  obsoletos, tentativa de consumo identificada e reconciliação de respostas
+  ambíguas, com testes de 100 consumidores e multiprocesso.
+- Extra `redis` nas distribuições `atlas-agent-adapters` e
+  `atlas-agent-framework`, além de testes com Redis real e baseline AOF.
 - Verificador PostgreSQL tipado e somente leitura para readiness, histórico de
   migrations, checksums, colunas, constraints e índices do Durable State.
 - Migration 007 aditiva com índice para descoberta ordenada de candidatos de
