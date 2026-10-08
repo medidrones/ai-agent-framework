@@ -161,10 +161,20 @@ e a [integração HITL](../roadmap-2/m01-durable-state/ds-006/HITL-RECOVERY.md).
 
 ## Retenção e operação
 
-O parâmetro opcional `retention` limita a vida do registro a partir de
-`checkpoint.updated_at`. Se a aprovação também possuir expiração, prevalece a
-data mais próxima. `purge_expired(batch_size=1000)` remove lotes concorrentes
-com `SKIP LOCKED`; `ping()` verifica disponibilidade sem expor a configuração.
+O parâmetro legado `retention` continua compatível. Para políticas explícitas,
+use `CheckpointRetentionPolicy` em `retention_policy`: ela separa TTL HITL e
+janelas de retenção de consumidos, expirados, terminais e recovery. O relógio
+do PostgreSQL decide a fronteira (`agora >= expires_at`).
+
+Cada consumo grava um tombstone sem payload na mesma transação. Para avaliar
+limpeza, `PostgreSQLCheckpointRetentionRepository.classify()` retorna uma lista
+limitada e isolada por tenant; não remove dados. Lease, recovery, legal hold,
+incompatibilidade e retenção ativa bloqueiam a elegibilidade. O purge físico
+com política DS-007 permanece reservado à DS-008. `ping()` verifica
+disponibilidade sem expor configuração.
+
+Consulte o [contrato da DS-007](../roadmap-2/m01-durable-state/ds-007/EXPIRATION-CONTRACT.md)
+e as [regras de elegibilidade](../roadmap-2/m01-durable-state/ds-007/PURGE-ELIGIBILITY.md).
 
 O payload do checkpoint pode conter mensagens, argumentos e metadata sensíveis.
 Proteja backups, conexões, permissões e armazenamento com os controles da

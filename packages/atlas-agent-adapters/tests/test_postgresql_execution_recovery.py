@@ -90,7 +90,8 @@ async def postgres_pool() -> AsyncIterator[AsyncConnectionPool[Any]]:
     async with value.connection() as connection:
         await connection.execute(
             """TRUNCATE atlas_agent.execution_recovery_attempts,
-               atlas_agent.checkpoint_leases, atlas_agent.checkpoints"""
+               atlas_agent.checkpoint_leases,
+               atlas_agent.checkpoint_tombstones, atlas_agent.checkpoints"""
         )
     try:
         yield value
@@ -98,7 +99,8 @@ async def postgres_pool() -> AsyncIterator[AsyncConnectionPool[Any]]:
         async with value.connection() as connection:
             await connection.execute(
                 """TRUNCATE atlas_agent.execution_recovery_attempts,
-                   atlas_agent.checkpoint_leases, atlas_agent.checkpoints"""
+                   atlas_agent.checkpoint_leases,
+                   atlas_agent.checkpoint_tombstones, atlas_agent.checkpoints"""
             )
         await value.close()
 

@@ -56,6 +56,15 @@ from atlas_agents.runtime.recovery import (
     RecoveryResumeRequestResolver,
 )
 from atlas_agents.runtime.restorer import ExecutionStateRestorer
+from atlas_agents.runtime.retention import (
+    CheckpointPurgeClassification,
+    CheckpointRetentionCategory,
+    CheckpointRetentionClassifier,
+    CheckpointRetentionPolicy,
+    CheckpointRetentionRepository,
+    CheckpointRetentionSubject,
+    PurgeEligibility,
+)
 from atlas_agents.runtime.runtime import AgentRuntime
 from atlas_agents.runtime.snapshot import ExecutionSnapshot
 from atlas_agents.runtime.state import ExecutionState
@@ -81,6 +90,12 @@ __all__ = [
     "CheckpointLeaseLostError",
     "CheckpointLeaseManager",
     "CheckpointLeaseNotFoundError",
+    "CheckpointPurgeClassification",
+    "CheckpointRetentionCategory",
+    "CheckpointRetentionClassifier",
+    "CheckpointRetentionPolicy",
+    "CheckpointRetentionRepository",
+    "CheckpointRetentionSubject",
     "CheckpointStore",
     "ConservativeRecoveryEligibilityPolicy",
     "ExecutionAlreadyTerminalError",
@@ -106,6 +121,7 @@ __all__ = [
     "ModelStreamIncompleteError",
     "ModelStreamProtocolError",
     "ModelStreamReportedError",
+    "PurgeEligibility",
     "RecoveryAttempt",
     "RecoveryAttemptRecorder",
     "RecoveryAttemptResult",

@@ -77,12 +77,16 @@ async def postgres_pool() -> AsyncIterator[AsyncConnectionPool[Any]]:
     await value.open(wait=True)
     await PostgreSQLCheckpointMigrator(value).migrate()
     async with value.connection() as connection:
-        await connection.execute("TRUNCATE atlas_agent.checkpoints")
+        await connection.execute(
+            "TRUNCATE atlas_agent.checkpoint_tombstones, atlas_agent.checkpoints"
+        )
     try:
         yield value
     finally:
         async with value.connection() as connection:
-            await connection.execute("TRUNCATE atlas_agent.checkpoints")
+            await connection.execute(
+                "TRUNCATE atlas_agent.checkpoint_tombstones, atlas_agent.checkpoints"
+            )
         await value.close()
 
 
@@ -442,7 +446,9 @@ async def test_update_survives_application_pool_restart() -> None:
     await first.open(wait=True)
     await PostgreSQLCheckpointMigrator(first).migrate()
     async with first.connection() as connection:
-        await connection.execute("TRUNCATE atlas_agent.checkpoints")
+        await connection.execute(
+            "TRUNCATE atlas_agent.checkpoint_tombstones, atlas_agent.checkpoints"
+        )
     first_store = PostgreSQLCheckpointStore(first)
     await first_store.save(resume_token=token, checkpoint=original)
     await first_store.compare_and_swap(

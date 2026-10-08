@@ -94,12 +94,16 @@ async def postgres_pool() -> AsyncIterator[AsyncConnectionPool[Any]]:
     await value.open(wait=True)
     await PostgreSQLCheckpointMigrator(value).migrate()
     async with value.connection() as connection:
-        await connection.execute("TRUNCATE atlas_agent.checkpoints")
+        await connection.execute(
+            "TRUNCATE atlas_agent.checkpoint_tombstones, atlas_agent.checkpoints"
+        )
     try:
         yield value
     finally:
         async with value.connection() as connection:
-            await connection.execute("TRUNCATE atlas_agent.checkpoints")
+            await connection.execute(
+                "TRUNCATE atlas_agent.checkpoint_tombstones, atlas_agent.checkpoints"
+            )
         await value.close()
 
 
@@ -116,7 +120,7 @@ async def test_migration_is_idempotent_and_records_checksum(
             """
         )
         rows = await cursor.fetchall()
-    assert rows == [(1, 64), (2, 64), (3, 64), (4, 64)]
+    assert rows == [(1, 64), (2, 64), (3, 64), (4, 64), (5, 64)]
 
 
 async def test_save_consume_and_replay_do_not_store_plain_token(
@@ -210,7 +214,9 @@ async def test_checkpoint_survives_application_pool_restart() -> None:
     await first.open(wait=True)
     await PostgreSQLCheckpointMigrator(first).migrate()
     async with first.connection() as connection:
-        await connection.execute("TRUNCATE atlas_agent.checkpoints")
+        await connection.execute(
+            "TRUNCATE atlas_agent.checkpoint_tombstones, atlas_agent.checkpoints"
+        )
     await PostgreSQLCheckpointStore(first).save(
         resume_token=token,
         checkpoint=expected,

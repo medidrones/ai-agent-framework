@@ -149,6 +149,13 @@ capabilities `compare_and_swap_leased()` e `consume_authorized_leased()`
 rejeitam stale workers atomicamente com a alteração protegida, preservando os
 contratos 1.x e deixando a coordenação automática de recovery para a DS-006.
 
+A **DS-006 — Execution Recovery Coordinator** adiciona descoberta,
+elegibilidade, ownership e retomada HITL após restart, com tentativas duráveis e
+limites explícitos. A **DS-007 — Checkpoint Expiration & Retention Policies**
+define TTLs e retenções versionadas, usa o PostgreSQL como autoridade temporal,
+preserva replay por tombstones sem payload e classifica elegibilidade sem
+executar remoção física. O purge operacional permanece na DS-008.
+
 Multi-agent runtime, delegation, workflow graphs, coordenação distribuída,
 marketplace e control plane hospedado ficam fora deste ciclo. Esses temas são
 candidatos ao Roadmap 3 — **Atlas 2.x: Advanced Orchestration**.
