@@ -1,5 +1,16 @@
 # Post para LinkedIn — arquitetura do Atlas Agent Framework
 
+## Assets para publicação
+
+Os formatos têm finalidades diferentes e devem ser preservados:
+
+- [`atlas-v1-architecture.png`](../architecture/atlas-v1-architecture.png):
+  primeira imagem do post no LinkedIn;
+- [`atlas-roadmap-2-architecture.png`](../architecture/atlas-roadmap-2-architecture.png):
+  segunda imagem do post no LinkedIn;
+- os arquivos SVG correspondentes são as fontes vetoriais usadas na
+  documentação técnica do GitHub.
+
 ## Texto principal
 
 Como construir um framework de agentes sem transformar o core em um catálogo
