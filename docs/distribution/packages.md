@@ -8,7 +8,7 @@ forma independente.
 | `atlas-agent-core` | contratos, runtime e abstrações | Pydantic, JSON Schema e Packaging |
 | `atlas-agent-providers` | providers oficiais | core; SDKs somente por extra |
 | `atlas-agent-mcp` | cliente e servidor MCP | core e SDK MCP |
-| `atlas-agent-adapters` | fachada e transportes externos | core; transportes por extra |
+| `atlas-agent-adapters` | fachada, transportes e persistência externa | core; integrações por extra |
 | `atlas-agent-config` | configuração declarativa | core, Pydantic e PyYAML |
 | `atlas-agent-evaluation` | avaliações provider-neutral | core e Pydantic |
 | `atlas-agent-framework` | meta-package opcional | somente core por padrão |

@@ -26,7 +26,7 @@ entrar no caminho crítico do runtime produtivo.
 | `atlas-agent-core` | Contratos, runtime e capacidades provider-neutral |
 | `atlas-agent-providers` | Providers oficiais, começando pela OpenAI |
 | `atlas-agent-mcp` | Cliente e servidor Model Context Protocol |
-| `atlas-agent-adapters` | REST, gRPC e mensageria broker-neutral |
+| `atlas-agent-adapters` | REST, gRPC, mensageria e persistência PostgreSQL opcional |
 | `atlas-agent-config` | Configuração declarativa e composition root |
 | `atlas-agent-evaluation` | Datasets, evaluators, scoring e relatórios |
 | `atlas-agent-framework` | Meta-package e experiência de instalação |
@@ -118,15 +118,18 @@ pendências P0/P1.
 
 ### Primeiro passo formal
 
-O primeiro trabalho é **DS-001 — Persistence Contract Certification**. Ele
-audita e congela o contrato atual de `CheckpointStore` antes das implementações
-PostgreSQL e Redis. A propriedade central a preservar é:
+O contrato de persistência foi certificado pela **DS-001 — Persistence Contract
+Certification**. A **DS-002 — PostgreSQLCheckpointStore** implementa agora
+persistência transacional e consumo único atômico no adapter opcional, sem
+introduzir PostgreSQL no core. A propriedade operacional preservada é:
 
 ```text
 one approval → one resume → one side effect
 ```
 
 inclusive quando workers concorrentes tentam consumir o mesmo checkpoint.
+Essa propriedade representa autorização de retomada no máximo uma vez e não
+declara exactly-once para efeitos externos.
 
 Multi-agent runtime, delegation, workflow graphs, coordenação distribuída,
 marketplace e control plane hospedado ficam fora deste ciclo. Esses temas são

@@ -1,10 +1,10 @@
 # Adapters externos
 
 A distribuição opcional `atlas-agent-adapters` expõe o runtime Atlas por REST,
-gRPC e mensageria sem transferir para os transportes a propriedade do loop de
-execução. Todos os adapters convergem para `AgentExecutionService`, uma fachada
-provider-neutral com quatro operações: `execute`, `stream`, `resume` e
-`resume_stream`.
+gRPC e mensageria e fornece integrações concretas de infraestrutura. Os
+transportes não recebem a propriedade do loop de execução. Todos convergem para
+`AgentExecutionService`, uma fachada provider-neutral com quatro operações:
+`execute`, `stream`, `resume` e `resume_stream`.
 
 ```text
 HTTP / gRPC / broker
@@ -32,6 +32,10 @@ uv add atlas-agent-adapters
 Os contratos públicos ficam em `atlas_agents.adapters`. Os módulos
 `atlas_agents.adapters.rest`, `atlas_agents.adapters.grpc` e
 `atlas_agents.adapters.events` contêm as integrações de transporte.
+
+O módulo `atlas_agents.adapters.checkpoints.postgresql` implementa o contrato
+de checkpoint do core sem adicionar PostgreSQL ao núcleo. Consulte o guia de
+[checkpoint PostgreSQL](postgresql-checkpoints.md).
 
 ## Composição mínima
 
@@ -79,4 +83,5 @@ dependências pertencem ao bootstrap da aplicação.
 
 Consulte os guias de [serviço de execução](execution-service.md),
 [REST](rest.md), [gRPC](grpc.md), [mensageria](event-driven.md),
-[segurança](security.md) e [versionamento](versioning.md).
+[checkpoint PostgreSQL](postgresql-checkpoints.md), [segurança](security.md) e
+[versionamento](versioning.md).

@@ -2,7 +2,7 @@
 
 from typing import Self
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, field_serializer, field_validator, model_validator
 
 from atlas_agents._models import (
     _FrozenModel,
@@ -23,6 +23,17 @@ class ModelSelectionRequest(_FrozenModel):
     minimum_context_window: int | None = Field(default=None, gt=0)
     minimum_max_output_tokens: int | None = Field(default=None, gt=0)
     metadata: dict[str, object] = Field(default_factory=dict)
+
+    @field_serializer(
+        "required_capabilities",
+        "preferred_capabilities",
+        when_used="json",
+    )
+    def serialize_capabilities(
+        self, value: frozenset[ModelCapability]
+    ) -> list[ModelCapability]:
+        """Serialize requested capabilities in stable value order."""
+        return sorted(value, key=lambda capability: capability.value)
 
     @field_validator("provider")
     @classmethod
@@ -77,6 +88,17 @@ class ModelSelectionResult(_FrozenModel):
     matched_preferred_capabilities: frozenset[ModelCapability]
     preferred_capability_matches: int = Field(ge=0)
     candidate_count: int = Field(gt=0)
+
+    @field_serializer(
+        "matched_required_capabilities",
+        "matched_preferred_capabilities",
+        when_used="json",
+    )
+    def serialize_capabilities(
+        self, value: frozenset[ModelCapability]
+    ) -> list[ModelCapability]:
+        """Serialize matched capabilities in stable value order."""
+        return sorted(value, key=lambda capability: capability.value)
 
     @field_validator("provider_name")
     @classmethod

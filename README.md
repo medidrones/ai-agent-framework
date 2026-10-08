@@ -43,6 +43,11 @@ execução por REST/FastAPI, gRPC/protobuf e mensageria broker-neutral, com
 identidade confiável, autorização e limites explícitos. Consulte a
 [`visão geral dos adapters`](docs/adapters/overview.md).
 
+O extra `atlas-agent-adapters[postgresql]` oferece checkpoints duráveis para
+HITL, com migrations versionadas, persistência transacional e consumo único
+atômico. Consulte o guia de
+[`checkpoint PostgreSQL`](docs/adapters/postgresql-checkpoints.md).
+
 Atlas é um framework Python reutilizável e independente de provedor para
 definir, compor, executar e avaliar agentes de IA.
 
@@ -112,7 +117,7 @@ integração concreta com modelos.
 | `atlas-agent-core` | contratos e runtime mínimo | `pip install atlas-agent-core` |
 | `atlas-agent-providers` | providers oficiais | `pip install atlas-agent-providers[openai]` |
 | `atlas-agent-mcp` | integração MCP | `pip install atlas-agent-mcp` |
-| `atlas-agent-adapters` | transportes externos | `pip install atlas-agent-adapters[rest]` |
+| `atlas-agent-adapters` | transportes e persistência externa | `pip install atlas-agent-adapters[postgresql]` |
 | `atlas-agent-config` | configuração declarativa | `pip install atlas-agent-config` |
 | `atlas-agent-evaluation` | avaliação | `pip install atlas-agent-evaluation` |
 | `atlas-agent-framework` | meta-package opcional | `pip install atlas-agent-framework[full]` |

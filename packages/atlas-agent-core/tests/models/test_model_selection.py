@@ -136,6 +136,25 @@ def test_selection_request_normalizes_provider_and_isolates_metadata() -> None:
     assert isinstance(request.required_capabilities, frozenset)
 
 
+def test_selection_request_serializes_capabilities_in_stable_order() -> None:
+    request = ModelSelectionRequest(
+        required_capabilities=frozenset(
+            {ModelCapability.TOOL_CALLING, ModelCapability.TEXT_GENERATION}
+        ),
+        preferred_capabilities=frozenset(
+            {ModelCapability.VISION, ModelCapability.STREAMING}
+        ),
+    )
+
+    payload = request.model_dump(mode="json")
+
+    assert payload["required_capabilities"] == [
+        "text_generation",
+        "tool_calling",
+    ]
+    assert payload["preferred_capabilities"] == ["streaming", "vision"]
+
+
 @pytest.mark.parametrize("field", ["provider", "model"])
 def test_selection_request_rejects_empty_optional_identifiers(field: str) -> None:
     with pytest.raises(ValidationError):

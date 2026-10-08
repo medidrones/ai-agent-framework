@@ -22,7 +22,7 @@ atlas-agent-providers = { workspace = true }
 [dependency-groups]
 dev = [
     "atlas-agent-framework",
-    "atlas-agent-adapters[grpc,rest]",
+    "atlas-agent-adapters[grpc,postgresql,rest]",
     "atlas-agent-config",
     "atlas-agent-core",
     "atlas-agent-evaluation",

@@ -13,6 +13,7 @@ pip install atlas-agent-providers[openai]
 pip install atlas-agent-mcp
 pip install atlas-agent-adapters[rest]
 pip install atlas-agent-adapters[grpc]
+pip install atlas-agent-adapters[postgresql]
 pip install atlas-agent-config
 pip install atlas-agent-evaluation
 ```

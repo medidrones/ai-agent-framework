@@ -2,7 +2,7 @@
 
 from enum import StrEnum
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_serializer, field_validator
 
 from atlas_agents._models import (
     _FrozenModel,
@@ -35,6 +35,13 @@ class ModelDescriptor(_FrozenModel):
     context_window: int | None = Field(default=None, gt=0)
     max_output_tokens: int | None = Field(default=None, gt=0)
     metadata: dict[str, object] = Field(default_factory=dict)
+
+    @field_serializer("capabilities", when_used="json")
+    def serialize_capabilities(
+        self, value: frozenset[ModelCapability]
+    ) -> list[ModelCapability]:
+        """Serialize capabilities in stable value order."""
+        return sorted(value, key=lambda capability: capability.value)
 
     @field_validator("provider")
     @classmethod
