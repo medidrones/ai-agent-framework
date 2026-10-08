@@ -98,6 +98,23 @@ def _consume_in_process(
     asyncio.run(consume())
 
 
+def _save_then_crash(
+    redis_url: str,
+    namespace: str,
+    token_value: str,
+) -> None:
+    async def save_confirmed_checkpoint() -> None:
+        client = Redis.from_url(redis_url, decode_responses=False)
+        value = store(client, namespace=namespace)
+        await value.save(
+            resume_token=ResumeToken(value=token_value),
+            checkpoint=checkpoint(),
+        )
+
+    asyncio.run(save_confirmed_checkpoint())
+    os._exit(74)
+
+
 async def test_save_read_and_process_restart(redis_client: Redis) -> None:
     namespace = f"restart:{uuid4().hex}"
     token = ResumeToken(value="restart-token")
@@ -110,6 +127,27 @@ async def test_save_read_and_process_restart(redis_client: Redis) -> None:
 
     assert snapshot.checkpoint == expected
     assert snapshot.revision == 1
+
+
+async def test_confirmed_checkpoint_survives_abrupt_process_exit(
+    redis_client: Redis,
+) -> None:
+    assert REDIS_URL is not None
+    namespace = f"abrupt-crash:{uuid4().hex}"
+    token_value = f"abrupt-crash-{uuid4().hex}"
+    context = multiprocessing.get_context("spawn")
+    process = context.Process(
+        target=_save_then_crash,
+        args=(REDIS_URL, namespace, token_value),
+    )
+    process.start()
+    process.join(timeout=20)
+    assert process.exitcode == 74
+
+    snapshot = await store(redis_client, namespace=namespace).read(
+        ResumeToken(value=token_value)
+    )
+    assert snapshot.checkpoint.status.value == "waiting_for_approval"
 
 
 async def test_save_does_not_overwrite_active_or_consumed(redis_client: Redis) -> None:
