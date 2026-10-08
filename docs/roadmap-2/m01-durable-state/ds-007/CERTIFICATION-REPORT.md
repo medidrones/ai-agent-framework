@@ -86,11 +86,11 @@ DOCUMENTATION               PASS
 
 ACCEPTANCE GATES            25/25 PASS
 
-TESTS PASSED                1259
+TESTS PASSED                1260
 TESTS FAILED                0
 TESTS SKIPPED               0
 POSTGRESQL TESTS            69
-COVERAGE                    92.65%
+COVERAGE                    92.64%
 
 CRITICAL GAPS               0
 HIGH BLOCKING GAPS          0

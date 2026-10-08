@@ -15,6 +15,7 @@ from atlas_agents.agents import ExecutionStatus
 from atlas_agents.approvals import (
     ApprovalDecision,
     ApprovalDecisionType,
+    CheckpointNotFoundError,
     ExecutionSuspension,
     InvalidCheckpointError,
     ResumeToken,
@@ -578,6 +579,19 @@ class ExecutionRecoveryCoordinator:
                 candidate,
                 RecoveryOutcome.BLOCKED,
                 reason_code,
+                None if attempt is None else attempt.attempt_number,
+            )
+            self._observe(result)
+            return result
+        except CheckpointNotFoundError:
+            if attempt is not None:
+                await self._complete_best_effort(
+                    attempt, lease, RecoveryOutcome.SKIPPED, "checkpoint_missing"
+                )
+            result = self._result(
+                candidate,
+                RecoveryOutcome.SKIPPED,
+                "checkpoint_missing",
                 None if attempt is None else attempt.attempt_number,
             )
             self._observe(result)

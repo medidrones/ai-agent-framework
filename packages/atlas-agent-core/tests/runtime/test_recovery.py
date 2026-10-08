@@ -17,6 +17,7 @@ from atlas_agents import (
     AuthorizedHITLRecoveryPolicy,
     CheckpointLease,
     CheckpointLeaseConflictError,
+    CheckpointNotFoundError,
     ConservativeRecoveryEligibilityPolicy,
     ExecutionCheckpoint,
     ExecutionIdentity,
@@ -92,6 +93,14 @@ class Repository:
     ) -> ExecutionCheckpoint:
         del candidate
         return self.loaded
+
+
+class MissingRepository(Repository):
+    async def load_checkpoint(
+        self, candidate: RecoveryCandidate
+    ) -> ExecutionCheckpoint:
+        del candidate
+        raise CheckpointNotFoundError("consumido por outro worker")
 
 
 class Eligible:
@@ -308,6 +317,19 @@ async def test_lease_conflict_and_attempt_limit_do_not_invoke() -> None:
     assert conflict.conflicts == 1
     assert limited.blocked == 1
     assert invoker.calls == 0
+
+
+async def test_checkpoint_consumed_after_discovery_is_skipped() -> None:
+    item = candidate()
+    recorder = Recorder()
+    leases = Leases()
+    result = await coordinator(
+        MissingRepository((item,)), recorder=recorder, leases=leases
+    ).recover_once()
+    assert result.skipped == 1
+    assert result.results[0].reason_code == "checkpoint_missing"
+    assert recorder.completed == [RecoveryOutcome.SKIPPED]
+    assert leases.released == 1
 
 
 async def test_one_failure_does_not_hide_or_stop_next_candidate() -> None:
