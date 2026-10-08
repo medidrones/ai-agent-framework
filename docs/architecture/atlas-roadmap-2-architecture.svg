@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1120" viewBox="0 0 1600 1120" role="img" aria-labelledby="title desc">
+  <title id="title">Evolução arquitetural planejada do Atlas Agent Framework — Roadmap 2</title>
+  <desc id="desc">Roadmap arquitetural do Atlas 1.x partindo da versão 1.0.1 publicada até uma baseline LTS, com dez marcos enterprise e preservação dos contratos públicos.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07111f"/>
+      <stop offset="1" stop-color="#15152b"/>
+    </linearGradient>
+    <linearGradient id="baseline" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0e7490"/>
+      <stop offset="1" stop-color="#155e75"/>
+    </linearGradient>
+    <linearGradient id="future" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#32245f"/>
+      <stop offset="1" stop-color="#1d294e"/>
+    </linearGradient>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000814" flood-opacity="0.35"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#a78bfa"/>
+    </marker>
+    <style>
+      .title { font: 700 43px Inter, Segoe UI, Arial, sans-serif; fill: #f8fafc; }
+      .subtitle { font: 400 20px Inter, Segoe UI, Arial, sans-serif; fill: #a9bad4; }
+      .eyebrow { font: 700 15px Inter, Segoe UI, Arial, sans-serif; letter-spacing: 2px; fill: #a78bfa; }
+      .section { font: 700 16px Inter, Segoe UI, Arial, sans-serif; letter-spacing: 1.3px; fill: #8ea3c2; }
+      .node-title { font: 700 18px Inter, Segoe UI, Arial, sans-serif; fill: #f8fafc; }
+      .node-text { font: 400 14px Inter, Segoe UI, Arial, sans-serif; fill: #c3d0e3; }
+      .small { font: 500 13px Inter, Segoe UI, Arial, sans-serif; fill: #92a6c4; }
+      .tag { font: 700 13px Inter, Segoe UI, Arial, sans-serif; fill: #f2edff; }
+      .flow { fill: none; stroke: #a78bfa; stroke-width: 2.5; marker-end: url(#arrow); }
+      .rail { fill: none; stroke: #536987; stroke-width: 2; stroke-dasharray: 7 7; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1120" fill="url(#background)"/>
+  <circle cx="1450" cy="80" r="220" fill="#7c3aed" opacity="0.09"/>
+  <circle cx="100" cy="1040" r="250" fill="#0891b2" opacity="0.07"/>
+
+  <text x="70" y="66" class="eyebrow">ATLAS AGENT FRAMEWORK · ROADMAP 2</text>
+  <text x="70" y="117" class="title">Ecosystem &amp; Enterprise</text>
+  <text x="70" y="151" class="subtitle">Expandir implementações, preservar contratos — evolução aditiva e backward-compatible na linha 1.x.</text>
+
+  <g filter="url(#shadow)">
+    <rect x="70" y="184" width="1460" height="92" rx="21" fill="url(#baseline)"/>
+  </g>
+  <text x="98" y="217" class="tag">BASELINE CONGELADA</text>
+  <text x="98" y="252" class="node-title">Atlas 1.0.1 · publicado · AgentRuntime e contratos públicos preservados</text>
+  <text x="1502" y="235" text-anchor="end" class="node-text">Roadmap 1 — Foundation</text>
+  <text x="1502" y="258" text-anchor="end" class="small">Tasks 001–025 · COMPLETE</text>
+
+  <path d="M 800 276 L 800 313" class="flow"/>
+  <text x="70" y="333" class="section">SEQUÊNCIA ARQUITETURAL</text>
+
+  <g filter="url(#shadow)">
+    <rect x="250" y="354" width="1100" height="82" rx="18" fill="url(#future)" stroke="#8067c9"/>
+    <rect x="250" y="468" width="1100" height="82" rx="18" fill="url(#future)" stroke="#8067c9"/>
+    <rect x="250" y="582" width="1100" height="82" rx="18" fill="url(#future)" stroke="#8067c9"/>
+  </g>
+  <rect x="276" y="373" width="72" height="28" rx="14" fill="#6d4fc2"/>
+  <rect x="276" y="487" width="72" height="28" rx="14" fill="#6d4fc2"/>
+  <rect x="276" y="601" width="72" height="28" rx="14" fill="#6d4fc2"/>
+  <text x="312" y="393" text-anchor="middle" class="tag">M01</text>
+  <text x="312" y="507" text-anchor="middle" class="tag">M02</text>
+  <text x="312" y="621" text-anchor="middle" class="tag">M03</text>
+  <text x="375" y="389" class="node-title">Durable State</text>
+  <text x="375" y="417" class="node-text">PostgreSQL e Redis · concorrência otimista · resume atômico · leases · recovery</text>
+  <text x="375" y="503" class="node-title">Enterprise Memory</text>
+  <text x="375" y="531" class="node-text">Persistência distribuída · TTL · namespaces · isolamento por tenant · retenção</text>
+  <text x="375" y="617" class="node-title">Enterprise Knowledge / RAG</text>
+  <text x="375" y="645" class="node-text">OpenSearch · pgvector · Qdrant · filtros, escopo, metadata e citações</text>
+  <path d="M 800 436 L 800 458" class="flow"/>
+  <path d="M 800 550 L 800 572" class="flow"/>
+
+  <path d="M 800 664 L 800 694 L 462 694 L 462 721" class="flow"/>
+  <path d="M 800 664 L 800 694 L 1138 694 L 1138 721" class="flow"/>
+  <g filter="url(#shadow)">
+    <rect x="250" y="723" width="425" height="92" rx="18" fill="#202b4c" stroke="#8067c9"/>
+    <rect x="925" y="723" width="425" height="92" rx="18" fill="#202b4c" stroke="#8067c9"/>
+  </g>
+  <text x="276" y="754" class="tag">M04</text>
+  <text x="330" y="754" class="node-title">Provider Expansion</text>
+  <text x="276" y="785" class="node-text">Anthropic · Gemini · Azure OpenAI</text>
+  <text x="276" y="807" class="small">Bedrock · Ollama · matriz de capabilities</text>
+  <text x="951" y="754" class="tag">M05</text>
+  <text x="1005" y="754" class="node-title">Enterprise Observability</text>
+  <text x="951" y="785" class="node-text">OpenTelemetry · traces · metrics</text>
+  <text x="951" y="807" class="small">Prometheus · propagação · dados sensíveis</text>
+
+  <path d="M 462 815 L 462 842 L 800 842 L 800 864" class="flow"/>
+  <path d="M 1138 815 L 1138 842 L 800 842 L 800 864" class="flow"/>
+
+  <g filter="url(#shadow)">
+    <rect x="70" y="866" width="270" height="104" rx="18" fill="#172640" stroke="#526a8d"/>
+    <rect x="367" y="866" width="270" height="104" rx="18" fill="#172640" stroke="#526a8d"/>
+    <rect x="665" y="866" width="270" height="104" rx="18" fill="#172640" stroke="#526a8d"/>
+    <rect x="962" y="866" width="270" height="104" rx="18" fill="#172640" stroke="#526a8d"/>
+    <rect x="1260" y="866" width="270" height="104" rx="18" fill="#172640" stroke="#526a8d"/>
+  </g>
+  <text x="94" y="899" class="tag">M06</text>
+  <text x="94" y="927" class="node-title">Messaging</text>
+  <text x="94" y="953" class="small">RabbitMQ · Kafka · cloud</text>
+  <text x="391" y="899" class="tag">M07</text>
+  <text x="391" y="927" class="node-title">Cross-Stack SDKs</text>
+  <text x="391" y="953" class="small">.NET · TypeScript</text>
+  <text x="689" y="899" class="tag">M08</text>
+  <text x="689" y="927" class="node-title">Conformance</text>
+  <text x="689" y="953" class="small">Kits de certificação</text>
+  <text x="986" y="899" class="tag">M09</text>
+  <text x="986" y="927" class="node-title">Hardening</text>
+  <text x="986" y="953" class="small">Falhas · carga · recovery</text>
+  <text x="1284" y="899" class="tag">M10</text>
+  <text x="1284" y="927" class="node-title">Atlas 1.x LTS</text>
+  <text x="1284" y="953" class="small">Baseline enterprise</text>
+  <path d="M 340 918 L 357 918" class="flow"/>
+  <path d="M 637 918 L 655 918" class="flow"/>
+  <path d="M 935 918 L 952 918" class="flow"/>
+  <path d="M 1232 918 L 1250 918" class="flow"/>
+
+  <rect x="70" y="1006" width="935" height="76" rx="16" fill="#10243b" stroke="#2e91a3"/>
+  <text x="94" y="1036" class="node-title">Guardrail da linha 1.x</text>
+  <text x="94" y="1063" class="node-text">APIs aditivas · contratos preservados · sem redesenhar AgentRuntime · gates por marco</text>
+
+  <rect x="1032" y="1006" width="498" height="76" rx="16" fill="#2b1d35" stroke="#8a526f"/>
+  <text x="1056" y="1036" class="node-title">Roadmap 3 · Atlas 2.x</text>
+  <text x="1056" y="1063" class="node-text">Multi-agent · graphs · delegation · control plane</text>
+
+  <text x="70" y="1106" class="small">Primeiro passo: DS-001 · certificar e congelar o contrato atual de CheckpointStore antes de implementar PostgreSQL ou Redis.</text>
+</svg>

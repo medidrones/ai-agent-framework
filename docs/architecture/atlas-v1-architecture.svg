@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050" role="img" aria-labelledby="title desc">
+  <title id="title">Arquitetura implementada do Atlas Agent Framework 1.0.1</title>
+  <desc id="desc">Diagrama em camadas mostrando consumidores, composição e transportes, núcleo provider-neutral, portas, implementações opcionais e garantias de engenharia.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07111f"/>
+      <stop offset="1" stop-color="#101b32"/>
+    </linearGradient>
+    <linearGradient id="core" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#123f5a"/>
+      <stop offset="1" stop-color="#18284f"/>
+    </linearGradient>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000814" flood-opacity="0.35"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6ee7f2"/>
+    </marker>
+    <style>
+      .title { font: 700 44px Inter, Segoe UI, Arial, sans-serif; fill: #f8fafc; }
+      .subtitle { font: 400 21px Inter, Segoe UI, Arial, sans-serif; fill: #a9bad4; }
+      .eyebrow { font: 700 15px Inter, Segoe UI, Arial, sans-serif; letter-spacing: 2px; fill: #6ee7f2; }
+      .layer { font: 700 17px Inter, Segoe UI, Arial, sans-serif; letter-spacing: 1.4px; fill: #7f94b5; }
+      .box-title { font: 700 20px Inter, Segoe UI, Arial, sans-serif; fill: #f8fafc; }
+      .box-text { font: 400 15px Inter, Segoe UI, Arial, sans-serif; fill: #c2d0e4; }
+      .small { font: 500 14px Inter, Segoe UI, Arial, sans-serif; fill: #91a6c5; }
+      .pill { font: 700 14px Inter, Segoe UI, Arial, sans-serif; fill: #dffcff; }
+      .flow { fill: none; stroke: #6ee7f2; stroke-width: 2.5; marker-end: url(#arrow); }
+      .dependency { fill: none; stroke: #657b9c; stroke-width: 2; stroke-dasharray: 7 7; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1050" fill="url(#background)"/>
+  <circle cx="1450" cy="90" r="230" fill="#0e7490" opacity="0.08"/>
+  <circle cx="130" cy="1010" r="260" fill="#7c3aed" opacity="0.07"/>
+
+  <text x="70" y="67" class="eyebrow">ATLAS AGENT FRAMEWORK · V1.0.1</text>
+  <text x="70" y="119" class="title">Arquitetura modular, async-first e provider-neutral</text>
+  <text x="70" y="153" class="subtitle">Contratos estáveis no centro; composição, transportes e infraestrutura nas bordas.</text>
+
+  <rect x="70" y="190" width="1460" height="92" rx="20" fill="#101f36" stroke="#2a3d5b"/>
+  <text x="94" y="219" class="layer">CONSUMIDORES</text>
+  <g filter="url(#shadow)">
+    <rect x="280" y="210" width="300" height="52" rx="13" fill="#172a45" stroke="#365271"/>
+    <rect x="650" y="210" width="300" height="52" rx="13" fill="#172a45" stroke="#365271"/>
+    <rect x="1020" y="210" width="300" height="52" rx="13" fill="#172a45" stroke="#365271"/>
+  </g>
+  <text x="430" y="242" text-anchor="middle" class="box-title">Aplicações Python</text>
+  <text x="800" y="242" text-anchor="middle" class="box-title">Serviços e workers</text>
+  <text x="1170" y="242" text-anchor="middle" class="box-title">CLIs e automações</text>
+
+  <text x="70" y="329" class="layer">COMPOSIÇÃO E ENTRADAS</text>
+  <g filter="url(#shadow)">
+    <rect x="70" y="350" width="350" height="118" rx="18" fill="#16263f" stroke="#3d5577"/>
+    <rect x="455" y="350" width="350" height="118" rx="18" fill="#16263f" stroke="#3d5577"/>
+    <rect x="840" y="350" width="350" height="118" rx="18" fill="#16263f" stroke="#3d5577"/>
+    <rect x="1225" y="350" width="305" height="118" rx="18" fill="#16263f" stroke="#3d5577"/>
+  </g>
+  <text x="95" y="386" class="box-title">Meta-package</text>
+  <text x="95" y="414" class="box-text">atlas-agent-framework</text>
+  <text x="95" y="440" class="small">Extras e experiência de instalação</text>
+  <text x="480" y="386" class="box-title">Configuração</text>
+  <text x="480" y="414" class="box-text">YAML/JSON · secrets refs · factories</text>
+  <text x="480" y="440" class="small">Composition root com rollback</text>
+  <text x="865" y="386" class="box-title">Adapters externos</text>
+  <text x="865" y="414" class="box-text">REST · gRPC · mensageria</text>
+  <text x="865" y="440" class="small">Identidade, autorização e limites</text>
+  <text x="1250" y="386" class="box-title">Plugins</text>
+  <text x="1250" y="414" class="box-text">Discovery · compatibilidade</text>
+  <text x="1250" y="440" class="small">Ativação e rollback seguros</text>
+
+  <path d="M 800 282 L 800 332" class="flow"/>
+  <path d="M 245 468 L 245 508" class="dependency"/>
+  <path d="M 630 468 L 630 508" class="dependency"/>
+  <path d="M 1015 468 L 1015 508" class="dependency"/>
+  <path d="M 1377 468 L 1377 508" class="dependency"/>
+
+  <rect x="70" y="510" width="1460" height="295" rx="24" fill="url(#core)" stroke="#38b6c8" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="94" y="532" width="178" height="30" rx="15" fill="#0e7490"/>
+  <text x="183" y="553" text-anchor="middle" class="pill">ATLAS-AGENT-CORE</text>
+  <text x="300" y="554" class="small">núcleo estável · sem SDK de provider · sem acesso direto à infraestrutura</text>
+
+  <g>
+    <rect x="105" y="587" width="310" height="178" rx="17" fill="#10243b" stroke="#2e91a3"/>
+    <rect x="440" y="587" width="310" height="178" rx="17" fill="#10243b" stroke="#2e91a3"/>
+    <rect x="775" y="587" width="310" height="178" rx="17" fill="#10243b" stroke="#2e91a3"/>
+    <rect x="1110" y="587" width="385" height="178" rx="17" fill="#10243b" stroke="#2e91a3"/>
+  </g>
+  <text x="130" y="623" class="box-title">Contratos públicos</text>
+  <text x="130" y="654" class="box-text">Agent · ModelProvider · eventos</text>
+  <text x="130" y="680" class="box-text">Requests · responses · streaming</text>
+  <text x="130" y="706" class="box-text">Tipos imutáveis e Pydantic</text>
+  <text x="130" y="739" class="small">Fronteiras pequenas e tipadas</text>
+
+  <text x="465" y="623" class="box-title">Runtime e lifecycle</text>
+  <text x="465" y="654" class="box-text">Loop multi-turn · estado · limites</text>
+  <text x="465" y="680" class="box-text">Timeout · budget · cancellation</text>
+  <text x="465" y="706" class="box-text">Streaming e cleanup determinístico</text>
+  <text x="465" y="739" class="small">Orquestração async-first</text>
+
+  <text x="800" y="623" class="box-title">Ferramentas e HITL</text>
+  <text x="800" y="654" class="box-text">Registry · schema · autorização</text>
+  <text x="800" y="680" class="box-text">Execução segura · journal · replay</text>
+  <text x="800" y="706" class="box-text">Suspensão, checkpoint e retomada</text>
+  <text x="800" y="739" class="small">Sem execução arbitrária</text>
+
+  <text x="1135" y="623" class="box-title">Capacidades transversais</text>
+  <text x="1135" y="654" class="box-text">Memória · Knowledge/RAG · guardrails</text>
+  <text x="1135" y="680" class="box-text">Observabilidade · políticas · identidade</text>
+  <text x="1135" y="706" class="box-text">Avaliação por contratos públicos</text>
+  <text x="1135" y="739" class="small">Opt-in e provider-neutral</text>
+
+  <path d="M 415 676 L 430 676" class="flow"/>
+  <path d="M 750 676 L 765 676" class="flow"/>
+  <path d="M 1085 676 L 1100 676" class="flow"/>
+
+  <text x="70" y="852" class="layer">PORTAS E IMPLEMENTAÇÕES OPCIONAIS</text>
+  <g filter="url(#shadow)">
+    <rect x="70" y="872" width="280" height="94" rx="17" fill="#191f3b" stroke="#735dd0"/>
+    <rect x="375" y="872" width="280" height="94" rx="17" fill="#191f3b" stroke="#735dd0"/>
+    <rect x="680" y="872" width="280" height="94" rx="17" fill="#191f3b" stroke="#735dd0"/>
+    <rect x="985" y="872" width="280" height="94" rx="17" fill="#191f3b" stroke="#735dd0"/>
+    <rect x="1290" y="872" width="240" height="94" rx="17" fill="#191f3b" stroke="#735dd0"/>
+  </g>
+  <text x="95" y="908" class="box-title">Provider OpenAI</text>
+  <text x="95" y="936" class="box-text">Responses API e streaming</text>
+  <text x="400" y="908" class="box-title">MCP</text>
+  <text x="400" y="936" class="box-text">Cliente, servidor e transportes</text>
+  <text x="705" y="908" class="box-title">Stores</text>
+  <text x="705" y="936" class="box-text">Memória e checkpoints injetados</text>
+  <text x="1010" y="908" class="box-title">Knowledge</text>
+  <text x="1010" y="936" class="box-text">Retrieval e citações por contrato</text>
+  <text x="1315" y="908" class="box-title">Telemetry</text>
+  <text x="1315" y="936" class="box-text">Tracing e métricas</text>
+
+  <path d="M 210 872 L 210 820 L 260 820 L 260 805" class="dependency"/>
+  <path d="M 515 872 L 515 820 L 595 820 L 595 805" class="dependency"/>
+  <path d="M 820 872 L 820 820 L 900 820 L 900 805" class="dependency"/>
+  <path d="M 1125 872 L 1125 820 L 1230 820 L 1230 805" class="dependency"/>
+  <path d="M 1410 872 L 1410 820 L 1370 820 L 1370 805" class="dependency"/>
+
+  <rect x="70" y="997" width="1460" height="1" fill="#2b405f"/>
+  <text x="70" y="1027" class="small">Garantias: inversão de dependência · APIs assíncronas · tipagem estrita · segurança por padrão · compatibilidade retroativa</text>
+  <text x="1530" y="1027" text-anchor="end" class="small">7 distribuições · Python 3.12+</text>
+</svg>

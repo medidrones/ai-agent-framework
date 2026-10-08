@@ -240,7 +240,9 @@ formas de composição e garantias por transporte estão na
 Consulte [ARCHITECTURE.md](ARCHITECTURE.md) para conhecer o desenho de alto
 nível e
 [docs/architecture/dependency-rules.md](docs/architecture/dependency-rules.md)
-para conferir as restrições de dependência aplicáveis.
+para conferir as restrições de dependência aplicáveis. Uma visão consolidada
+da implementação está no
+[diagrama da arquitetura 1.0.1](docs/architecture/implemented-architecture.md).
 
 ## Estrutura do repositório
 
