@@ -40,6 +40,7 @@ _MIGRATIONS: Final = (
     _Migration(3, "003_create_checkpoint_leases.sql"),
     _Migration(4, "004_create_recovery_attempts.sql"),
     _Migration(5, "005_create_checkpoint_retention.sql"),
+    _Migration(6, "006_create_checkpoint_purge.sql"),
 )
 
 

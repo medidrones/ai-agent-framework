@@ -29,6 +29,9 @@ from atlas_agents.adapters.checkpoints.postgresql.migrations import (  # noqa: E
 from atlas_agents.adapters.checkpoints.postgresql.models import (  # noqa: E402
     PostgreSQLCheckpointSnapshot,
 )
+from atlas_agents.adapters.checkpoints.postgresql.purge import (  # noqa: E402
+    PostgreSQLCheckpointPurgeRepository,
+)
 from atlas_agents.adapters.checkpoints.postgresql.recovery import (  # noqa: E402
     PostgreSQLRecoveryAttemptRecorder,
     PostgreSQLRecoveryCandidateRepository,
@@ -44,6 +47,7 @@ __all__ = [
     "CheckpointConcurrencyConflictError",
     "PostgreSQLCheckpointLeaseManager",
     "PostgreSQLCheckpointMigrator",
+    "PostgreSQLCheckpointPurgeRepository",
     "PostgreSQLCheckpointRetentionRepository",
     "PostgreSQLCheckpointSnapshot",
     "PostgreSQLCheckpointStore",
