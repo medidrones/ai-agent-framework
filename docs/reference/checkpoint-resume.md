@@ -105,3 +105,16 @@ sua execução realmente começa.
 
 Consulte [aprovação humana](human-approval.md) para a policy, as decisões e o
 pipeline de ferramentas.
+
+## Retomada coordenada por lease
+
+`resume()` e `resume_stream()` aceitam opcionalmente um `CheckpointLease`. Com
+esse argumento, o runtime exige que o store implemente consumo autorizado e
+fenced; stores antigos continuam usando a chamada sem lease. O
+`ExecutionRecoveryCoordinator` usa esse caminho somente depois de adquirir
+ownership e revalidar o checkpoint.
+
+O coordinator não fabrica decisões nem converte checkpoints em autorização.
+O invoker HITL oficial depende de um resolver externo para obter o token e a
+decisão reais. Consulte a
+[DS-006](../roadmap-2/m01-durable-state/ds-006/RECOVERY-CONTRACT.md).

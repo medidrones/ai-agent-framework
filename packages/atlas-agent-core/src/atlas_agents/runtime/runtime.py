@@ -142,6 +142,7 @@ from atlas_agents.runtime.errors import (
     ModelStreamReportedError,
     RuntimeInputRejectedError,
 )
+from atlas_agents.runtime.lease import CheckpointLease, CheckpointLeaseError
 from atlas_agents.runtime.limits import (
     ExecutionLimits,
     ExecutionLimitViolation,
@@ -219,6 +220,18 @@ class _AtomicAuthorizedCheckpointStore(Protocol):
         authorize: Callable[[ExecutionCheckpoint], None],
     ) -> ExecutionCheckpoint:
         """Consume only when synchronous authorization accepts the checkpoint."""
+
+
+@runtime_checkable
+class _AtomicAuthorizedLeasedCheckpointStore(Protocol):
+    async def consume_authorized_leased(
+        self,
+        *,
+        resume_token: ResumeToken,
+        lease: CheckpointLease,
+        authorize: Callable[[ExecutionCheckpoint], None],
+    ) -> ExecutionCheckpoint:
+        """Consume only for an authorized current lease generation."""
 
 
 class AgentRuntime:
@@ -380,12 +393,14 @@ class AgentRuntime:
         *,
         resume_token: ResumeToken,
         decision: ApprovalDecision,
+        lease: CheckpointLease | None = None,
     ) -> RuntimeOutcome:
         """Atomically consume a run checkpoint and continue its execution."""
         checkpoint = await self._consume_checkpoint(
             resume_token,
             expected_mode=ExecutionMode.RUN,
             decision=decision,
+            lease=lease,
         )
         state = self._state_restorer.restore(checkpoint)
         observation = self._start_runtime_observation(
@@ -445,12 +460,14 @@ class AgentRuntime:
         *,
         resume_token: ResumeToken,
         decision: ApprovalDecision,
+        lease: CheckpointLease | None = None,
     ) -> AsyncIterator[RuntimeStreamItem]:
         """Resume a streaming checkpoint without switching model transport."""
         checkpoint = await self._consume_checkpoint(
             resume_token,
             expected_mode=ExecutionMode.STREAM,
             decision=decision,
+            lease=lease,
         )
         state = self._state_restorer.restore(checkpoint)
         observation = self._start_runtime_observation(
@@ -532,6 +549,7 @@ class AgentRuntime:
         *,
         expected_mode: ExecutionMode,
         decision: ApprovalDecision,
+        lease: CheckpointLease | None = None,
     ) -> ExecutionCheckpoint:
         store = self._checkpoint_store
         if store is None:
@@ -552,7 +570,17 @@ class AgentRuntime:
                 expected_mode=expected_mode,
                 decision=decision,
             )
-            if isinstance(store, _AtomicAuthorizedCheckpointStore):
+            if lease is not None:
+                if not isinstance(store, _AtomicAuthorizedLeasedCheckpointStore):
+                    raise CheckpointLeaseError(
+                        "O armazenamento não suporta consumo protegido por lease."
+                    )
+                checkpoint = await store.consume_authorized_leased(
+                    resume_token=resume_token,
+                    lease=lease,
+                    authorize=authorize,
+                )
+            elif isinstance(store, _AtomicAuthorizedCheckpointStore):
                 checkpoint = await store.consume_authorized(
                     resume_token=resume_token,
                     authorize=authorize,

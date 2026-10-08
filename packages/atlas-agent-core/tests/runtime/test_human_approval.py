@@ -24,6 +24,8 @@ from atlas_agents import (
     ApprovalDecisionType,
     ApprovalRequired,
     ApprovalRequirement,
+    CheckpointLease,
+    CheckpointLeaseError,
     CheckpointNotFoundError,
     ExecutionBudget,
     ExecutionCheckpoint,
@@ -53,6 +55,7 @@ from atlas_agents import (
 )
 from tests.approvals.fakes import (
     FakeAtomicAuthorizedCheckpointStore,
+    FakeAtomicAuthorizedLeasedCheckpointStore,
     FakeCheckpointStore,
     FixedApprovalPolicy,
 )
@@ -290,6 +293,63 @@ async def test_required_approval_suspends_and_approve_resumes_same_execution() -
     assert types.index(AgentEventType.APPROVAL_GRANTED) < types.index(
         AgentEventType.TOOL_EXECUTION_STARTED
     )
+
+
+async def test_resume_with_lease_uses_atomic_fenced_consumption() -> None:
+    provider = CountingProvider((_tool_response(_call()), _final_response()))
+    store = FakeAtomicAuthorizedLeasedCheckpointStore()
+    tool = FakeTool(
+        tool_definition(name="sensitive", approval_mode=ToolApprovalMode.REQUIRED),
+        output=ToolOutput(content={"updated": True}),
+    )
+    runtime, _, _ = _runtime(provider, tool, store=store)
+    outcome = await _start(runtime, _agent("sensitive"))
+    assert isinstance(outcome, ExecutionSuspension)
+    acquired_at = datetime.now(UTC)
+    lease = CheckpointLease(
+        checkpoint_id=outcome.execution_id,
+        owner_id="recovery-worker",
+        fencing_token=7,
+        acquired_at=acquired_at,
+        expires_at=acquired_at + timedelta(seconds=30),
+    )
+
+    result = await runtime.resume(
+        resume_token=outcome.resume_token,
+        decision=_decision(outcome),
+        lease=lease,
+    )
+
+    assert isinstance(result, AgentResult)
+    assert result.status is ExecutionStatus.COMPLETED
+    assert store.consumed_lease == lease
+
+
+async def test_resume_with_lease_rejects_store_without_fenced_capability() -> None:
+    provider = CountingProvider((_tool_response(_call()), _final_response()))
+    store = FakeCheckpointStore()
+    tool = FakeTool(
+        tool_definition(name="sensitive", approval_mode=ToolApprovalMode.REQUIRED)
+    )
+    runtime, _, _ = _runtime(provider, tool, store=store)
+    outcome = await _start(runtime, _agent("sensitive"))
+    assert isinstance(outcome, ExecutionSuspension)
+    acquired_at = datetime.now(UTC)
+    lease = CheckpointLease(
+        checkpoint_id=outcome.execution_id,
+        owner_id="recovery-worker",
+        fencing_token=1,
+        acquired_at=acquired_at,
+        expires_at=acquired_at + timedelta(seconds=30),
+    )
+
+    with pytest.raises(CheckpointLeaseError):
+        await runtime.resume(
+            resume_token=outcome.resume_token,
+            decision=_decision(outcome),
+            lease=lease,
+        )
+    assert store.consume_calls == 0
 
 
 async def test_rejection_returns_terminal_rejected_result_without_tool_execution() -> (
