@@ -29,6 +29,10 @@ from atlas_agents.adapters.checkpoints.postgresql.migrations import (  # noqa: E
 from atlas_agents.adapters.checkpoints.postgresql.models import (  # noqa: E402
     PostgreSQLCheckpointSnapshot,
 )
+from atlas_agents.adapters.checkpoints.postgresql.recovery import (  # noqa: E402
+    PostgreSQLRecoveryAttemptRecorder,
+    PostgreSQLRecoveryCandidateRepository,
+)
 from atlas_agents.adapters.checkpoints.postgresql.store import (  # noqa: E402
     PostgreSQLCheckpointStore,
 )
@@ -41,4 +45,6 @@ __all__ = [
     "PostgreSQLCheckpointStore",
     "PostgreSQLCheckpointStoreError",
     "PostgreSQLMigrationError",
+    "PostgreSQLRecoveryAttemptRecorder",
+    "PostgreSQLRecoveryCandidateRepository",
 ]

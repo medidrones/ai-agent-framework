@@ -142,6 +142,23 @@ capabilities aditivas; métodos existentes permanecem compatíveis com Atlas
 1.x. Um lease não protege efeitos em serviços externos que não implementem
 fencing ou idempotência.
 
+## Recovery de execuções
+
+`PostgreSQLRecoveryCandidateRepository` descobre checkpoints não terminais em
+lotes estáveis sem carregar payloads. `PostgreSQLRecoveryAttemptRecorder`
+admite e conclui tentativas sob o fencing token corrente. A migration 004 cria
+o histórico auditável correspondente.
+
+O host compõe esses adapters com `ExecutionRecoveryCoordinator`, uma policy de
+elegibilidade e um invoker. O Atlas fornece
+`AuthorizedHITLRecoveryPolicy` e `AgentRuntimeRecoveryInvoker`; ambos exigem um
+`RecoveryResumeRequestResolver` que entregue token e aprovação reais. O host
+continua responsável pela frequência das chamadas, shutdown e obtenção segura
+das decisões.
+
+Consulte a [arquitetura da DS-006](../roadmap-2/m01-durable-state/ds-006/ARCHITECTURE.md)
+e a [integração HITL](../roadmap-2/m01-durable-state/ds-006/HITL-RECOVERY.md).
+
 ## Retenção e operação
 
 O parâmetro opcional `retention` limita a vida do registro a partir de

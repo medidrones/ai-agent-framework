@@ -8,6 +8,7 @@ from atlas_agents import (
     ApprovalNotRequired,
     ApprovalRequired,
     ApprovalRequirement,
+    CheckpointLease,
     CheckpointNotFoundError,
     ExecutionCheckpoint,
     ResumeToken,
@@ -66,6 +67,32 @@ class FakeAtomicAuthorizedCheckpointStore(FakeCheckpointStore):
                     "O token é desconhecido ou já foi consumido."
                 ) from error
             authorize(checkpoint)
+            del self._checkpoints[resume_token.value]
+            return checkpoint
+
+
+class FakeAtomicAuthorizedLeasedCheckpointStore(FakeCheckpointStore):
+    def __init__(self) -> None:
+        super().__init__()
+        self.consumed_lease: CheckpointLease | None = None
+
+    async def consume_authorized_leased(
+        self,
+        *,
+        resume_token: ResumeToken,
+        lease: CheckpointLease,
+        authorize: Callable[[ExecutionCheckpoint], None],
+    ) -> ExecutionCheckpoint:
+        self.consume_calls += 1
+        async with self._lock:
+            try:
+                checkpoint = self._checkpoints[resume_token.value]
+            except KeyError as error:
+                raise CheckpointNotFoundError(
+                    "O token é desconhecido ou já foi consumido."
+                ) from error
+            authorize(checkpoint)
+            self.consumed_lease = lease
             del self._checkpoints[resume_token.value]
             return checkpoint
 
