@@ -75,7 +75,7 @@ def test_classifier_preserves_active_lease_and_recovery() -> None:
 def test_classifier_fails_closed_for_incompatible_or_undefined_records() -> None:
     classifier = CheckpointRetentionClassifier(policy())
     assert classifier.classify(subject(compatible=False)).eligibility is (
-        PurgeEligibility.BLOCKED_BY_POLICY
+        PurgeEligibility.BLOCKED_BY_INCOMPATIBLE_SCHEMA
     )
     assert (
         classifier.classify(

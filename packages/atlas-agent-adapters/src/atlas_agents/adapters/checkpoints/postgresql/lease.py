@@ -46,6 +46,10 @@ WHERE (
 RETURNING checkpoint_id, owner_id, fencing_token, acquired_at, expires_at
 """
 
+_LOCK_EXECUTION_SQL: Final = """
+SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))
+"""
+
 _CHECK_ELIGIBILITY_SQL: Final = """
 SELECT EXISTS (
     SELECT 1 FROM atlas_agent.checkpoints
@@ -101,6 +105,7 @@ class PostgreSQLCheckpointLeaseManager:
         seconds = self._validate_inputs(checkpoint_id, owner_id, duration)
         try:
             async with self._pool.connection() as connection:
+                await connection.execute(_LOCK_EXECUTION_SQL, (checkpoint_id,))
                 cursor = await connection.execute(
                     _ACQUIRE_SQL,
                     (checkpoint_id, owner_id, seconds, checkpoint_id, seconds),
@@ -136,6 +141,7 @@ class PostgreSQLCheckpointLeaseManager:
         seconds = self._duration_seconds(duration)
         try:
             async with self._pool.connection() as connection:
+                await connection.execute(_LOCK_EXECUTION_SQL, (lease.checkpoint_id,))
                 cursor = await connection.execute(
                     _RENEW_SQL,
                     (
@@ -163,6 +169,7 @@ class PostgreSQLCheckpointLeaseManager:
         """Release only the current lease while retaining its generation."""
         try:
             async with self._pool.connection() as connection:
+                await connection.execute(_LOCK_EXECUTION_SQL, (lease.checkpoint_id,))
                 cursor = await connection.execute(
                     _RELEASE_SQL,
                     (lease.checkpoint_id, lease.owner_id, lease.fencing_token),

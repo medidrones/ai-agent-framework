@@ -35,6 +35,15 @@ from atlas_agents.runtime.limits import (
 )
 from atlas_agents.runtime.model_request import ModelRequestBuilder
 from atlas_agents.runtime.outcome import RuntimeOutcome
+from atlas_agents.runtime.purge import (
+    CheckpointPurgeConfig,
+    CheckpointPurgeCoordinator,
+    CheckpointPurgeRepository,
+    PurgeAuthorization,
+    PurgeBatchResult,
+    PurgeItemResult,
+    PurgeOutcome,
+)
 from atlas_agents.runtime.recovery import (
     AgentRuntimeRecoveryInvoker,
     AuthorizedHITLRecoveryPolicy,
@@ -91,6 +100,9 @@ __all__ = [
     "CheckpointLeaseManager",
     "CheckpointLeaseNotFoundError",
     "CheckpointPurgeClassification",
+    "CheckpointPurgeConfig",
+    "CheckpointPurgeCoordinator",
+    "CheckpointPurgeRepository",
     "CheckpointRetentionCategory",
     "CheckpointRetentionClassifier",
     "CheckpointRetentionPolicy",
@@ -121,7 +133,11 @@ __all__ = [
     "ModelStreamIncompleteError",
     "ModelStreamProtocolError",
     "ModelStreamReportedError",
+    "PurgeAuthorization",
+    "PurgeBatchResult",
     "PurgeEligibility",
+    "PurgeItemResult",
+    "PurgeOutcome",
     "RecoveryAttempt",
     "RecoveryAttemptRecorder",
     "RecoveryAttemptResult",

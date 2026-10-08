@@ -31,6 +31,7 @@ class PurgeEligibility(StrEnum):
     BLOCKED_BY_RECOVERY = "blocked_by_recovery"
     BLOCKED_BY_RETENTION = "blocked_by_retention"
     BLOCKED_BY_POLICY = "blocked_by_policy"
+    BLOCKED_BY_INCOMPATIBLE_SCHEMA = "blocked_by_incompatible_schema"
 
 
 class CheckpointRetentionPolicy(_FrozenModel):
@@ -225,7 +226,10 @@ class CheckpointRetentionClassifier:
         retention_until: datetime | None,
     ) -> tuple[PurgeEligibility, str]:
         if not subject.compatible:
-            return PurgeEligibility.BLOCKED_BY_POLICY, "incompatible_checkpoint"
+            return (
+                PurgeEligibility.BLOCKED_BY_INCOMPATIBLE_SCHEMA,
+                "incompatible_checkpoint",
+            )
         if self._policy.legal_hold or subject.legal_hold:
             return PurgeEligibility.BLOCKED_BY_POLICY, "legal_hold"
         if subject.active_lease:

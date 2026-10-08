@@ -105,6 +105,12 @@ def test_versioned_migration_is_packaged() -> None:
     recovery = (migration_root / "004_create_recovery_attempts.sql").read_text(
         encoding="utf-8"
     )
+    retention = (migration_root / "005_create_checkpoint_retention.sql").read_text(
+        encoding="utf-8"
+    )
+    purge = (migration_root / "006_create_checkpoint_purge.sql").read_text(
+        encoding="utf-8"
+    )
 
     assert "CREATE TABLE atlas_agent.checkpoints" in initial
     assert "token_digest BYTEA PRIMARY KEY" in initial
@@ -113,6 +119,9 @@ def test_versioned_migration_is_packaged() -> None:
     assert "CREATE TABLE atlas_agent.checkpoint_leases" in lease
     assert "fencing_token BIGINT NOT NULL DEFAULT 0" in lease
     assert "CREATE TABLE atlas_agent.execution_recovery_attempts" in recovery
+    assert "CREATE TABLE atlas_agent.checkpoint_tombstones" in retention
+    assert "CREATE TABLE atlas_agent.checkpoint_purge_audit" in purge
+    assert "ADD COLUMN legal_hold BOOLEAN" in purge
 
 
 def test_expected_revision_must_be_positive() -> None:
