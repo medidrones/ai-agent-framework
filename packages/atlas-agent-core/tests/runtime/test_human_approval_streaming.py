@@ -24,7 +24,10 @@ from atlas_agents import (
     ToolExecutor,
     ToolRegistry,
 )
-from tests.approvals.fakes import FakeCheckpointStore
+from tests.approvals.fakes import (
+    FakeAtomicAuthorizedCheckpointStore,
+    FakeCheckpointStore,
+)
 from tests.runtime.test_multi_turn_streaming import (
     SequencedStreamingProvider,
     _text_turn,
@@ -33,7 +36,10 @@ from tests.runtime.test_multi_turn_streaming import (
 from tests.tools.fakes import FakeTool, tool_definition
 
 
-def _runtime() -> tuple[AgentRuntime, SequencedStreamingProvider, FakeTool]:
+def _runtime(
+    *,
+    atomic_authorization: bool = False,
+) -> tuple[AgentRuntime, SequencedStreamingProvider, FakeTool]:
     call = ToolCall(
         tool_call_id="call-1",
         name="sensitive",
@@ -47,11 +53,16 @@ def _runtime() -> tuple[AgentRuntime, SequencedStreamingProvider, FakeTool]:
         tool_definition(name="sensitive", approval_mode=ToolApprovalMode.REQUIRED)
     )
     tool_registry.register(tool)
+    checkpoint_store = (
+        FakeAtomicAuthorizedCheckpointStore()
+        if atomic_authorization
+        else FakeCheckpointStore()
+    )
     runtime = AgentRuntime(
         model_registry=model_registry,
         tool_registry=tool_registry,
         tool_executor=ToolExecutor(registry=tool_registry),
-        checkpoint_store=FakeCheckpointStore(),
+        checkpoint_store=checkpoint_store,
     )
     return runtime, provider, tool
 
@@ -151,3 +162,28 @@ async def test_stream_checkpoint_cannot_resume_through_run_transport() -> None:
             resume_token=suspension_item.suspension.resume_token,
             decision=_decision(suspension_item, ApprovalDecisionType.APPROVE),
         )
+
+
+async def test_atomic_store_preserves_stream_checkpoint_after_wrong_transport() -> None:
+    runtime, _, tool = _runtime(atomic_authorization=True)
+    initial_items = await _suspend(runtime)
+    suspension_item = cast(RuntimeSuspensionItem, initial_items[-1])
+    approved = _decision(suspension_item, ApprovalDecisionType.APPROVE)
+
+    with pytest.raises(InvalidCheckpointError):
+        await runtime.resume(
+            resume_token=suspension_item.suspension.resume_token,
+            decision=approved,
+        )
+
+    resumed_items = [
+        item
+        async for item in runtime.resume_stream(
+            resume_token=suspension_item.suspension.resume_token,
+            decision=approved,
+        )
+    ]
+
+    terminal = cast(RuntimeResultItem, resumed_items[-1]).result
+    assert terminal.status is ExecutionStatus.COMPLETED
+    assert tool.call_count == 1

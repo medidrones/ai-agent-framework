@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+from collections.abc import Callable
 from datetime import datetime, timedelta
 from typing import Any, Final
 
@@ -172,6 +173,36 @@ class PostgreSQLCheckpointStore:
         except Exception as error:
             raise InvalidCheckpointError(
                 "O checkpoint armazenado não possui um payload válido."
+            ) from error
+
+    async def consume_authorized(
+        self,
+        *,
+        resume_token: ResumeToken,
+        authorize: Callable[[ExecutionCheckpoint], None],
+    ) -> ExecutionCheckpoint:
+        """Consume one checkpoint only when authorization succeeds before commit."""
+        try:
+            async with self._pool.connection() as connection:
+                cursor = await connection.execute(
+                    _CONSUME_SQL, (self._token_digest(resume_token),)
+                )
+                row = await cursor.fetchone()
+                if row is None:
+                    raise CheckpointNotFoundError(
+                        "O token é desconhecido, expirou ou já foi consumido."
+                    )
+                try:
+                    checkpoint = ExecutionCheckpoint.model_validate(row[0])
+                except Exception as error:
+                    raise InvalidCheckpointError(
+                        "O checkpoint armazenado não possui um payload válido."
+                    ) from error
+                authorize(checkpoint)
+                return checkpoint
+        except (DatabaseError, PoolTimeout) as error:
+            raise PostgreSQLCheckpointStoreError(
+                "Não foi possível consumir o checkpoint no PostgreSQL."
             ) from error
 
     async def read(self, resume_token: ResumeToken) -> PostgreSQLCheckpointSnapshot:

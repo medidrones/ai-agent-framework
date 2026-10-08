@@ -51,7 +51,11 @@ from atlas_agents import (
     ToolRegistry,
     UnsupportedCheckpointVersionError,
 )
-from tests.approvals.fakes import FakeCheckpointStore, FixedApprovalPolicy
+from tests.approvals.fakes import (
+    FakeAtomicAuthorizedCheckpointStore,
+    FakeCheckpointStore,
+    FixedApprovalPolicy,
+)
 from tests.runtime.test_multi_turn_runtime import SequencedProvider
 from tests.tools.fakes import FakeTool, tool_definition
 
@@ -446,6 +450,34 @@ async def test_mismatched_decision_consumes_token_and_replay_is_rejected() -> No
             decision=_decision(outcome),
         )
     assert tool.call_count == 0
+
+
+async def test_atomic_authorized_store_preserves_token_after_mismatch() -> None:
+    provider = SequencedProvider((_tool_response(_call()), _final_response()))
+    store = FakeAtomicAuthorizedCheckpointStore()
+    tool = FakeTool(
+        tool_definition(name="sensitive", approval_mode=ToolApprovalMode.REQUIRED)
+    )
+    runtime, _, _ = _runtime(provider, tool, store=store)
+    outcome = await _start(runtime, _agent("sensitive"))
+    assert isinstance(outcome, ExecutionSuspension)
+    mismatch = ApprovalDecision(
+        approval_request_id="other",
+        decision=ApprovalDecisionType.APPROVE,
+        decided_at=datetime.now(UTC),
+    )
+
+    with pytest.raises(ApprovalDecisionMismatchError):
+        await runtime.resume(resume_token=outcome.resume_token, decision=mismatch)
+
+    result = await runtime.resume(
+        resume_token=outcome.resume_token,
+        decision=_decision(outcome),
+    )
+
+    assert isinstance(result, AgentResult)
+    assert result.status is ExecutionStatus.COMPLETED
+    assert tool.call_count == 1
 
 
 async def test_two_sensitive_tools_suspend_and_resume_sequentially() -> None:

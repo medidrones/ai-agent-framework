@@ -77,6 +77,18 @@ O cancelamento de uma operação pendente causa rollback da transação. Um payl
 corrompido é consumido e rejeitado de forma fail-closed, preservando o contrato
 1.x, que valida o checkpoint após o consumo.
 
+Quando utilizado pelo `AgentRuntime`, o adapter expõe adicionalmente
+`consume_authorized()`. A operação executa a validação síncrona da decisão e da
+modalidade depois do `DELETE ... RETURNING`, mas antes do commit. Uma validação
+inválida ou cancelada provoca rollback e mantém o checkpoint disponível para
+uma decisão legítima. Essa capability é detectada estruturalmente; o contrato
+público `CheckpointStore` continua contendo somente `save()` e `consume()`.
+
+O callback de autorização não deve realizar I/O nem efeitos externos. Ele é
+executado dentro da transação e deve apenas validar fatos do checkpoint e da
+decisão. Validators customizados podem aplicar identidade, tenant, papéis e
+políticas organizacionais sem transferir essas regras ao adapter PostgreSQL.
+
 ## Concorrência otimista
 
 O adapter oferece uma capability aditiva para coordenadores que precisam
