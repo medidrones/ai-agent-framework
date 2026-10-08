@@ -120,7 +120,15 @@ async def test_migration_is_idempotent_and_records_checksum(
             """
         )
         rows = await cursor.fetchall()
-    assert rows == [(1, 64), (2, 64), (3, 64), (4, 64), (5, 64), (6, 64)]
+    assert rows == [
+        (1, 64),
+        (2, 64),
+        (3, 64),
+        (4, 64),
+        (5, 64),
+        (6, 64),
+        (7, 64),
+    ]
 
 
 async def test_save_consume_and_replay_do_not_store_plain_token(

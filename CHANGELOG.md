@@ -7,6 +7,20 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não publicado]
 
+### Adicionado
+
+- Verificador PostgreSQL tipado e somente leitura para readiness, histórico de
+  migrations, checksums, colunas, constraints e índices do Durable State.
+- Migration 007 aditiva com índice para descoberta ordenada de candidatos de
+  recovery, além de suíte de upgrade, drift, concorrência, privilégios e
+  certificação em PostgreSQL real.
+
+### Alterado
+
+- O migrator PostgreSQL passou a aceitar alvo explícito e a bloquear histórico
+  com versão desconhecida, lacuna ou schema mais novo que o alvo, sem alterar
+  migrations já distribuídas.
+
 ## [1.0.1rc2] - 2026-09-15
 
 ### Corrigido

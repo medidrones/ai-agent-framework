@@ -11,6 +11,10 @@ class PostgreSQLMigrationError(PostgreSQLCheckpointStoreError):
     """Report a migration that could not be validated or applied."""
 
 
+class PostgreSQLSchemaCheckError(PostgreSQLCheckpointStoreError):
+    """Report an unavailable or failed read-only schema verification."""
+
+
 class CheckpointConcurrencyConflictError(PostgreSQLCheckpointStoreError):
     """Report a failed checkpoint compare-and-swap operation."""
 

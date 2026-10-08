@@ -41,7 +41,9 @@ _MIGRATIONS: Final = (
     _Migration(4, "004_create_recovery_attempts.sql"),
     _Migration(5, "005_create_checkpoint_retention.sql"),
     _Migration(6, "006_create_checkpoint_purge.sql"),
+    _Migration(7, "007_create_recovery_candidate_index.sql"),
 )
+LATEST_SCHEMA_VERSION: Final = _MIGRATIONS[-1].version
 
 
 class PostgreSQLCheckpointMigrator:
@@ -51,8 +53,11 @@ class PostgreSQLCheckpointMigrator:
         """Use a caller-owned pool with an explicit lifecycle."""
         self._pool = pool
 
-    async def migrate(self) -> tuple[int, ...]:
-        """Apply pending migrations and return the versions applied now."""
+    async def migrate(self, *, target_version: int | None = None) -> tuple[int, ...]:
+        """Apply pending migrations through a supported target revision."""
+        target = LATEST_SCHEMA_VERSION if target_version is None else target_version
+        if target < 1 or target > LATEST_SCHEMA_VERSION:
+            raise ValueError("A versão alvo do schema PostgreSQL não é suportada.")
         try:
             async with self._pool.connection() as connection:
                 await connection.execute(
@@ -69,8 +74,25 @@ class PostgreSQLCheckpointMigrator:
                     (_COMPONENT,),
                 )
                 applied = dict(await cursor.fetchall())
+                known_versions = {migration.version for migration in _MIGRATIONS}
+                unknown_versions = set(applied).difference(known_versions)
+                if unknown_versions:
+                    raise PostgreSQLMigrationError(
+                        "O histórico PostgreSQL contém uma versão não suportada."
+                    )
+                applied_versions = sorted(applied)
+                if applied_versions != list(range(1, len(applied_versions) + 1)):
+                    raise PostgreSQLMigrationError(
+                        "O histórico PostgreSQL contém uma lacuna de migrations."
+                    )
+                if applied_versions and applied_versions[-1] > target:
+                    raise PostgreSQLMigrationError(
+                        "O schema PostgreSQL é mais recente que a versão alvo."
+                    )
                 completed: list[int] = []
                 for migration in _MIGRATIONS:
+                    if migration.version > target:
+                        break
                     sql = _migration_sql(migration.resource)
                     checksum = hashlib.sha256(sql.encode("utf-8")).hexdigest()
                     previous = applied.get(migration.version)
