@@ -48,6 +48,21 @@ def test_model_descriptor_preserves_immutable_capabilities_and_metadata() -> Non
         descriptor.model = "other"
 
 
+def test_model_descriptor_serializes_capabilities_in_stable_order() -> None:
+    descriptor = ModelDescriptor(
+        provider="provider",
+        model="model",
+        capabilities=frozenset(
+            {ModelCapability.TOOL_CALLING, ModelCapability.TEXT_GENERATION}
+        ),
+    )
+
+    assert descriptor.model_dump(mode="json")["capabilities"] == [
+        "text_generation",
+        "tool_calling",
+    ]
+
+
 @pytest.mark.parametrize("field", ["provider", "model"])
 def test_model_descriptor_rejects_empty_identifiers(field: str) -> None:
     data = {

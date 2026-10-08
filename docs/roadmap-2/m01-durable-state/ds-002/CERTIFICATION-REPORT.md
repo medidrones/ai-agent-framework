@@ -14,8 +14,10 @@
 ## Resultado
 
 O `PostgreSQLCheckpointStore` implementa estruturalmente o contrato público
-`CheckpointStore` sem alterar o core, o `AgentRuntime` ou APIs públicas 1.x. A
+`CheckpointStore` sem alterar o `AgentRuntime` ou as APIs públicas 1.x. A
 dependência Psycopg está isolada no extra `atlas-agent-adapters[postgresql]`.
+O gate Python 3.13 revelou e corrigiu a ordenação não determinística de
+capabilities na serialização JSON do core, preservando campos, tipos e valores.
 
 Persistência e consumo usam transações gerenciadas pelo pool injetado. O
 consumo é um único `DELETE ... RETURNING`, que garante somente um vencedor sob
@@ -44,7 +46,7 @@ iniciar a DS-002 sem modificar o `AgentRuntime`.
 | --- | --- | --- |
 | DS002-G01 — DS-001 certificada | PASS | relatório DS-001 com decisão `CERTIFIED` |
 | DS002-G02 — gap crítico decidido | PASS | ADR-002; escopo at-most-once explícito |
-| DS002-G03 — contratos 1.x preservados | PASS | nenhum arquivo do core/runtime alterado |
+| DS002-G03 — contratos 1.x preservados | PASS | assinaturas, campos, tipos e valores preservados; JSON canônico entre versões Python |
 | DS002-G04 — dependência isolada | PASS | extra `postgresql` somente nos adapters |
 | DS002-G05 — persistência transacional | PASS | PostgreSQL real e testes de integração |
 | DS002-G06 — consumo atômico e replay | PASS | um vencedor em doze consumidores; replay rejeitado |
@@ -55,7 +57,7 @@ iniciar a DS-002 sem modificar o `AgentRuntime`.
 | DS002-G11 — segurança | PASS | digest/HMAC, SQL parametrizado, erros seguros e Bandit |
 | DS002-G12 — unitários/negativos | PASS | configuração, colisão, expiração, corrupção e indisponibilidade |
 | DS002-G13 — integração real | PASS | 15 testes PostgreSQL aprovados |
-| DS002-G14 — regressão completa | PASS | 1.173 testes; cobertura 92,87% |
+| DS002-G14 — regressão completa | PASS | 1.175 testes; cobertura 92,91% |
 | DS002-G15 — lint/formato/tipos | PASS | Ruff e mypy aprovados |
 | DS002-G16 — distribuição | PASS | builds, Twine, wheel e instalação limpa aprovados |
 | DS002-G17 — documentação pública | PASS | guia de uso, instalação, semântica e operação |
@@ -74,8 +76,8 @@ iniciar a DS-002 sem modificar o `AgentRuntime`.
 - Não há CAS, lease, fencing, enumeração administrativa nem upcaster de schema.
   Esses itens não foram acrescentados implicitamente à DS-002.
 - Redis está integralmente fora desta entrega.
-- O job remoto do GitHub Actions só poderá produzir evidência após publicação
-  da branch; seu estado atual é `NOT_EXECUTED`, não `PASS`.
+- Os checks remotos são evidências externas mantidas no pull request e devem
+  estar aprovados antes do merge.
 
 Nenhuma limitação acima é uma falha oculta dos gates executados. Elas delimitam
 as garantias públicas e o trabalho futuro sem antecipar a DS-003.
@@ -107,10 +109,10 @@ RESTART RECOVERY          PASS
 HITL INTEGRATION          PASS
 SECURITY                  PASS
 
-TESTS PASSED              1173
+TESTS PASSED              1175
 TESTS FAILED              0
 POSTGRESQL TESTS          15
-COVERAGE                  92.87%
+COVERAGE                  92.91%
 BUILD                     PASS
 CLEAN INSTALL             PASS
 

@@ -5,7 +5,7 @@
 - Data: 2026-10-08
 - Branch: `medicode/ds-002-postgresql-checkpoint-store`
 - Commit-base: `88e62e2bdce7c6be0c5102a561d0de81b6ded341`
-- Python: 3.12.6
+- Python: 3.12.6 e 3.13.15
 - PostgreSQL: 16 Alpine, instância real isolada em container local
 - Baseline Atlas: 1.0.1
 
@@ -21,8 +21,9 @@ commit próprio antes da publicação da branch.
 | `uv run ruff check .` | PASS | nenhuma violação |
 | `uv run ruff format --check .` | PASS | 537 arquivos formatados |
 | `uv run mypy packages` | PASS | 342 arquivos sem erros |
-| regressão completa | PASS | 1.173 testes; zero falhas |
-| cobertura | PASS | 92,87%; mínimo exigido de 90% |
+| regressão completa Python 3.12 + PostgreSQL | PASS | 1.175 testes; zero falhas |
+| regressão completa Python 3.13 | PASS | 1.165 aprovados e 10 integrações PostgreSQL ignoradas |
+| cobertura | PASS | 92,91% no gate integral; mínimo exigido de 90% |
 | `uv build --package atlas-agent-core` | PASS | wheel e sdist 1.0.1 |
 | `uv build --package atlas-agent-adapters` | PASS | wheel e sdist 1.0.1 |
 | `uv build --package atlas-agent-framework` | PASS | wheel e sdist 1.0.1 |
@@ -32,10 +33,11 @@ commit próprio antes da publicação da branch.
 | Bandit | PASS | 2.627 linhas; zero findings |
 | `git diff --check` | PASS | nenhuma inconsistência textual |
 
-A regressão foi executada com `ATLAS_TEST_POSTGRES_DSN` apontando para a
-instância PostgreSQL real. O único aviso foi a impossibilidade preexistente de o
-pytest gravar `.pytest_cache` no workspace; ele não afeta execução, resultado ou
-cobertura.
+A regressão Python 3.12 foi executada com `ATLAS_TEST_POSTGRES_DSN` apontando
+para a instância PostgreSQL real. A regressão Python 3.13 reproduziu o gate de
+compatibilidade sem DSN e confirmou a serialização canônica de capabilities. O
+único aviso foi a impossibilidade preexistente de o pytest gravar
+`.pytest_cache` no workspace; ele não afeta execução, resultado ou cobertura.
 
 ## Cenários PostgreSQL
 
@@ -59,5 +61,5 @@ A suíte dedicada terminou com **15 testes aprovados** e cobre:
 
 O workflow `Qualidade` recebeu um job dedicado com serviço
 `postgres:16-alpine`, health check e execução da suíte PostgreSQL em Python
-3.12. A execução remota desse job permanece `NOT_EXECUTED` até a branch ser
-publicada; ela não é registrada aqui como `PASS`.
+3.12. A evidência remota é mantida pelo pull request e seus checks, sem ser
+substituída por uma declaração estática neste documento.
