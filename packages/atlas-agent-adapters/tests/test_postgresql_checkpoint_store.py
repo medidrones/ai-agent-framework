@@ -99,11 +99,16 @@ def test_versioned_migration_is_packaged() -> None:
     revision = (migration_root / "002_add_checkpoint_revision.sql").read_text(
         encoding="utf-8"
     )
+    lease = (migration_root / "003_create_checkpoint_leases.sql").read_text(
+        encoding="utf-8"
+    )
 
     assert "CREATE TABLE atlas_agent.checkpoints" in initial
     assert "token_digest BYTEA PRIMARY KEY" in initial
     assert "payload JSONB NOT NULL" in initial
     assert "ADD COLUMN revision BIGINT NOT NULL DEFAULT 1" in revision
+    assert "CREATE TABLE atlas_agent.checkpoint_leases" in lease
+    assert "fencing_token BIGINT NOT NULL DEFAULT 0" in lease
 
 
 def test_expected_revision_must_be_positive() -> None:

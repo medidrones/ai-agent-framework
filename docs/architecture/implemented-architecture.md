@@ -143,6 +143,12 @@ decisão, modalidade ou cancelamento causam rollback; somente um consumidor
 autorizado confirma a remoção. Stores que implementam apenas o contrato 1.x
 continuam compatíveis com a semântica histórica.
 
+A **DS-005 — Checkpoint Lease & Ownership** adiciona ownership temporário,
+expiração baseada no relógio do PostgreSQL e fencing tokens monotônicos. As
+capabilities `compare_and_swap_leased()` e `consume_authorized_leased()`
+rejeitam stale workers atomicamente com a alteração protegida, preservando os
+contratos 1.x e deixando a coordenação automática de recovery para a DS-006.
+
 Multi-agent runtime, delegation, workflow graphs, coordenação distribuída,
 marketplace e control plane hospedado ficam fora deste ciclo. Esses temas são
 candidatos ao Roadmap 3 — **Atlas 2.x: Advanced Orchestration**.

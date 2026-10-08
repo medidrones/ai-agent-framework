@@ -25,7 +25,11 @@ from atlas_agents.approvals import (
     InvalidCheckpointError,
     ResumeToken,
 )
-from atlas_agents.runtime import ExecutionCheckpoint
+from atlas_agents.runtime import (
+    CheckpointLease,
+    CheckpointLeaseLostError,
+    ExecutionCheckpoint,
+)
 
 _INSERT_SQL: Final = """
 INSERT INTO atlas_agent.checkpoints (
@@ -69,6 +73,66 @@ WHERE token_digest = %s
   AND tenant_id IS NOT DISTINCT FROM %s
   AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
 RETURNING payload, revision
+"""
+
+_COMPARE_AND_SWAP_LEASED_SQL: Final = """
+UPDATE atlas_agent.checkpoints AS checkpoint
+SET checkpoint_version = %s,
+    payload = %s,
+    expires_at = %s,
+    modified_at = CURRENT_TIMESTAMP,
+    revision = revision + 1
+WHERE checkpoint.token_digest = %s
+  AND checkpoint.revision = %s
+  AND checkpoint.execution_id = %s
+  AND checkpoint.agent_id = %s
+  AND checkpoint.tenant_id IS NOT DISTINCT FROM %s
+  AND (checkpoint.expires_at IS NULL OR checkpoint.expires_at > CURRENT_TIMESTAMP)
+  AND EXISTS (
+      SELECT 1
+      FROM atlas_agent.checkpoint_leases AS lease
+      WHERE lease.checkpoint_id = checkpoint.execution_id
+        AND lease.checkpoint_id = %s
+        AND lease.owner_id = %s
+        AND lease.fencing_token = %s
+        AND lease.expires_at > clock_timestamp()
+  )
+RETURNING checkpoint.payload, checkpoint.revision
+"""
+
+_CONSUME_AUTHORIZED_LEASED_SQL: Final = """
+DELETE FROM atlas_agent.checkpoints AS checkpoint
+WHERE checkpoint.token_digest = %s
+  AND (checkpoint.expires_at IS NULL OR checkpoint.expires_at > CURRENT_TIMESTAMP)
+  AND EXISTS (
+      SELECT 1
+      FROM atlas_agent.checkpoint_leases AS lease
+      WHERE lease.checkpoint_id = checkpoint.execution_id
+        AND lease.checkpoint_id = %s
+        AND lease.owner_id = %s
+        AND lease.fencing_token = %s
+        AND lease.expires_at > clock_timestamp()
+  )
+RETURNING checkpoint.payload
+"""
+
+_CLEAR_CONSUMED_LEASE_SQL: Final = """
+UPDATE atlas_agent.checkpoint_leases
+SET owner_id = NULL, acquired_at = NULL, expires_at = NULL
+WHERE checkpoint_id = %s
+  AND owner_id = %s
+  AND fencing_token = %s
+"""
+
+_LEASE_VALID_SQL: Final = """
+SELECT EXISTS (
+    SELECT 1
+    FROM atlas_agent.checkpoint_leases
+    WHERE checkpoint_id = %s
+      AND owner_id = %s
+      AND fencing_token = %s
+      AND expires_at > clock_timestamp()
+)
 """
 
 _INSPECT_CONFLICT_SQL: Final = """
@@ -282,6 +346,126 @@ class PostgreSQLCheckpointStore:
             ) from error
         raise AssertionError("A classificação do compare-and-swap deve falhar.")
 
+    async def compare_and_swap_leased(
+        self,
+        *,
+        resume_token: ResumeToken,
+        checkpoint: ExecutionCheckpoint,
+        expected_revision: int,
+        lease: CheckpointLease,
+    ) -> PostgreSQLCheckpointSnapshot:
+        """Replace a checkpoint only for the current lease and storage revision."""
+        if expected_revision <= 0:
+            raise ValueError("A revisão esperada deve ser positiva.")
+        if lease.checkpoint_id != checkpoint.execution_id:
+            raise CheckpointLeaseLostError(
+                "O lease não pertence ao checkpoint que seria atualizado."
+            )
+        token_digest = self._token_digest(resume_token)
+        expires_at = self._expires_at(checkpoint)
+        try:
+            async with self._pool.connection() as connection:
+                cursor = await connection.execute(
+                    _COMPARE_AND_SWAP_LEASED_SQL,
+                    (
+                        checkpoint.checkpoint_version,
+                        Jsonb(checkpoint.model_dump(mode="json")),
+                        expires_at,
+                        token_digest,
+                        expected_revision,
+                        checkpoint.execution_id,
+                        checkpoint.agent.agent_id,
+                        checkpoint.context.tenant_id,
+                        lease.checkpoint_id,
+                        lease.owner_id,
+                        lease.fencing_token,
+                    ),
+                )
+                updated = await cursor.fetchone()
+                if updated is not None:
+                    return PostgreSQLCheckpointSnapshot(
+                        checkpoint=ExecutionCheckpoint.model_validate(updated[0]),
+                        revision=int(updated[1]),
+                    )
+                if not await self._lease_is_valid(connection, lease):
+                    raise CheckpointLeaseLostError(
+                        "O lease expirou, foi liberado ou pertence a outra geração."
+                    )
+                await self._raise_compare_and_swap_failure(
+                    connection=connection,
+                    token_digest=token_digest,
+                    checkpoint=checkpoint,
+                    expected_revision=expected_revision,
+                )
+        except (
+            CheckpointConcurrencyConflictError,
+            CheckpointLeaseLostError,
+            CheckpointNotFoundError,
+            InvalidCheckpointError,
+        ):
+            raise
+        except (DatabaseError, PoolTimeout) as error:
+            raise PostgreSQLCheckpointStoreError(
+                "Não foi possível atualizar o checkpoint no PostgreSQL."
+            ) from error
+        raise AssertionError("A classificação do compare-and-swap deve falhar.")
+
+    async def consume_authorized_leased(
+        self,
+        *,
+        resume_token: ResumeToken,
+        lease: CheckpointLease,
+        authorize: Callable[[ExecutionCheckpoint], None],
+    ) -> ExecutionCheckpoint:
+        """Authorize and consume atomically only for the current lease generation."""
+        token_digest = self._token_digest(resume_token)
+        try:
+            async with self._pool.connection() as connection:
+                cursor = await connection.execute(
+                    _CONSUME_AUTHORIZED_LEASED_SQL,
+                    (
+                        token_digest,
+                        lease.checkpoint_id,
+                        lease.owner_id,
+                        lease.fencing_token,
+                    ),
+                )
+                row = await cursor.fetchone()
+                if row is None:
+                    checkpoint_cursor = await connection.execute(
+                        _INSPECT_CONFLICT_SQL, (token_digest,)
+                    )
+                    checkpoint_row = await checkpoint_cursor.fetchone()
+                    if checkpoint_row is None or bool(checkpoint_row[4]):
+                        raise CheckpointNotFoundError(
+                            "O token é desconhecido, expirou ou já foi consumido."
+                        )
+                    raise CheckpointLeaseLostError(
+                        "O lease expirou, foi liberado ou pertence a outra geração."
+                    )
+                try:
+                    checkpoint = ExecutionCheckpoint.model_validate(row[0])
+                except Exception as error:
+                    raise InvalidCheckpointError(
+                        "O checkpoint armazenado não possui um payload válido."
+                    ) from error
+                await connection.execute(
+                    _CLEAR_CONSUMED_LEASE_SQL,
+                    (lease.checkpoint_id, lease.owner_id, lease.fencing_token),
+                )
+                authorize(checkpoint)
+                return checkpoint
+        except (
+            CheckpointLeaseLostError,
+            CheckpointNotFoundError,
+            InvalidCheckpointError,
+        ):
+            raise
+        except (DatabaseError, PoolTimeout) as error:
+            raise PostgreSQLCheckpointStoreError(
+                "Não foi possível consumir o checkpoint no PostgreSQL."
+            ) from error
+
     async def purge_expired(self, *, batch_size: int = 1_000) -> int:
         """Delete one bounded batch of expired checkpoints."""
         if batch_size <= 0:
@@ -345,3 +529,14 @@ class PostgreSQLCheckpointStore:
             expected_revision=expected_revision,
             actual_revision=int(actual_revision),
         )
+
+    @staticmethod
+    async def _lease_is_valid(
+        connection: AsyncConnection[Any], lease: CheckpointLease
+    ) -> bool:
+        cursor = await connection.execute(
+            _LEASE_VALID_SQL,
+            (lease.checkpoint_id, lease.owner_id, lease.fencing_token),
+        )
+        row = await cursor.fetchone()
+        return row is not None and bool(row[0])

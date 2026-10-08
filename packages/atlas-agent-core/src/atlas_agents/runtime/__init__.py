@@ -20,6 +20,14 @@ from atlas_agents.runtime.errors import (
     ModelStreamReportedError,
     RuntimeInputRejectedError,
 )
+from atlas_agents.runtime.lease import (
+    CheckpointLease,
+    CheckpointLeaseConflictError,
+    CheckpointLeaseError,
+    CheckpointLeaseLostError,
+    CheckpointLeaseManager,
+    CheckpointLeaseNotFoundError,
+)
 from atlas_agents.runtime.limits import (
     ExecutionLimitReason,
     ExecutionLimits,
@@ -45,6 +53,12 @@ __all__ = [
     "CURRENT_CHECKPOINT_VERSION",
     "AgentRuntime",
     "AgentRuntimeError",
+    "CheckpointLease",
+    "CheckpointLeaseConflictError",
+    "CheckpointLeaseError",
+    "CheckpointLeaseLostError",
+    "CheckpointLeaseManager",
+    "CheckpointLeaseNotFoundError",
     "CheckpointStore",
     "ExecutionAlreadyTerminalError",
     "ExecutionBudget",

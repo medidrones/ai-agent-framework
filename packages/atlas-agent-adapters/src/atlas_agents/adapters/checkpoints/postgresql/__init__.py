@@ -20,6 +20,9 @@ from atlas_agents.adapters.checkpoints.postgresql.errors import (  # noqa: E402
     PostgreSQLCheckpointStoreError,
     PostgreSQLMigrationError,
 )
+from atlas_agents.adapters.checkpoints.postgresql.lease import (  # noqa: E402
+    PostgreSQLCheckpointLeaseManager,
+)
 from atlas_agents.adapters.checkpoints.postgresql.migrations import (  # noqa: E402
     PostgreSQLCheckpointMigrator,
 )
@@ -32,6 +35,7 @@ from atlas_agents.adapters.checkpoints.postgresql.store import (  # noqa: E402
 
 __all__ = [
     "CheckpointConcurrencyConflictError",
+    "PostgreSQLCheckpointLeaseManager",
     "PostgreSQLCheckpointMigrator",
     "PostgreSQLCheckpointSnapshot",
     "PostgreSQLCheckpointStore",
