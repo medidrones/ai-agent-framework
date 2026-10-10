@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: atlas-worker-config
+  namespace: atlas-ds013
+data:
+  ATLAS_HOST_PORT: "8080"
+  ATLAS_APPROVAL_DIRECTORY: /var/lib/atlas/approvals
+  ATLAS_RECOVERY_INTERVAL_SECONDS: "0.5"
+  ATLAS_LEASE_SECONDS: "5"

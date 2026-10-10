@@ -1,0 +1,20 @@
+[project]
+name = "atlas-kubernetes-recovery-certification"
+version = "1.0.1"
+description = "Host técnico para certificação de recuperação do Atlas em Kubernetes"
+requires-python = ">=3.12"
+dependencies = [
+  "atlas-agent-core==1.0.1",
+  "atlas-agent-adapters[postgresql,redis]==1.0.1",
+]
+
+[project.scripts]
+atlas-kubernetes-worker = "atlas_kubernetes_recovery.worker:main"
+atlas-kubernetes-client = "atlas_kubernetes_recovery.client:main"
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/atlas_kubernetes_recovery"]
