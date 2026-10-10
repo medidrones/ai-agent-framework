@@ -90,6 +90,7 @@ select = [
 "packages/atlas-agent-core/src/atlas_agents/events/types.py" = ["A005"]
 "packages/atlas-agent-adapters/src/atlas_agents/adapters/grpc/server.py" = ["N802"]
 "packages/*/tests/**/*.py" = ["D", "S101"]
+"examples/kubernetes-recovery/tests/**/*.py" = ["D", "S101"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
@@ -135,6 +136,7 @@ addopts = [
 ]
 asyncio_mode = "auto"
 testpaths = [
+    "examples/kubernetes-recovery/tests",
     "packages/atlas-agent-adapters/tests",
     "packages/atlas-agent-config/tests",
     "packages/atlas-agent-core/tests",

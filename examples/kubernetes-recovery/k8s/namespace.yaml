@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: atlas-ds013
+  labels:
+    app.kubernetes.io/part-of: atlas-agent-framework
+    atlas.medicode.dev/certification: ds-013

@@ -144,8 +144,11 @@ O core não instala OpenAI, MCP, FastAPI, gRPC ou PyYAML. Consulte a
 
 A suíte em [`examples/`](examples/README.md) demonstra progressivamente a API
 pública, desde o agente mínimo até adapters REST/gRPC, consumidores .NET e uma
-arquitetura corporativa determinística. Salvo o cenário OpenAI explicitamente
-opt-in, os exemplos Python funcionam offline.
+arquitetura corporativa determinística. O cenário
+[`kubernetes-recovery`](examples/kubernetes-recovery/README.md) certifica
+lifecycle e recovery distribuído em um cluster local. Salvo o cenário OpenAI
+explicitamente opt-in e a preparação Kubernetes que baixa imagens, os exemplos
+Python funcionam offline.
 
 ## Desenvolvimento
 

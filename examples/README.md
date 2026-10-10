@@ -12,6 +12,7 @@ Esta suíte é uma especificação executável da API pública. Os exemplos evol
 | 13–15 | Extensibilidade e MCP |
 | 16–21 | Adapters e interoperabilidade Python/.NET |
 | 22 | Arquitetura de referência integrada |
+| kubernetes-recovery | Certificação de lifecycle e recovery em Kubernetes |
 
 Cada diretório possui instruções, saída esperada, notas de segurança e considerações de produção. Todos os cenários Python, exceto o provider OpenAI explicitamente opt-in, funcionam offline com fixtures determinísticas.
 
@@ -25,3 +26,5 @@ uv run pytest
 ```
 
 Consulte [22_enterprise_reference](22_enterprise_reference/README.md) para o fluxo consolidado.
+Para a infraestrutura reproduzível da DS-013, consulte
+[kubernetes-recovery](kubernetes-recovery/README.md).
