@@ -7,10 +7,21 @@ import json
 import logging
 import signal
 from contextlib import suppress
+from datetime import UTC, datetime
 from http import HTTPStatus
 from urllib.parse import parse_qs, urlsplit
 
+from atlas_agents import ApprovalDecisionType
 from atlas_kubernetes_recovery.config import HostConfiguration
+from atlas_kubernetes_recovery.durable_hitl import (
+    ApprovalAuthorizationError,
+    ApprovalConflictError,
+    ApprovalExpiredError,
+    ApprovalNotFoundError,
+    ApprovalPersistenceError,
+    ApprovalSubmission,
+    TrustedApprovalPrincipal,
+)
 from atlas_kubernetes_recovery.host import (
     ApprovalState,
     CertificationHost,
@@ -39,6 +50,7 @@ class CertificationHttpServer:
                 await self._respond(writer, HTTPStatus.BAD_REQUEST, {})
                 return
             method, target, _version = parts
+            headers: dict[str, str] = {}
             while True:
                 header = await asyncio.wait_for(reader.readline(), timeout=2)
                 if header in {b"\r\n", b"\n", b""}:
@@ -48,8 +60,57 @@ class CertificationHttpServer:
                         writer, HTTPStatus.REQUEST_HEADER_FIELDS_TOO_LARGE, {}
                     )
                     return
-            status, payload = await self._route(method, target)
+                name, separator, value = header.decode(
+                    "ascii", errors="strict"
+                ).partition(":")
+                if not separator:
+                    raise ValueError("O cabeçalho HTTP é inválido.")
+                headers[name.strip().lower()] = value.strip()
+            content_length = int(headers.get("content-length", "0"))
+            if content_length < 0 or content_length > 16_384:
+                await self._respond(writer, HTTPStatus.CONTENT_TOO_LARGE, {})
+                return
+            body: dict[str, object] = {}
+            if content_length:
+                raw_body = await asyncio.wait_for(
+                    reader.readexactly(content_length), timeout=2
+                )
+                decoded = json.loads(raw_body)
+                if not isinstance(decoded, dict):
+                    raise ValueError("O corpo JSON deve ser um objeto.")
+                body = decoded
+            status, payload = await self._route(method, target, body)
             await self._respond(writer, status, payload)
+        except ApprovalAuthorizationError as error:
+            await self._respond(
+                writer,
+                HTTPStatus.FORBIDDEN,
+                {"error": type(error).__name__},
+            )
+        except ApprovalExpiredError as error:
+            await self._respond(
+                writer,
+                HTTPStatus.GONE,
+                {"error": type(error).__name__},
+            )
+        except ApprovalConflictError as error:
+            await self._respond(
+                writer,
+                HTTPStatus.CONFLICT,
+                {"error": type(error).__name__},
+            )
+        except ApprovalNotFoundError as error:
+            await self._respond(
+                writer,
+                HTTPStatus.NOT_FOUND,
+                {"error": type(error).__name__},
+            )
+        except ApprovalPersistenceError as error:
+            await self._respond(
+                writer,
+                HTTPStatus.SERVICE_UNAVAILABLE,
+                {"error": type(error).__name__},
+            )
         except (UnicodeDecodeError, ValueError, KeyError, LookupError) as error:
             await self._respond(
                 writer,
@@ -68,8 +129,12 @@ class CertificationHttpServer:
                 await writer.wait_closed()
 
     async def _route(
-        self, method: str, target: str
+        self,
+        method: str,
+        target: str,
+        body: dict[str, object] | None = None,
     ) -> tuple[HTTPStatus, dict[str, object]]:
+        body = body or {}
         parsed = urlsplit(target)
         query = parse_qs(parsed.query, strict_parsing=True)
         if method == "GET" and parsed.path == "/live":
@@ -98,6 +163,43 @@ class CertificationHttpServer:
                 state=ApprovalState(self._one(query, "decision")),
             )
             return HTTPStatus.OK, result
+        if method == "POST" and parsed.path == "/durable-hitl/seed":
+            result = await self._host.seed_durable_hitl(
+                backend=CheckpointBackend(self._one(query, "backend")),
+                execution_id=self._execution_id(self._one(query, "execution_id")),
+                tenant_id=self._tenant_id(
+                    self._one(query, "tenant_id", "tenant-ds014")
+                ),
+            )
+            return HTTPStatus.CREATED, result
+        if method == "POST" and parsed.path == "/durable-hitl/decide":
+            command = ApprovalSubmission(
+                decision_id=self._body_text(body, "decision_id"),
+                approval_request_id=self._body_text(body, "approval_request_id"),
+                execution_id=self._execution_id(self._body_text(body, "execution_id")),
+                tenant_id=self._tenant_id(self._body_text(body, "tenant_id")),
+                tool_call_id=self._body_text(body, "tool_call_id"),
+                tool_name=self._body_text(body, "tool_name"),
+                decision=ApprovalDecisionType(self._body_text(body, "decision")),
+                principal=TrustedApprovalPrincipal(
+                    subject=self._body_text(body, "subject"),
+                    tenant_id=self._tenant_id(
+                        self._body_text(body, "principal_tenant_id")
+                    ),
+                    permissions=frozenset(self._body_text_list(body, "permissions")),
+                    tool_names=frozenset(self._body_text_list(body, "tool_names")),
+                ),
+                decided_at=datetime.now(UTC),
+                reason=self._body_optional_text(body, "reason"),
+            )
+            return HTTPStatus.OK, await self._host.decide_durable_hitl(
+                resume_token=self._body_text(body, "resume_token"),
+                submission=command,
+            )
+        if method == "GET" and parsed.path == "/durable-hitl/audit":
+            return HTTPStatus.OK, await self._host.durable_hitl_audit(
+                self._one(query, "approval_request_id")
+            )
         if method == "POST" and parsed.path == "/runtime-control":
             mode = self._one(query, "mode")
             if mode not in {"deadline", "cancellation"}:
@@ -159,6 +261,34 @@ class CertificationHttpServer:
         return value
 
     @staticmethod
+    def _body_text(body: dict[str, object], name: str) -> str:
+        value = body.get(name)
+        if not isinstance(value, str) or not value.strip() or len(value) > 4096:
+            raise ValueError(f"O campo {name} é inválido.")
+        return value
+
+    @staticmethod
+    def _body_optional_text(body: dict[str, object], name: str) -> str | None:
+        value = body.get(name)
+        if value is None:
+            return None
+        if not isinstance(value, str) or not value.strip() or len(value) > 4096:
+            raise ValueError(f"O campo {name} é inválido.")
+        return value
+
+    @staticmethod
+    def _body_text_list(body: dict[str, object], name: str) -> tuple[str, ...]:
+        value = body.get(name)
+        if not isinstance(value, list) or len(value) > 32:
+            raise ValueError(f"O campo {name} é inválido.")
+        if any(
+            not isinstance(item, str) or not item.strip() or len(item) > 256
+            for item in value
+        ):
+            raise ValueError(f"O campo {name} é inválido.")
+        return tuple(value)
+
+    @staticmethod
     async def _respond(
         writer: asyncio.StreamWriter,
         status: HTTPStatus,
@@ -195,7 +325,7 @@ async def _run() -> None:
     http = CertificationHttpServer(host)
     server = await asyncio.start_server(
         http.handle,
-        host="0.0.0.0",  # noqa: S104 - required inside the pod network namespace
+        host="0.0.0.0",  # noqa: S104  # nosec B104
         port=configuration.port,
         limit=16384,
     )

@@ -140,6 +140,20 @@ class _HttpHost:
             "tenant_id": tenant_id,
         }
 
+    async def seed_durable_hitl(
+        self,
+        *,
+        backend: CheckpointBackend,
+        execution_id: str,
+        tenant_id: str,
+    ) -> dict[str, object]:
+        return {
+            "backend": backend.value,
+            "execution_id": execution_id,
+            "tenant_id": tenant_id,
+            "status": "waiting_for_approval",
+        }
+
 
 def test_http_routes_validate_scenario_inputs() -> None:
     async def scenario() -> None:
@@ -163,6 +177,21 @@ def test_http_routes_validate_scenario_inputs() -> None:
             "execution_id": "execution-a",
             "decision": "pending",
             "tenant_id": "tenant-ds013",
+        }
+
+        status, payload = await asyncio.wait_for(
+            server._route(
+                "POST",
+                "/durable-hitl/seed?backend=postgresql&execution_id=execution-b",
+            ),
+            timeout=1,
+        )
+        assert status is HTTPStatus.CREATED
+        assert payload == {
+            "backend": "postgresql",
+            "execution_id": "execution-b",
+            "tenant_id": "tenant-ds014",
+            "status": "waiting_for_approval",
         }
 
         with pytest.raises(ValueError, match="execution_id"):
