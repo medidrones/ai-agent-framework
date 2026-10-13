@@ -1,0 +1,133 @@
+{
+  "checkpoint_version": 1,
+  "execution_id": "execution-fixture-1",
+  "execution_mode": "run",
+  "agent": {
+    "agent_id": "agent-fixture-1",
+    "name": "Fixture Agent",
+    "description": "",
+    "instructions": "Execute only approved operations.",
+    "tool_names": ["sensitive"],
+    "memory": null,
+    "knowledge": null,
+    "guardrails": null,
+    "structured_output": null,
+    "metadata": {}
+  },
+  "input_data": {
+    "message": "Execute the operation.",
+    "attachments": [],
+    "metadata": {}
+  },
+  "effective_input": {
+    "message": "Execute the operation.",
+    "attachments": [],
+    "metadata": {}
+  },
+  "context": {
+    "execution_id": "execution-fixture-1",
+    "session_id": null,
+    "user_id": null,
+    "tenant_id": "tenant-fixture-1",
+    "identity": {
+      "subject": "user-fixture-1",
+      "roles": [],
+      "permissions": ["customer.write"],
+      "attributes": {}
+    },
+    "trace_context": null,
+    "metadata": {}
+  },
+  "trace_context": null,
+  "status": "waiting_for_approval",
+  "messages": [],
+  "knowledge_context": null,
+  "model_selection": {
+    "provider_name": "fixture-provider",
+    "model": "fixture-model",
+    "descriptor": {
+      "provider": "fixture-provider",
+      "model": "fixture-model",
+      "capabilities": ["tool_calling", "text_generation"],
+      "context_window": null,
+      "max_output_tokens": null,
+      "metadata": {}
+    },
+    "matched_required_capabilities": ["tool_calling", "text_generation"],
+    "matched_preferred_capabilities": [],
+    "preferred_capability_matches": 0,
+    "candidate_count": 1
+  },
+  "usage": {
+    "input_tokens": 2,
+    "output_tokens": 1,
+    "cached_input_tokens": 0,
+    "reasoning_tokens": 0,
+    "estimated_cost": null
+  },
+  "has_model_usage": true,
+  "turn_count": 1,
+  "tool_call_count": 0,
+  "events": [
+    {
+      "event_id": "event-fixture-1",
+      "execution_id": "execution-fixture-1",
+      "sequence": 1,
+      "event_type": "execution_suspended",
+      "timestamp": "2026-01-01T00:00:00Z",
+      "data": {"approval_request_id": "approval-fixture-1"}
+    }
+  ],
+  "transitions": [
+    {
+      "from_status": "waiting_for_tool",
+      "to_status": "waiting_for_approval",
+      "timestamp": "2026-01-01T00:00:00Z",
+      "reason": null,
+      "metadata": {}
+    }
+  ],
+  "tool_call_records": [],
+  "guardrail_records": [],
+  "pending_approval": {
+    "approval_request_id": "approval-fixture-1",
+    "execution_id": "execution-fixture-1",
+    "agent_id": "agent-fixture-1",
+    "kind": "tool_execution",
+    "summary": "Approve the sensitive operation?",
+    "reason": "The tool requires human approval.",
+    "requested_at": "2026-01-01T00:00:00Z",
+    "expires_at": "2026-01-01T01:00:00Z",
+    "subject": {
+      "tool_call_id": "call-fixture-1",
+      "tool_name": "sensitive",
+      "argument_keys": ["customer_id"]
+    },
+    "metadata": {}
+  },
+  "pending_tool_calls": [
+    {
+      "tool_call_id": "call-fixture-1",
+      "name": "sensitive",
+      "arguments": {"customer_id": "customer-fixture-1"},
+      "metadata": {}
+    }
+  ],
+  "approval_history": [],
+  "limits": {
+    "max_turns": null,
+    "max_tool_calls": null,
+    "max_input_tokens": null,
+    "max_output_tokens": null,
+    "max_total_tokens": null,
+    "timeout_seconds": null
+  },
+  "budget": {
+    "max_estimated_cost": null,
+    "currency": null
+  },
+  "remaining_timeout_seconds": null,
+  "created_at": "2026-01-01T00:00:00Z",
+  "updated_at": "2026-01-01T00:00:00Z",
+  "metadata": {}
+}

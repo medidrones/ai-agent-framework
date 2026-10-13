@@ -1,0 +1,860 @@
+{
+  "backend": "postgresql",
+  "baseline": [
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 5.267500004265457,
+        "median_ms": 1.96219999997993,
+        "minimum_ms": 1.8012999935308471,
+        "p95_ms": 2.7754999973694794,
+        "p99_ms": 5.267500004265457,
+        "samples": 30,
+        "throughput_ops_s": 470.3322270356096
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "save"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 3.084399999352172,
+        "median_ms": 1.2795000002370216,
+        "minimum_ms": 1.1397999987821095,
+        "p95_ms": 2.3460000011255033,
+        "p99_ms": 3.084399999352172,
+        "samples": 30,
+        "throughput_ops_s": 725.8351337078717
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "read"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 6.270700003369711,
+        "median_ms": 2.111399997374974,
+        "minimum_ms": 1.8154000063077547,
+        "p95_ms": 4.654999997001141,
+        "p99_ms": 6.270700003369711,
+        "samples": 30,
+        "throughput_ops_s": 423.78268429337345
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "optimistic_update"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 5.311500004609115,
+        "median_ms": 1.7244499977095984,
+        "minimum_ms": 1.5934999973978847,
+        "p95_ms": 2.12650000321446,
+        "p99_ms": 5.311500004609115,
+        "samples": 30,
+        "throughput_ops_s": 531.0862484564276
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "atomic_consume"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 3.4765000018524006,
+        "median_ms": 1.9493500039970968,
+        "minimum_ms": 1.6985000038403086,
+        "p95_ms": 2.7090000003227033,
+        "p99_ms": 3.4765000018524006,
+        "samples": 30,
+        "throughput_ops_s": 483.0801185570589
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "lease_acquire"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 6.019600004947279,
+        "median_ms": 2.1044000022811815,
+        "minimum_ms": 1.7092999987653457,
+        "p95_ms": 4.055899997183587,
+        "p99_ms": 6.019600004947279,
+        "samples": 30,
+        "throughput_ops_s": 443.01432852780596
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "lease_renew"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 3.877199997077696,
+        "median_ms": 1.8968999975186307,
+        "minimum_ms": 1.6799000004539266,
+        "p95_ms": 3.1642999965697527,
+        "p99_ms": 3.877199997077696,
+        "samples": 30,
+        "throughput_ops_s": 485.26650026617654
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "lease_release"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 2.2754999954486266,
+        "median_ms": 1.9457000016700476,
+        "minimum_ms": 1.7994000008911826,
+        "p95_ms": 2.158499999495689,
+        "p99_ms": 2.2754999954486266,
+        "samples": 30,
+        "throughput_ops_s": 504.97994385210274
+      },
+      "payload_bytes": 16384,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "save"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 1.9715999951586127,
+        "median_ms": 1.471699997637188,
+        "minimum_ms": 1.3185000061639585,
+        "p95_ms": 1.8535999988671392,
+        "p99_ms": 1.9715999951586127,
+        "samples": 30,
+        "throughput_ops_s": 658.3451838593493
+      },
+      "payload_bytes": 16384,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "read"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 7.114000000001397,
+        "median_ms": 2.439200001390418,
+        "minimum_ms": 2.171300002373755,
+        "p95_ms": 3.2429999992018566,
+        "p99_ms": 7.114000000001397,
+        "samples": 30,
+        "throughput_ops_s": 376.92703930986437
+      },
+      "payload_bytes": 16384,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "optimistic_update"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 5.11969999934081,
+        "median_ms": 1.9949499983340502,
+        "minimum_ms": 1.8015000023297034,
+        "p95_ms": 2.6361999989603646,
+        "p99_ms": 5.11969999934081,
+        "samples": 30,
+        "throughput_ops_s": 465.15017367390874
+      },
+      "payload_bytes": 16384,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "atomic_consume"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 6.0572999936994165,
+        "median_ms": 1.97554999977001,
+        "minimum_ms": 1.7496000000392087,
+        "p95_ms": 2.298999999766238,
+        "p99_ms": 6.0572999936994165,
+        "samples": 30,
+        "throughput_ops_s": 470.10154192068444
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "lease_acquire"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 4.853099999309052,
+        "median_ms": 2.0080499998584855,
+        "minimum_ms": 1.7843000023276545,
+        "p95_ms": 3.5064000039710663,
+        "p99_ms": 4.853099999309052,
+        "samples": 30,
+        "throughput_ops_s": 454.54889808144014
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "lease_renew"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 3.8860999993630685,
+        "median_ms": 1.8706499977270141,
+        "minimum_ms": 1.6201000034925528,
+        "p95_ms": 2.2337000045808963,
+        "p99_ms": 3.8860999993630685,
+        "samples": 30,
+        "throughput_ops_s": 515.5392110509619
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "lease_release"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 9.746600000653416,
+        "median_ms": 4.774500001076376,
+        "minimum_ms": 4.277500003809109,
+        "p95_ms": 9.159500004898291,
+        "p99_ms": 9.746600000653416,
+        "samples": 30,
+        "throughput_ops_s": 188.6099696968028
+      },
+      "payload_bytes": 262144,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "save"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 9.304999999585561,
+        "median_ms": 3.7627499987138435,
+        "minimum_ms": 3.4951999987242743,
+        "p95_ms": 9.268599998904392,
+        "p99_ms": 9.304999999585561,
+        "samples": 30,
+        "throughput_ops_s": 233.79252787045266
+      },
+      "payload_bytes": 262144,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "read"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 13.207299998612143,
+        "median_ms": 7.919650000985712,
+        "minimum_ms": 6.7152999981772155,
+        "p95_ms": 12.732000002870336,
+        "p99_ms": 13.207299998612143,
+        "samples": 30,
+        "throughput_ops_s": 118.5392175312734
+      },
+      "payload_bytes": 262144,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "optimistic_update"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 8.786599995801225,
+        "median_ms": 4.555949999485165,
+        "minimum_ms": 3.9019999967422336,
+        "p95_ms": 8.691100003488827,
+        "p99_ms": 8.786599995801225,
+        "samples": 30,
+        "throughput_ops_s": 199.06228394719707
+      },
+      "payload_bytes": 262144,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "atomic_consume"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 2.904600005422253,
+        "median_ms": 1.8864500016206875,
+        "minimum_ms": 1.684499999100808,
+        "p95_ms": 2.1458999981405213,
+        "p99_ms": 2.904600005422253,
+        "samples": 30,
+        "throughput_ops_s": 517.5340536564256
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "lease_acquire"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 4.2288000040571205,
+        "median_ms": 1.8406999988656025,
+        "minimum_ms": 1.6642999980831519,
+        "p95_ms": 3.885699996317271,
+        "p99_ms": 4.2288000040571205,
+        "samples": 30,
+        "throughput_ops_s": 488.69883935545556
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "lease_renew"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 4.955899996275548,
+        "median_ms": 1.8636499989952426,
+        "minimum_ms": 1.717299994197674,
+        "p95_ms": 2.745999998296611,
+        "p99_ms": 4.955899996275548,
+        "samples": 30,
+        "throughput_ops_s": 493.8637431786595
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "lease_release"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 37.084400006278884,
+        "median_ms": 14.406349997443613,
+        "minimum_ms": 13.496500003384426,
+        "p95_ms": 34.49299999920186,
+        "p99_ms": 37.084400006278884,
+        "samples": 30,
+        "throughput_ops_s": 56.1869301695141
+      },
+      "payload_bytes": 1048576,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "save"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 20.147900002484675,
+        "median_ms": 13.309000001754612,
+        "minimum_ms": 11.722800001734868,
+        "p95_ms": 19.981699995696545,
+        "p99_ms": 20.147900002484675,
+        "samples": 30,
+        "throughput_ops_s": 69.36752998716905
+      },
+      "payload_bytes": 1048576,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "read"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 44.54770000302233,
+        "median_ms": 27.720649995899294,
+        "minimum_ms": 24.106500000925735,
+        "p95_ms": 39.00150000117719,
+        "p99_ms": 44.54770000302233,
+        "samples": 30,
+        "throughput_ops_s": 33.99729290956649
+      },
+      "payload_bytes": 1048576,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "optimistic_update"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 27.747799998905975,
+        "median_ms": 13.952199999039294,
+        "minimum_ms": 12.346000003162771,
+        "p95_ms": 26.83919999981299,
+        "p99_ms": 27.747799998905975,
+        "samples": 30,
+        "throughput_ops_s": 62.34447650651418
+      },
+      "payload_bytes": 1048576,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "atomic_consume"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 2.855999999155756,
+        "median_ms": 1.8983999980264343,
+        "minimum_ms": 1.720600004773587,
+        "p95_ms": 2.751300002273638,
+        "p99_ms": 2.855999999155756,
+        "samples": 30,
+        "throughput_ops_s": 497.06730284384736
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "lease_acquire"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 2.288399999088142,
+        "median_ms": 1.9556000042939559,
+        "minimum_ms": 1.763399995979853,
+        "p95_ms": 2.215799999248702,
+        "p99_ms": 2.288399999088142,
+        "samples": 30,
+        "throughput_ops_s": 509.1753397347727
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "lease_renew"
+    },
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 2.3956000004545785,
+        "median_ms": 1.904050001030555,
+        "minimum_ms": 1.6620999958831817,
+        "p95_ms": 2.2367000055965036,
+        "p99_ms": 2.3956000004545785,
+        "samples": 30,
+        "throughput_ops_s": 518.649781748203
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 30,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "lease_release"
+    }
+  ],
+  "benchmark_run_id": "223dd3cdf16c4646a49c32fcbf7a95eb",
+  "configuration": {
+    "concurrency_levels": [
+      1,
+      10,
+      50,
+      100,
+      250,
+      500
+    ],
+    "payload_sizes": [
+      1024,
+      16384,
+      262144,
+      1048576
+    ],
+    "samples": 30,
+    "soak_concurrency": 50,
+    "soak_seconds": 3600.0,
+    "thresholds": {
+      "maximum_memory_growth_bytes": 67108864,
+      "maximum_orphan_tasks": 0,
+      "maximum_unexpected_error_rate": 0.0,
+      "minimum_throughput_ops_s": 5.0,
+      "p95_ms": 1000.0,
+      "p99_ms": 2000.0
+    }
+  },
+  "contention": [
+    {
+      "concurrency": 100,
+      "expected_conflicts": 99,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 5.6537999989814125,
+        "median_ms": 5.6537999989814125,
+        "minimum_ms": 5.6537999989814125,
+        "p95_ms": 5.6537999989814125,
+        "p99_ms": 5.6537999989814125,
+        "samples": 1,
+        "throughput_ops_s": 5589.58994812579
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 1,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "atomic_consume_contention"
+    },
+    {
+      "concurrency": 100,
+      "expected_conflicts": 99,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 14.016999994055368,
+        "median_ms": 14.016999994055368,
+        "minimum_ms": 14.016999994055368,
+        "p95_ms": 14.016999994055368,
+        "p99_ms": 14.016999994055368,
+        "samples": 1,
+        "throughput_ops_s": 1048.6489207507493
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 1,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "optimistic_update_contention"
+    },
+    {
+      "concurrency": 100,
+      "expected_conflicts": 99,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 8.64000000001397,
+        "median_ms": 8.64000000001397,
+        "minimum_ms": 8.64000000001397,
+        "p95_ms": 8.64000000001397,
+        "p99_ms": 8.64000000001397,
+        "samples": 1,
+        "throughput_ops_s": 489.3026214467434
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 1,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "lease_contention"
+    },
+    {
+      "concurrency": 500,
+      "expected_conflicts": 499,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 11.31100000202423,
+        "median_ms": 11.31100000202423,
+        "minimum_ms": 11.31100000202423,
+        "p95_ms": 11.31100000202423,
+        "p99_ms": 11.31100000202423,
+        "samples": 1,
+        "throughput_ops_s": 4478.131938094583
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 1,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "atomic_consume_contention"
+    },
+    {
+      "concurrency": 500,
+      "expected_conflicts": 499,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 17.268000003241468,
+        "median_ms": 17.268000003241468,
+        "minimum_ms": 17.268000003241468,
+        "p95_ms": 17.268000003241468,
+        "p99_ms": 17.268000003241468,
+        "samples": 1,
+        "throughput_ops_s": 2412.7838942294943
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 1,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "optimistic_update_contention"
+    },
+    {
+      "concurrency": 500,
+      "expected_conflicts": 499,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 11.150500002258923,
+        "median_ms": 11.150500002258923,
+        "minimum_ms": 11.150500002258923,
+        "p95_ms": 11.150500002258923,
+        "p99_ms": 11.150500002258923,
+        "samples": 1,
+        "throughput_ops_s": 539.1314549110274
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 1,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "lease_contention"
+    }
+  ],
+  "environment": {
+    "atlas_version": "1.0.1",
+    "backend": {
+      "database": "atlas_ds015_test",
+      "max_connections": "100",
+      "pool": {
+        "connections_ms": 5840,
+        "connections_num": 124,
+        "pool_available": 59,
+        "pool_max": 64,
+        "pool_min": 1,
+        "pool_size": 59,
+        "requests_num": 3297255,
+        "requests_queued": 4932,
+        "requests_wait_ms": 730539,
+        "requests_waiting": 0,
+        "usage_ms": 176918099
+      },
+      "version": "PostgreSQL 16.14 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit"
+    },
+    "cpu_count": 24,
+    "operating_system": "Windows-11-10.0.26200-SP0",
+    "python_version": "3.13.15"
+  },
+  "failure_semantics": {
+    "cancellation_propagated": true,
+    "pass": true,
+    "stale_owner_rejected": true,
+    "timeout_observed": true
+  },
+  "finished_at": "2026-10-13T22:40:38.622612+00:00",
+  "scalability": [
+    {
+      "concurrency": 1,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 9.253399999579415,
+        "median_ms": 9.253399999579415,
+        "minimum_ms": 9.253399999579415,
+        "p95_ms": 9.253399999579415,
+        "p99_ms": 9.253399999579415,
+        "samples": 1,
+        "throughput_ops_s": 104.2166037217675
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 1,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "mixed"
+    },
+    {
+      "concurrency": 10,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 49.02150000270922,
+        "median_ms": 47.001800001453375,
+        "minimum_ms": 44.99290000239853,
+        "p95_ms": 49.02150000270922,
+        "p99_ms": 49.02150000270922,
+        "samples": 10,
+        "throughput_ops_s": 199.37794080558513
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 10,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "mixed"
+    },
+    {
+      "concurrency": 50,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 191.11379999958444,
+        "median_ms": 188.26724999962607,
+        "minimum_ms": 180.48060000000987,
+        "p95_ms": 190.68110000080196,
+        "p99_ms": 191.11379999958444,
+        "samples": 50,
+        "throughput_ops_s": 248.6145951688246
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 50,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "mixed"
+    },
+    {
+      "concurrency": 100,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 197.74570000299718,
+        "median_ms": 189.64780000169412,
+        "minimum_ms": 173.91369999677408,
+        "p95_ms": 196.73349999357015,
+        "p99_ms": 197.74570000299718,
+        "samples": 100,
+        "throughput_ops_s": 459.13724439312017
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 100,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "mixed"
+    },
+    {
+      "concurrency": 250,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 492.7153999960865,
+        "median_ms": 465.21444999962114,
+        "minimum_ms": 428.64879999979166,
+        "p95_ms": 487.4913000021479,
+        "p99_ms": 491.44730000261916,
+        "samples": 250,
+        "throughput_ops_s": 465.2555527758909
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 250,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "mixed"
+    },
+    {
+      "concurrency": 500,
+      "expected_conflicts": 0,
+      "failed_operations": 0,
+      "latency": {
+        "maximum_ms": 916.4455999998609,
+        "median_ms": 871.6384500039567,
+        "minimum_ms": 810.0254000019049,
+        "p95_ms": 909.1090999936569,
+        "p99_ms": 914.3712999939453,
+        "samples": 500,
+        "throughput_ops_s": 492.83739697618466
+      },
+      "payload_bytes": 1024,
+      "successful_operations": 500,
+      "threshold_pass": true,
+      "timeouts": 0,
+      "workload": "mixed"
+    }
+  ],
+  "schema_version": 1,
+  "security_counters": {
+    "cross_tenant_violations": 0,
+    "duplicate_consumptions": 0,
+    "lost_updates": 0,
+    "secret_leaks": 0,
+    "stale_owner_writes": 0,
+    "unauthorized_purges": 0,
+    "unauthorized_tool_calls": 0,
+    "unsafe_side_effect_retries": 0
+  },
+  "soak": {
+    "completed_cycles": 1096355,
+    "concurrency": 50,
+    "cpu_seconds": 3544.59375,
+    "duration_seconds": 3600.072632599993,
+    "latency": {
+      "maximum_ms": 667.4824999936391,
+      "median_ms": 159.79409999999916,
+      "minimum_ms": 73.06579999567475,
+      "p95_ms": 197.12129999970784,
+      "p99_ms": 233.16029999841703,
+      "samples": 1096355,
+      "throughput_ops_s": 304.53691130342725
+    },
+    "memory_growth_bytes": 36219069,
+    "memory_peak_bytes": 38169705,
+    "orphan_tasks": 0,
+    "pass": true,
+    "unexpected_failures": 0
+  },
+  "started_at": "2026-10-13T21:40:22.958036+00:00"
+}

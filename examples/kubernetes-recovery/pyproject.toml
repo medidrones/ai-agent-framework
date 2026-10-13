@@ -12,6 +12,7 @@ dependencies = [
 atlas-kubernetes-worker = "atlas_kubernetes_recovery.worker:main"
 atlas-kubernetes-client = "atlas_kubernetes_recovery.client:main"
 atlas-kubernetes-hitl-certify = "atlas_kubernetes_recovery.hitl_certifier:main"
+atlas-durable-state-performance-certify = "atlas_kubernetes_recovery.performance_certifier:main"
 
 [build-system]
 requires = ["hatchling>=1.27"]
