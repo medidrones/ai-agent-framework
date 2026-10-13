@@ -48,6 +48,12 @@ from atlas_agents.adapters.checkpoints.postgresql import (
 )
 from atlas_agents.adapters.checkpoints.redis import RedisCheckpointStore
 from atlas_kubernetes_recovery.config import HostConfiguration
+from atlas_kubernetes_recovery.durable_hitl import (
+    ApprovalSubmission,
+    DurableApprovalService,
+    PostgreSQLDurableApprovalRepository,
+    ResumeOutcome,
+)
 from atlas_kubernetes_recovery.runtime_support import build_runtime
 
 
@@ -179,6 +185,10 @@ class CertificationHost:
         self._redis: Redis | None = None
         self._postgresql_store: PostgreSQLCheckpointStore | None = None
         self._redis_store: RedisCheckpointStore | None = None
+        self._durable_approvals: DurableApprovalService | None = None
+        self._durable_approval_repository: (
+            PostgreSQLDurableApprovalRepository | None
+        ) = None
         self._resolver = FileDecisionResolver(configuration.approval_directory)
 
     async def start(self) -> None:
@@ -193,6 +203,8 @@ class CertificationHost:
         )
         await pool.open(wait=True)
         await PostgreSQLCheckpointMigrator(pool).migrate()
+        approval_repository = PostgreSQLDurableApprovalRepository(pool)
+        await approval_repository.migrate()
         redis_client = Redis.from_url(
             self.configuration.redis_url.get_secret_value(),
             decode_responses=False,
@@ -205,6 +217,11 @@ class CertificationHost:
         self._redis_store = RedisCheckpointStore(
             cast(Any, redis_client),
             namespace="atlas:ds013",
+            token_hmac_key=key,
+        )
+        self._durable_approval_repository = approval_repository
+        self._durable_approvals = DurableApprovalService(
+            approval_repository,
             token_hmac_key=key,
         )
         self.ready = True
@@ -314,6 +331,119 @@ class CertificationHost:
             outcome = await task
             status = outcome.status
         return {"execution_id": execution_id, "status": status.value}
+
+    async def seed_durable_hitl(
+        self,
+        *,
+        backend: CheckpointBackend,
+        execution_id: str,
+        tenant_id: str,
+    ) -> dict[str, object]:
+        """Create a suspension and persist only a scoped token verifier."""
+        runtime = build_runtime(
+            checkpoint_store=self._store(backend),
+            redis_client=self._redis_required(),
+            request_tool=True,
+        )
+        outcome = await runtime.run(
+            agent=AgentDefinition(
+                agent_id="ds014-agent",
+                name="Agente de certificação DS-014",
+                instructions="Aguarde uma decisão humana durável e autorizada.",
+                tool_names=("record_certification_effect",),
+            ),
+            input_data=self._agent_input(),
+            context=AgentContext(
+                execution_id=execution_id,
+                tenant_id=tenant_id,
+                identity=ExecutionIdentity(subject="ds014-requester"),
+            ),
+        )
+        if not isinstance(outcome, ExecutionSuspension):
+            raise RuntimeError("O cenário DS-014 deveria suspender para aprovação.")
+        request = outcome.approval_request
+        expires_at = request.expires_at or datetime.now(UTC) + timedelta(hours=1)
+        await self._durable_approval_service().register(
+            approval_request_id=request.approval_request_id,
+            execution_id=execution_id,
+            tenant_id=tenant_id,
+            agent_id=request.agent_id,
+            tool_call_id=request.subject.tool_call_id,
+            tool_name=request.subject.tool_name,
+            backend=backend.value,
+            resume_token=outcome.resume_token.value,
+            requested_at=request.requested_at,
+            expires_at=expires_at,
+        )
+        return {
+            "execution_id": execution_id,
+            "approval_request_id": request.approval_request_id,
+            "tool_call_id": request.subject.tool_call_id,
+            "tool_name": request.subject.tool_name,
+            "backend": backend.value,
+            "tenant_id": tenant_id,
+            "status": ExecutionStatus.WAITING_FOR_APPROVAL.value,
+            "expires_at": expires_at.isoformat(),
+            # The bearer is returned once in the response body and never logged.
+            "resume_token": outcome.resume_token.value,
+        }
+
+    async def decide_durable_hitl(
+        self,
+        *,
+        resume_token: str,
+        submission: ApprovalSubmission,
+    ) -> dict[str, object]:
+        """Authorize, persist, and resume one scoped HITL decision."""
+        decision = await self._durable_approval_service().authorize(
+            resume_token=resume_token,
+            submission=submission,
+        )
+        repository = self._durable_approval_repository_required()
+        record = await repository.get(submission.approval_request_id)
+        if record is None:
+            raise RuntimeError("A autorização HITL persistida não foi encontrada.")
+        runtime = build_runtime(
+            checkpoint_store=self._store(CheckpointBackend(record.backend)),
+            redis_client=self._redis_required(),
+            request_tool=False,
+        )
+        try:
+            outcome = await runtime.resume(
+                resume_token=ResumeToken(value=resume_token),
+                decision=decision,
+            )
+        except CheckpointNotFoundError:
+            return {
+                "execution_id": submission.execution_id,
+                "decision": submission.decision.value,
+                "resume_outcome": ResumeOutcome.ALREADY_CONSUMED.value,
+            }
+        resume_outcome = (
+            ResumeOutcome.REJECTED
+            if submission.decision is ApprovalDecisionType.REJECT
+            else ResumeOutcome.COMPLETED
+        )
+        await self._durable_approval_service().record_resume(
+            approval_request_id=submission.approval_request_id,
+            outcome=resume_outcome,
+        )
+        return {
+            "execution_id": submission.execution_id,
+            "decision": submission.decision.value,
+            "resume_outcome": resume_outcome.value,
+            "status": outcome.status.value,
+        }
+
+    async def durable_hitl_audit(self, approval_request_id: str) -> dict[str, object]:
+        """Return non-secret durable audit evidence for certification."""
+        events = await self._durable_approval_repository_required().audit_events(
+            approval_request_id
+        )
+        return {
+            "approval_request_id": approval_request_id,
+            "events": [event.model_dump(mode="json") for event in events],
+        }
 
     async def arm_crash_after_effect(self, execution_id: str) -> dict[str, object]:
         """Request one deterministic process crash after the external fake effect."""
@@ -496,6 +626,18 @@ class CertificationHost:
         if self._postgresql_store is None:
             raise RuntimeError("O store PostgreSQL ainda não foi inicializado.")
         return self._postgresql_store
+
+    def _durable_approval_service(self) -> DurableApprovalService:
+        if self._durable_approvals is None:
+            raise RuntimeError("O serviço HITL durável ainda não foi inicializado.")
+        return self._durable_approvals
+
+    def _durable_approval_repository_required(
+        self,
+    ) -> PostgreSQLDurableApprovalRepository:
+        if self._durable_approval_repository is None:
+            raise RuntimeError("O repositório HITL durável ainda não foi inicializado.")
+        return self._durable_approval_repository
 
     @staticmethod
     def _agent_input() -> AgentInput:
