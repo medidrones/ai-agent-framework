@@ -831,11 +831,11 @@ async def test_execution_override_replaces_runtime_default_limits() -> None:
 
 
 async def test_runtime_timeout_covers_provider_call_without_inventing_usage() -> None:
-    provider = _provider(generate_delay_seconds=0.05)
+    provider = _provider(generate_delay_seconds=1.0)
 
     result = await _run(
         _runtime(provider),
-        limits=ExecutionLimits(timeout_seconds=0.001),
+        limits=ExecutionLimits(timeout_seconds=0.1),
     )
 
     assert result.status is ExecutionStatus.TIMED_OUT
@@ -843,7 +843,7 @@ async def test_runtime_timeout_covers_provider_call_without_inventing_usage() ->
     assert result.error is not None
     assert result.error.code == "execution_timed_out"
     assert result.events[-1].event_type is AgentEventType.EXECUTION_TIMED_OUT
-    assert result.events[-1].data["timeout_seconds"] == 0.001
+    assert result.events[-1].data["timeout_seconds"] == 0.1
     elapsed = result.events[-1].data["elapsed_seconds"]
     assert isinstance(elapsed, int | float)
     assert elapsed >= 0
@@ -851,11 +851,11 @@ async def test_runtime_timeout_covers_provider_call_without_inventing_usage() ->
 
 
 async def test_runtime_timeout_covers_model_selection() -> None:
-    provider = _provider(list_delay_seconds=0.05)
+    provider = _provider(list_delay_seconds=1.0)
 
     result = await _run(
         _runtime(provider),
-        limits=ExecutionLimits(timeout_seconds=0.001),
+        limits=ExecutionLimits(timeout_seconds=0.1),
     )
 
     assert result.status is ExecutionStatus.TIMED_OUT
