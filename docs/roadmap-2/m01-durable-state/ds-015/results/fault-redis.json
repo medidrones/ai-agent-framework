@@ -1,0 +1,30 @@
+{
+  "backend": "redis",
+  "benchmark_run_id": "13b62bbcf8174375bc163953454a491a",
+  "environment": {
+    "aof_enabled": 1,
+    "configuration": {
+      "appendfsync": "always",
+      "appendonly": "yes",
+      "maxmemory": "0",
+      "maxmemory-policy": "noeviction",
+      "save": "3600 1 300 100 60 10000"
+    },
+    "mode": "standalone",
+    "redis_client_version": "6.4.0",
+    "used_memory": 1696318808,
+    "version": "7.4.11"
+  },
+  "executed_at": "2026-10-13T23:01:09.181778+00:00",
+  "fault_under_load": {
+    "completed_cycles": 36774,
+    "concurrency": 20,
+    "controlled_infrastructure_failures": 670,
+    "duration_seconds": 60.02443800000037,
+    "failure_observed": true,
+    "false_confirmations": 0,
+    "pass": true,
+    "recovered_after_failure": true
+  },
+  "schema_version": 1
+}

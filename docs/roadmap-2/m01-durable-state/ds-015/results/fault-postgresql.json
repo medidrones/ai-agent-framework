@@ -1,0 +1,32 @@
+{
+  "backend": "postgresql",
+  "benchmark_run_id": "7243ae0703f44b1a811cd083f34a07b1",
+  "environment": {
+    "database": "atlas_ds015_test",
+    "max_connections": "100",
+    "pool": {
+      "connections_ms": 5,
+      "connections_num": 1,
+      "pool_available": 1,
+      "pool_max": 28,
+      "pool_min": 1,
+      "pool_size": 1,
+      "requests_num": 3,
+      "requests_waiting": 0,
+      "usage_ms": 7
+    },
+    "version": "PostgreSQL 16.14 on x86_64-pc-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit"
+  },
+  "executed_at": "2026-10-13T22:59:30.457235+00:00",
+  "fault_under_load": {
+    "completed_cycles": 45649,
+    "concurrency": 20,
+    "controlled_infrastructure_failures": 20,
+    "duration_seconds": 60.01491949999763,
+    "failure_observed": true,
+    "false_confirmations": 0,
+    "pass": true,
+    "recovered_after_failure": true
+  },
+  "schema_version": 1
+}

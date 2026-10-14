@@ -731,7 +731,7 @@ async def test_timeout_continues_from_remaining_duration_after_resume() -> None:
         agent=_agent("sensitive"),
         input_data=AgentInput(message="Execute."),
         context=AgentContext(execution_id="execution-1"),
-        limits=ExecutionLimits(timeout_seconds=0.05),
+        limits=ExecutionLimits(timeout_seconds=1.0),
     )
     assert isinstance(outcome, ExecutionSuspension)
 

@@ -42,3 +42,33 @@ com claims verificadas.
 
 As credenciais são aleatórias e efêmeras. O worker usa fake provider e fake
 tool; nenhuma chave de provedor externo é necessária.
+
+## Performance do Durable State
+
+O entry point `atlas-durable-state-performance-certify` executa a matriz da
+DS-015 diretamente contra PostgreSQL ou Redis reais. Ele mede p50, p95, p99,
+throughput, CPU, memória, contenção e cleanup, sem alterar contratos públicos.
+
+Exemplo PostgreSQL em banco isolado cujo nome termina em `_test`:
+
+```powershell
+atlas-durable-state-performance-certify `
+  --backend postgresql `
+  --dsn "postgresql://postgres@127.0.0.1:55432/atlas_ds015_test" `
+  --samples 30 `
+  --concurrency 1 10 50 100 250 500 `
+  --payloads 1024 16384 262144 1048576 `
+  --soak-seconds 3600 `
+  --soak-concurrency 50 `
+  --output postgresql.json `
+  --confirm-test-environment
+```
+
+Para Redis, use `--backend redis --url <redis-url>`. A certificação exige AOF
+`appendfsync always`, política `noeviction` e execução separada do PostgreSQL.
+O modo `--fault-probe-seconds 60` deve ser acompanhado por uma indisponibilidade
+real e controlada do backend; ele somente passa quando observa a falha e a
+recuperação subsequente.
+
+O script `scripts/certify_ds015_performance.ps1` reproduz as duas execuções
+sequenciais e rejeita soak inferior a 3.600 segundos.
