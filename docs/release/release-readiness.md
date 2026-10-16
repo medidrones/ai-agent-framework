@@ -1,44 +1,38 @@
-# Prontidão da candidata 1.0.1rc2
+# Prontidão da candidata 1.1.0rc1
 
 ## Decisão
 
-**READY_FOR_STABLE.** A tag anotada `v1.0.1rc2` concluiu sua certificação
-técnica em `PASS` no primeiro attempt. Jorge Medina confirmou separadamente
-os cinco owner sign-offs para a nova fonte. A certificação e as aprovações da
-`1.0.1rc1` não foram transferidas.
+**NOT_CERTIFIED.** A fonte do M01 está autorizada a preparar a candidata
+`1.1.0rc1`, mas a tag e os artefatos próprios dessa versão ainda não foram
+gerados nem certificados. As evidências da DS-016 autorizam iniciar o ciclo;
+elas não substituem os gates da candidata.
 
-O teste temporal que falhou na primeira matriz Windows 3.12 da promoção
-`1.0.1` recebeu margem maior. A alteração é restrita ao teste; não modifica
-o runtime, a API pública, dependências externas ou os contratos. O histórico
-do gate anterior permanece em
-[STABLE-PROMOTION-STATUS-1.0.1rc1.md](history/STABLE-PROMOTION-STATUS-1.0.1rc1.md).
+O conteúdo funcional de origem está no commit
+`ae2a9741a7184824ae39a83bcea5481e7d6c0ea9`, certificado pelo encerramento do
+M01. A preparação permite somente versionamento lockstep, restrições internas,
+changelog e metadata de release.
 
 ## Gates
 
 | Gate | Estado | Evidência requerida |
 | --- | --- | --- |
-| Regressão local | PASS | 1.141 testes, cobertura 93%; teste temporal 20/20 |
-| Qualidade remota | PASS | matriz integral na primeira execução, inclusive Windows 3.12 |
-| Artefatos | PASS | sete wheels, sete sdists, 15 checksums e SBOM |
-| Certificação da tag | PASS | workflow `35010523479` sobre `v1.0.1rc2` |
-| Owner sign-offs | PASS | cinco registros vinculados ao commit RC2 |
-| P0/P1 abertas | PASS | issues abertas no GitHub: zero; `0/0` no gate |
+| Baseline do M01 | PASS | DS-016, 32/32 gates e cinco sign-offs |
+| Regressão da fonte RC | PASS | 1.455 testes, zero skip/falha, cobertura 92,68% com PostgreSQL 16 e Redis 7.4 reais |
+| Qualidade remota | PENDENTE | matriz Ubuntu/Windows em Python 3.12/3.13 |
+| Artefatos locais | PASS | sete wheels, sete sdists, reprodução e instalação limpa verificadas |
+| Bundle da tag | PENDENTE | checksums, SBOM e evidências vinculadas à futura tag |
+| Certificação da tag | PENDENTE | workflow sobre a futura `v1.1.0rc1` |
+| Owner sign-offs da RC | PENDENTE | decisões vinculadas aos artefatos da RC |
+| P0/P1 abertas | PASS | zero no encerramento certificado do M01 |
 
-O inventário, o digest do manifesto e a identidade da fonte estão preservados
-em [evidence/1.0.1rc2/README.md](evidence/1.0.1rc2/README.md). A versão
-arquivada da prontidão dentro do bundle da tag representa o estado anterior
-à conclusão da própria certificação; o resultado técnico está em
-`automated-gates.json` do mesmo bundle. As decisões humanas e a conclusão do
-gate estão nos registros versionados posteriores.
+O bundle esperado deverá preservar inventário, checksums, SBOM, identidade da
+fonte, resultados automatizados e relatórios de instalação dos artefatos. Esses
+registros ainda não existem para `1.1.0rc1` e não podem ser herdados de uma
+versão anterior.
 
-## Desdobramento da candidata
+## Próxima decisão
 
-O [gate técnico de promoção](STABLE-PROMOTION-STATUS.md)
-`1.0.1rc2 → 1.0.1` passou com delta restrito a versionamento, metadados e
-documentação de release. A decisão técnica `READY_TO_PUBLISH` foi preservada
-como resultado histórico desse gate. Após autorização, a tag estável foi
-criada no commit certificado e os sete projetos `1.0.1` foram publicados no
-PyPI por Trusted Publishing, com 14/14 arquivos conferidos. Uma autorização
-separada permitiu publicar a GitHub Release com 16/16 assets íntegros.
-O [estado final da publicação](PUBLICATION-STATUS-1.0.1.md) é `PUBLISHED` nos
-dois canais; isso não altera a decisão original de prontidão da candidata.
+Após os gates locais da fonte passarem, a preparação poderá ser submetida para
+revisão. Criar e publicar a tag anotada `v1.1.0rc1` permanece uma ação separada.
+Somente o bundle produzido sobre essa tag poderá sustentar a decisão
+`READY_FOR_STABLE`.
