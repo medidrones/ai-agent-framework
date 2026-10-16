@@ -7,8 +7,16 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não publicado]
 
+## [1.1.0rc1] - 2026-10-16
+
 ### Adicionado
 
+- Contratos públicos de checkpoint durável, lease, fencing, retenção, purge e
+  coordenação de recovery, preservando a independência do core em relação à
+  infraestrutura.
+- `PostgreSQLCheckpointStore` opcional com migrations versionadas, concorrência
+  otimista, consumo atômico autorizado, leases, fencing e recuperação segura
+  após reinicialização.
 - `RedisCheckpointStore` opcional com keyspace opaco, serialização v1,
   concorrência otimista, consumo único, tombstones de replay, TTL separado da
   retenção e integração HITL após reinicialização do processo.
@@ -22,12 +30,22 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 - Migration 007 aditiva com índice para descoberta ordenada de candidatos de
   recovery, além de suíte de upgrade, drift, concorrência, privilégios e
   certificação em PostgreSQL real.
+- Cenários certificados de crash recovery, reinicialização de pods, rolling
+  deployment, perda de workers, HITL durável e reconciliação de efeitos
+  externos.
 
 ### Alterado
 
 - O migrator PostgreSQL passou a aceitar alvo explícito e a bloquear histórico
   com versão desconhecida, lacuna ou schema mais novo que o alvo, sem alterar
   migrations já distribuídas.
+
+### Governança
+
+- O M01 — Durable State foi certificado com 32/32 gates, cinco owner sign-offs,
+  zero P0/P1 e decisão `READY_FOR_RELEASE_CANDIDATE`.
+- Esta candidata abre a certificação dos artefatos `1.1.0rc1`; não autoriza
+  publicação no PyPI nem promoção automática para uma versão estável.
 
 ## [1.0.1rc2] - 2026-09-15
 
