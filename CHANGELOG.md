@@ -7,6 +7,23 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não publicado]
 
+## [1.1.0rc2] - 2026-10-16
+
+### Corrigido
+
+- O job final da candidata passou a iniciar PostgreSQL 16 e Redis 7.4 para que
+  o relatório de cobertura inclua as 128 integrações do Durable State.
+- Adicionado teste de regressão que impede a certificação de artefatos sem os
+  dois backends reais e suas variáveis explícitas de conexão.
+
+### Governança
+
+- A tag `v1.1.0rc1` permanece imutável e registrada como candidata não
+  certificada: qualidade, segurança e artefatos passaram, mas o bundle foi
+  bloqueado por cobertura de 89,61% após as integrações serem ignoradas.
+- A `1.1.0rc2` preserva o conteúdo funcional da RC1 e reabre a certificação com
+  a correção exclusiva da infraestrutura do workflow.
+
 ## [1.1.0rc1] - 2026-10-16
 
 ### Adicionado

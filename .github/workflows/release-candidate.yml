@@ -69,6 +69,32 @@ jobs:
   certificar-artefatos:
     needs: [qualidade, seguranca, exemplos-dotnet]
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: atlas_test
+          POSTGRES_PASSWORD: atlas_test
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d atlas_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7.4-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      ATLAS_TEST_POSTGRES_DSN: postgresql://postgres:atlas_test@127.0.0.1:5432/atlas_test
+      ATLAS_TEST_REDIS_URL: redis://127.0.0.1:6379/15
     steps:
       - name: Baixar repositório e preservar tag
         uses: actions/checkout@v4

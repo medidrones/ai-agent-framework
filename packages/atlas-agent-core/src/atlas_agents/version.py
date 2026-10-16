@@ -1,3 +1,3 @@
 """Atlas release version generated from the repository VERSION file."""
 
-__version__ = "1.1.0rc1"
+__version__ = "1.1.0rc2"
