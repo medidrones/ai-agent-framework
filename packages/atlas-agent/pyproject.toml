@@ -20,23 +20,23 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Typing :: Typed",
 ]
-dependencies = ["atlas-agent-core~=1.1.0rc2"]
+dependencies = ["atlas-agent-core~=1.1.0"]
 
 [project.optional-dependencies]
-openai = ["atlas-agent-providers[openai]~=1.1.0rc2"]
-mcp = ["atlas-agent-mcp~=1.1.0rc2"]
-rest = ["atlas-agent-adapters[rest]~=1.1.0rc2"]
-grpc = ["atlas-agent-adapters[grpc]~=1.1.0rc2"]
-postgresql = ["atlas-agent-adapters[postgresql]~=1.1.0rc2"]
-redis = ["atlas-agent-adapters[redis]~=1.1.0rc2"]
-config = ["atlas-agent-config~=1.1.0rc2"]
-evaluation = ["atlas-agent-evaluation~=1.1.0rc2"]
+openai = ["atlas-agent-providers[openai]~=1.1.0"]
+mcp = ["atlas-agent-mcp~=1.1.0"]
+rest = ["atlas-agent-adapters[rest]~=1.1.0"]
+grpc = ["atlas-agent-adapters[grpc]~=1.1.0"]
+postgresql = ["atlas-agent-adapters[postgresql]~=1.1.0"]
+redis = ["atlas-agent-adapters[redis]~=1.1.0"]
+config = ["atlas-agent-config~=1.1.0"]
+evaluation = ["atlas-agent-evaluation~=1.1.0"]
 full = [
-    "atlas-agent-adapters[grpc,postgresql,redis,rest]~=1.1.0rc2",
-    "atlas-agent-config~=1.1.0rc2",
-    "atlas-agent-evaluation~=1.1.0rc2",
-    "atlas-agent-mcp~=1.1.0rc2",
-    "atlas-agent-providers[openai]~=1.1.0rc2",
+    "atlas-agent-adapters[grpc,postgresql,redis,rest]~=1.1.0",
+    "atlas-agent-config~=1.1.0",
+    "atlas-agent-evaluation~=1.1.0",
+    "atlas-agent-mcp~=1.1.0",
+    "atlas-agent-providers[openai]~=1.1.0",
 ]
 
 [project.urls]

@@ -1,12 +1,11 @@
 # Atlas Agent Framework
 
-> Versão estável `1.0.1` certificada a partir da candidata `1.0.1rc2` e
-> publicada no PyPI em sete distribuições. A
-> [GitHub Release `v1.0.1`](https://github.com/medidrones/ai-agent-framework/releases/tag/v1.0.1)
-> também está pública. O nome da distribuição principal é
+> Versão estável `1.1.0` em preparação a partir da candidata certificada
+> `1.1.0rc2`. O gate de sign-offs está `READY_FOR_STABLE`; os artefatos
+> estáveis ainda exigem certificação. O nome público é
 > `atlas-agent-framework`; o namespace Python `atlas_agent` permanece
-> inalterado. Consulte as [notas da versão](docs/release/releases/1.0.1.md)
-> e o [registro de publicação](docs/release/PUBLICATION-STATUS-1.0.1.md).
+> inalterado. Consulte as
+> [notas da versão estável](docs/release/releases/1.1.0.md).
 
 A distribuição opcional `atlas-agent-config` oferece schema versionado,
 carregamento seguro de YAML/JSON, referências de segredos, factories tipadas e
