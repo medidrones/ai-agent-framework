@@ -2,10 +2,10 @@
 
 ## Decisão
 
-**NOT_CERTIFIED.** A `1.1.0rc2` corrige exclusivamente a infraestrutura do job
-de certificação para executar a cobertura com PostgreSQL 16 e Redis 7.4 reais.
-A tag e os artefatos próprios dessa versão ainda não foram gerados nem
-certificados.
+**READY_FOR_STABLE.** A `1.1.0rc2` foi certificada integralmente com
+PostgreSQL 16 e Redis 7.4 reais. Os cinco Owner sign-offs foram confirmados por
+Jorge Medina e registrados em
+[`evidence/1.1.0rc2/`](evidence/1.1.0rc2/README.md).
 
 O conteúdo funcional continua derivado do commit
 `ae2a9741a7184824ae39a83bcea5481e7d6c0ea9`, certificado pelo encerramento do
@@ -19,22 +19,21 @@ de integração sem os serviços reais.
 | Gate | Estado | Evidência requerida |
 | --- | --- | --- |
 | Baseline do M01 | PASS | DS-016, 32/32 gates e cinco sign-offs |
-| Regressão da fonte RC | PASS | 1.456 testes, zero skip/falha e cobertura 92,68% com PostgreSQL 16 e Redis 7.4 reais |
-| Qualidade remota | PENDENTE | matriz Ubuntu/Windows em Python 3.12/3.13 |
+| Regressão da fonte RC | PASS | 1.456 testes, zero skips/falhas e cobertura certificada de 94,49% com PostgreSQL 16 e Redis 7.4 reais |
+| Qualidade remota | PASS | matriz Ubuntu/Windows em Python 3.12/3.13 |
 | Artefatos locais | PASS | 14 artefatos reproduzíveis e instalação limpa em três ambientes |
-| Bundle da tag | PENDENTE | checksums, SBOM e evidências vinculadas à futura tag |
-| Certificação da tag | PENDENTE | workflow sobre a futura `v1.1.0rc2` |
-| Owner sign-offs da RC | PENDENTE | decisões vinculadas aos artefatos da RC |
+| Bundle da tag | PASS | 15 checksums, SBOM CycloneDX e evidências vinculadas à tag |
+| Certificação da tag | PASS | [workflow 38974750546](https://github.com/medidrones/ai-agent-framework/actions/runs/38974750546) |
+| Owner sign-offs da RC | PASS | cinco decisões de Jorge Medina vinculadas aos artefatos da RC |
 | P0/P1 abertas | PASS | zero no encerramento certificado do M01 |
 
-O bundle esperado deverá preservar inventário, checksums, SBOM, identidade da
-fonte, resultados automatizados e relatórios de instalação dos artefatos. Esses
-registros ainda não existem para `1.1.0rc2` e não podem ser herdados de uma
-versão anterior.
+O bundle `atlas-v1.1.0rc2` preserva inventário, checksums, SBOM, identidade da
+fonte, resultados automatizados e relatórios de instalação dos artefatos. O
+digest e as evidências verificadas estão no registro auditável da candidata.
 
 ## Próxima decisão
 
-Após os gates locais da fonte passarem, a preparação poderá ser submetida para
-revisão. Criar e publicar a tag anotada `v1.1.0rc2` permanece uma ação separada.
-Somente o bundle produzido sobre essa tag poderá sustentar a decisão
-`READY_FOR_STABLE`.
+A próxima etapa é o Stable Promotion Gate `1.1.0rc2 → 1.1.0`. A promoção deve
+preservar o conteúdo funcional certificado e limitar o delta a versionamento e
+metadata de release. Esta decisão não cria a tag estável nem autoriza
+publicação no PyPI.
