@@ -33,7 +33,8 @@ digest e as evidências verificadas estão no registro auditável da candidata.
 
 ## Próxima decisão
 
-A próxima etapa é o Stable Promotion Gate `1.1.0rc2 → 1.1.0`. A promoção deve
-preservar o conteúdo funcional certificado e limitar o delta a versionamento e
-metadata de release. Esta decisão não cria a tag estável nem autoriza
-publicação no PyPI.
+O Stable Promotion Gate `1.1.0rc2 → 1.1.0` está em execução. A promoção
+preserva o conteúdo funcional certificado e limita o delta a versionamento,
+lockfile e documentação de release. A versão estável somente poderá alcançar
+`READY_TO_PUBLISH` após certificar os próprios artefatos. Esta etapa não cria
+a tag estável nem autoriza publicação no PyPI.
