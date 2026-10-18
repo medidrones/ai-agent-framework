@@ -1,10 +1,11 @@
 # Atlas Agent Framework — Gate de promoção estável 1.1.0
 
-## Estado
+## Decisão
 
-**IN_PROGRESS.** A candidata `1.1.0rc2` está certificada e aprovada por cinco
-owner sign-offs. A promoção exige certificação específica dos artefatos
-`1.1.0` antes de qualquer decisão `READY_TO_PUBLISH`.
+**READY_TO_PUBLISH.** A candidata `1.1.0rc2` está certificada e aprovada por
+cinco owner sign-offs. Os artefatos da versão estável `1.1.0` passaram nos
+gates locais e remotos no primeiro attempt. Isso não significa `PUBLISHED` e
+não autoriza, por si só, envio ao PyPI.
 
 ## Fonte congelada
 
@@ -27,6 +28,32 @@ owner sign-offs. A promoção exige certificação específica dos artefatos
 São proibidas mudanças funcionais, de API ou contratos, dependências externas,
 arquitetura, schemas, wire contracts, política de segurança, workflows e
 desativação de testes.
+
+Nenhum arquivo funcional ou teste foi alterado entre a tag `v1.1.0rc2` e o
+commit de preparação estável; somente versões, restrições internas e
+documentação de release mudaram.
+
+## Fonte e integridade da versão estável
+
+- Commit do build estável: `116e886e95c8785920ca1f18e6d88b01a3c1e3ed`
+- [Qualidade remota](https://github.com/medidrones/ai-agent-framework/actions/runs/39056283970): attempt 1, `PASS` em Ubuntu/Windows 3.12/3.13, PostgreSQL, Redis, segurança e exemplos .NET
+- [Empacotamento remoto](https://github.com/medidrones/ai-agent-framework/actions/runs/39056283924): attempt 1, `PASS` para build, reprodutibilidade, instalações limpas e Python 3.12/3.13
+- Bundle arquivado: `atlas-release-candidate`, artefato ID `12109697194`
+- Digest do bundle: `sha256:2f14fcc012db1d15893e9e637af86426478938e54238141faa7736d3dccd730c`
+- SHA-256 do `SHA256SUMS` remoto: `688dbcb587d654defeb893b03dbd48ac7aaec835e577e9d3473dbc770778b1eb`
+- Inventário remoto: sete wheels, sete sdists e 15/15 checksums verificados
+- SBOM CycloneDX 1.6: versão `1.1.0`, 84 componentes
+- Grafo de dependências: zero ciclos; artifact secret scan: zero findings
+- Delta do payload remoto: 251 membros funcionais idênticos em sete wheels;
+  sete módulos de versão diferem apenas em `1.1.0rc2 → 1.1.0`
+- Metadata: `Name`, `Requires-Python`, dependências e entry points coincidem
+  após normalizar exclusivamente o sufixo de versão
+
+A decisão `READY_TO_PUBLISH` vincula-se **exatamente** aos artefatos do commit
+`116e886e95c8785920ca1f18e6d88b01a3c1e3ed` arquivados no workflow
+`39056283924`. Este commit documental posterior não é a fonte dos artefatos.
+A tag estável deve apontar ao commit certificado; qualquer build sobre outro
+commit precisará passar novamente pelo gate de artefatos.
 
 ## Certificação local
 
@@ -60,8 +87,26 @@ explicitamente apenas versões com sufixo RC. Seus gates precedentes — build,
 reprodutibilidade, smoke tests, auditorias, SBOM, checksums, Bandit e
 `pip-audit` — foram executados individualmente com sucesso.
 
-## Decisão intermediária
+## Gate final
 
-Os gates locais estão em `PASS`. A decisão permanece `IN_PROGRESS` até que os
-workflows remotos de qualidade e empacotamento certifiquem exatamente o commit
-de preparação estável. Não há tag estável, GitHub Release ou envio ao PyPI.
+```text
+STABLE PROMOTION       PASS
+SOURCE RC              1.1.0rc2
+TARGET                 1.1.0
+RC COMMIT              fd91bad8d6919a46504ba7fa45fee02fc9e21d52
+STABLE BUILD COMMIT    116e886e95c8785920ca1f18e6d88b01a3c1e3ed
+OWNER SIGN-OFFS        PASS
+P0/P1 OPEN             0/0
+PROMOTION DELTA        VERIFIED
+STABLE ARTIFACTS       VERIFIED
+CLEAN INSTALL          PASS
+SMOKE TESTS            PASS
+ARTIFACT SECRET SCAN   PASS
+
+FINAL DECISION         READY_TO_PUBLISH
+```
+
+Os avisos de depreciação do Node.js 20 nas GitHub Actions e de futura migração
+do runner `ubuntu-latest` foram classificados como não bloqueantes. Não foram
+criados tag `v1.1.0`, GitHub Release ou upload no PyPI. Essas ações pertencem
+ao ciclo separado de publicação oficial e exigem autorização explícita.

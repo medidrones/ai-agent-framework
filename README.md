@@ -1,8 +1,8 @@
 # Atlas Agent Framework
 
-> Versão estável `1.1.0` em preparação a partir da candidata certificada
-> `1.1.0rc2`. O gate de sign-offs está `READY_FOR_STABLE`; os artefatos
-> estáveis ainda exigem certificação. O nome público é
+> Versão estável `1.1.0` certificada a partir da candidata `1.1.0rc2`.
+> O gate técnico está `READY_TO_PUBLISH`; a publicação ainda não ocorreu.
+> O nome público é
 > `atlas-agent-framework`; o namespace Python `atlas_agent` permanece
 > inalterado. Consulte as
 > [notas da versão estável](docs/release/releases/1.1.0.md).

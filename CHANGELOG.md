@@ -27,7 +27,9 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ### Governança
 
-- Preparação estável em gate próprio, sem tag estável ou envio ao PyPI.
+- O gate estável passou no primeiro attempt da matriz Ubuntu/Windows
+  3.12/3.13. Os artefatos `1.1.0` estão `READY_TO_PUBLISH`, ainda sem tag
+  estável ou envio ao PyPI.
 - O conteúdo funcional permanece derivado da candidata certificada; somente
   versionamento, lockfile e documentação de release integram o delta.
 - A publicação exige certificação dos artefatos estáveis e autorização
