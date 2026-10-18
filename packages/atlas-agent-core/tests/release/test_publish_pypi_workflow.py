@@ -11,8 +11,11 @@ import yaml
 WORKFLOW = (
     Path(__file__).resolve().parents[4] / ".github" / "workflows" / "publish-pypi.yml"
 )
-CERTIFIED_COMMIT = "43fd7008f8573f2b2a9906ee8c257986777f04e9"
-CERTIFIED_MANIFEST = "5931aa6a6a66c923831cae1dfeba96571eb10fb812c1cd8816fd0d707aa1094d"
+CERTIFIED_VERSION = "1.1.0"
+CERTIFIED_COMMIT = "116e886e95c8785920ca1f18e6d88b01a3c1e3ed"
+CERTIFIED_RUN = "39056283924"
+CERTIFIED_ARTIFACT = "12109697194"
+CERTIFIED_MANIFEST = "688dbcb587d654defeb893b03dbd48ac7aaec835e577e9d3473dbc770778b1eb"
 EXPECTED_BATCHES = {
     "fundacao": [
         ("atlas-agent-core", "atlas_agent_core", "pypi"),
@@ -104,24 +107,29 @@ def _validate_publication_controls(source: str) -> None:
         ]
         assert predecessor_entries == expected
     assert "fundacao) predecessors=() ;;" in gate_script
-    assert "${project}/1.0.1/json" in gate_script
+    assert f"${{project}}/{CERTIFIED_VERSION}/json" in gate_script
     assert "'.urls[] | select(.filename == $filename) | .digests.sha256'" in gate_script
     assert verify["steps"].index(predecessor_gate) < verify["steps"].index(selector)
 
     verify_steps = "\n".join(str(step) for step in verify["steps"])
     publish_steps = "\n".join(str(step) for step in publish["steps"])
     assert CERTIFIED_COMMIT in verify_steps
-    assert "35017413644" in verify_steps
-    assert "10416406388" in verify_steps
+    assert CERTIFIED_RUN in verify_steps
+    assert CERTIFIED_ARTIFACT in verify_steps
     assert CERTIFIED_MANIFEST in verify_steps
-    assert "releases/389449556" not in verify_steps
+    assert "releases/" not in verify_steps
     assert CERTIFIED_MANIFEST in publish_steps
     assert "sha256sum --check SHA256SUMS" in verify_steps
     assert "sha256sum --check SHA256SUMS" in publish_steps
     assert "--trusted-publishing always" in publish_steps
-    assert '"dist/${DISTRIBUTION}-1.0.1-py3-none-any.whl"' in publish_steps
-    assert '"dist/${DISTRIBUTION}-1.0.1.tar.gz"' in publish_steps
-    assert "https://pypi.org/pypi/${PROJECT}/1.0.1/json" in publish_steps
+    assert (
+        f'"dist/${{DISTRIBUTION}}-{CERTIFIED_VERSION}-py3-none-any.whl"'
+        in publish_steps
+    )
+    assert f'"dist/${{DISTRIBUTION}}-{CERTIFIED_VERSION}.tar.gz"' in publish_steps
+    assert (
+        f"https://pypi.org/pypi/${{PROJECT}}/{CERTIFIED_VERSION}/json" in publish_steps
+    )
     assert "actions/checkout@" not in publish_steps
     assert "uv build" not in publish_steps
     assert "--no-attestations" not in publish_steps
