@@ -7,6 +7,34 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não publicado]
 
+## [1.1.0] - 2026-10-17
+
+### Adicionado
+
+- Estado durável com contratos públicos de checkpoint, lease, fencing,
+  retenção, purge e coordenação de recovery.
+- Implementações opcionais para PostgreSQL e Redis, com concorrência
+  otimista, consumo atômico, proteção contra replay e integração HITL.
+- Certificações de crash recovery, cenários Kubernetes, Durable HITL e
+  desempenho e carga do M01.
+
+### Alterado
+
+- Promovidas as sete distribuições da candidata certificada `1.1.0rc2` para
+  `1.1.0`, com versões e restrições internas sincronizadas em lockstep.
+- Preservados os contratos públicos do Atlas 1.x, o nome público
+  `atlas-agent-framework` e o namespace Python `atlas_agent`.
+
+### Governança
+
+- O gate estável passou no primeiro attempt da matriz Ubuntu/Windows
+  3.12/3.13. Os artefatos `1.1.0` estão `READY_TO_PUBLISH`, ainda sem tag
+  estável ou envio ao PyPI.
+- O conteúdo funcional permanece derivado da candidata certificada; somente
+  versionamento, lockfile e documentação de release integram o delta.
+- A publicação exige certificação dos artefatos estáveis e autorização
+  explícita separada.
+
 ## [1.1.0rc2] - 2026-10-16
 
 ### Corrigido

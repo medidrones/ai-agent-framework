@@ -33,7 +33,8 @@ digest e as evidências verificadas estão no registro auditável da candidata.
 
 ## Próxima decisão
 
-A próxima etapa é o Stable Promotion Gate `1.1.0rc2 → 1.1.0`. A promoção deve
-preservar o conteúdo funcional certificado e limitar o delta a versionamento e
-metadata de release. Esta decisão não cria a tag estável nem autoriza
-publicação no PyPI.
+O Stable Promotion Gate `1.1.0rc2 → 1.1.0` terminou em `PASS`. Os artefatos
+estáveis estão `READY_TO_PUBLISH`, com delta restrito a versionamento,
+restrições internas lockstep e documentação de release. A criação da tag
+estável, da GitHub Release e a publicação no PyPI permanecem ações separadas
+e exigem autorização explícita.
