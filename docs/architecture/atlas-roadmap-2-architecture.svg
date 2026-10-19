@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1120" viewBox="0 0 1600 1120" role="img" aria-labelledby="title desc">
-  <title id="title">Evolução arquitetural planejada do Atlas Agent Framework — Roadmap 2</title>
-  <desc id="desc">Roadmap arquitetural do Atlas 1.x partindo da versão 1.0.1 publicada até uma baseline LTS, com dez marcos enterprise e preservação dos contratos públicos.</desc>
+  <title id="title">Estado arquitetural do Atlas Agent Framework — Roadmap 2</title>
+  <desc id="desc">Roadmap arquitetural do Atlas 1.x com o M01 Durable State concluído, certificado e publicado na versão 1.1.0; M02 Enterprise Memory é o próximo marco planejado e ainda não foi iniciado.</desc>
   <defs>
     <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#07111f"/>
@@ -45,16 +45,16 @@
   <g filter="url(#shadow)">
     <rect x="70" y="184" width="1460" height="92" rx="21" fill="url(#baseline)"/>
   </g>
-  <text x="98" y="217" class="tag">BASELINE CONGELADA</text>
-  <text x="98" y="252" class="node-title">Atlas 1.0.1 · publicado · AgentRuntime e contratos públicos preservados</text>
-  <text x="1502" y="235" text-anchor="end" class="node-text">Roadmap 1 — Foundation</text>
-  <text x="1502" y="258" text-anchor="end" class="small">Tasks 001–025 · COMPLETE</text>
+  <text x="98" y="217" class="tag">BASELINE PUBLICADA</text>
+  <text x="98" y="252" class="node-title">Atlas 1.1.0 · publicado · contratos públicos 1.x preservados</text>
+  <text x="1502" y="235" text-anchor="end" class="node-text">Roadmap 2 — M01 Durable State</text>
+  <text x="1502" y="258" text-anchor="end" class="small">DS-001–DS-016 · COMPLETE · CERTIFIED</text>
 
   <path d="M 800 276 L 800 313" class="flow"/>
-  <text x="70" y="333" class="section">SEQUÊNCIA ARQUITETURAL</text>
+  <text x="70" y="333" class="section">SEQUÊNCIA ARQUITETURAL · ESTADO EM 1.1.0</text>
 
   <g filter="url(#shadow)">
-    <rect x="250" y="354" width="1100" height="82" rx="18" fill="url(#future)" stroke="#8067c9"/>
+    <rect x="250" y="354" width="1100" height="82" rx="18" fill="url(#baseline)" stroke="#22d3ee"/>
     <rect x="250" y="468" width="1100" height="82" rx="18" fill="url(#future)" stroke="#8067c9"/>
     <rect x="250" y="582" width="1100" height="82" rx="18" fill="url(#future)" stroke="#8067c9"/>
   </g>
@@ -66,8 +66,10 @@
   <text x="312" y="621" text-anchor="middle" class="tag">M03</text>
   <text x="375" y="389" class="node-title">Durable State</text>
   <text x="375" y="417" class="node-text">PostgreSQL e Redis · concorrência otimista · resume atômico · leases · recovery</text>
+  <text x="1324" y="403" text-anchor="end" class="tag">COMPLETE · CERTIFIED · 1.1.0</text>
   <text x="375" y="503" class="node-title">Enterprise Memory</text>
   <text x="375" y="531" class="node-text">Persistência distribuída · TTL · namespaces · isolamento por tenant · retenção</text>
+  <text x="1324" y="517" text-anchor="end" class="tag">PRÓXIMO · NOT_STARTED</text>
   <text x="375" y="617" class="node-title">Enterprise Knowledge / RAG</text>
   <text x="375" y="645" class="node-text">OpenSearch · pgvector · Qdrant · filtros, escopo, metadata e citações</text>
   <path d="M 800 436 L 800 458" class="flow"/>
@@ -126,5 +128,5 @@
   <text x="1056" y="1036" class="node-title">Roadmap 3 · Atlas 2.x</text>
   <text x="1056" y="1063" class="node-text">Multi-agent · graphs · delegation · control plane</text>
 
-  <text x="70" y="1106" class="small">Primeiro passo: DS-001 · certificar e congelar o contrato atual de CheckpointStore antes de implementar PostgreSQL ou Redis.</text>
+  <text x="70" y="1106" class="small">Estado atual: M01 publicado na versão 1.1.0 · próximo marco planejado: M02 Enterprise Memory · início sujeito a autorização formal.</text>
 </svg>

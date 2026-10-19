@@ -1,8 +1,8 @@
 # Arquitetura
 
-O contrato arquitetural está em feature freeze para `1.0.0rc1`. A direção de
-dependências e a ausência de ciclos são verificadas por AST na suíte e
-registradas em `reports/release/architecture-audit.json`.
+A baseline arquitetural publicada é a versão `1.1.0`. A direção de dependências,
+a ausência de ciclos e a compatibilidade dos contratos públicos são verificadas
+pelos quality gates e registradas nos relatórios de release.
 
 ## Guardrails e governança
 
@@ -83,6 +83,21 @@ dono de autenticação, servidores, conexões, TLS e lifecycle; o pacote apenas
 cria a aplicação FastAPI, registra o servicer gRPC ou processa uma entrega. A
 decisão completa está em
 [`external-adapters.md`](docs/architecture/external-adapters.md).
+
+A persistência durável continua isolada em `atlas-agent-adapters`. PostgreSQL e
+Redis implementam o contrato público `CheckpointStore` e capabilities
+opcionais para CAS, consumo autorizado, leases, fencing, retenção, purge e
+recovery, sem introduzir dependências de banco no core:
+
+```text
+AgentRuntime → CheckpointStore (core) ← PostgreSQLCheckpointStore
+                                     ← RedisCheckpointStore
+```
+
+PostgreSQL fornece transações e autoridade temporal. Redis fornece operações
+atômicas por Lua e garantias de durabilidade condicionadas à topologia e à
+configuração do servidor. O M01 certificou crash recovery, HITL durável,
+cenários Kubernetes, segurança e desempenho dessas integrações.
 
 O runtime continua dono do loop, ferramentas, aprovação humana, memória,
 Knowledge/RAG e guardrails. O provider somente traduz requests, responses,
@@ -312,11 +327,11 @@ core.
 
 ## Escopo atual
 
-Atualmente, o repositório inclui o workspace, os contratos e o runtime do
-pacote `atlas-agent-core`, a distribuição `atlas-agent-evaluation` e a
-distribuição opcional `atlas-agent-providers`, além da integração opcional
-`atlas-agent-mcp`. O primeiro provider concreto é o `OpenAIModelProvider`,
-baseado na Responses API assíncrona.
+Atualmente, o repositório publica sete distribuições: core, providers, MCP,
+adapters, configuração, avaliação e o meta-package. O primeiro provider
+concreto é o `OpenAIModelProvider`, baseado na Responses API assíncrona. Os
+adapters incluem transportes REST/gRPC/mensageria e persistência PostgreSQL e
+Redis.
 
 Esses tipos representam snapshots imutáveis nas fronteiras do framework. IDs
 são strings opacas e não impõem UUID. Metadados são explicitamente tipados,
@@ -327,19 +342,24 @@ O core já oferece execução multi-turn completa ou incremental por
 `ModelProvider`, com limites, budget e timeout opcionais.
 Também oferece contratos, registro e execução integrada de ferramentas.
 Também oferece aprovação humana, checkpoints versionados, retomada segura,
-memória com escopo e Knowledge/RAG provider-neutral. Retries, fallback e
-integrações concretas de armazenamento e retrieval serão introduzidos
-incrementalmente em tarefas posteriores. O provider OpenAI permanece opcional,
+memória com escopo e Knowledge/RAG provider-neutral. O M01 — Durable State foi
+concluído, certificado e publicado na versão `1.1.0`, com recovery distribuído
+e stores PostgreSQL/Redis. Retries, fallback e backends concretos de retrieval
+permanecem fora do core. O provider OpenAI permanece opcional,
 recebe cliente e configuração explicitamente e não altera essas fronteiras. A
 integração MCP também permanece opcional e depende somente dos contratos
 públicos do core. Consulte [`docs/architecture/mcp.md`](docs/architecture/mcp.md).
 
 ## Evolução prevista
 
-Novas distribuições serão criadas somente quando houver contratos estáveis a
-implementar. A evolução prevista inclui novos providers, adapters concretos de
-memória, conhecimento e observabilidade e novos transportes, sempre como
-pacotes opcionais ao redor do core.
+O próximo marco planejado é o M02 — Enterprise Memory, ainda não iniciado.
+Marcos posteriores incluem Knowledge/RAG enterprise, novos providers,
+observabilidade, mensageria, SDKs cross-stack, conformance e hardening. Toda
+evolução permanece sujeita a gate próprio e usa pacotes opcionais ao redor do
+core.
+
+Consulte o [estado do Roadmap 2](docs/roadmap-2/README.md) e a
+[arquitetura implementada](docs/architecture/implemented-architecture.md).
 
 Os limites detalhados dos pacotes estão documentados em
 [`docs/architecture/dependency-rules.md`](docs/architecture/dependency-rules.md).
