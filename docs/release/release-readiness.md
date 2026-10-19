@@ -31,10 +31,10 @@ O bundle `atlas-v1.1.0rc2` preserva inventário, checksums, SBOM, identidade da
 fonte, resultados automatizados e relatórios de instalação dos artefatos. O
 digest e as evidências verificadas estão no registro auditável da candidata.
 
-## Próxima decisão
+## Publicação estável
 
 O Stable Promotion Gate `1.1.0rc2 → 1.1.0` terminou em `PASS`. Os artefatos
-estáveis estão `READY_TO_PUBLISH`, com delta restrito a versionamento,
-restrições internas lockstep e documentação de release. A criação da tag
-estável, da GitHub Release e a publicação no PyPI permanecem ações separadas
-e exigem autorização explícita.
+estáveis foram publicados sem rebuild: a tag anotada `v1.1.0` aponta ao commit
+certificado `116e886e95c8785920ca1f18e6d88b01a3c1e3ed`, a GitHub Release preserva
+os 16 arquivos do bundle e as sete distribuições estão no PyPI. O estado final
+é `PUBLISHED`.
