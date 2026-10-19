@@ -2,10 +2,9 @@
 
 ## Decisão
 
-**READY_TO_PUBLISH.** A candidata `1.1.0rc2` está certificada e aprovada por
+**PUBLISHED.** A candidata `1.1.0rc2` está certificada e aprovada por
 cinco owner sign-offs. Os artefatos da versão estável `1.1.0` passaram nos
-gates locais e remotos no primeiro attempt. Isso não significa `PUBLISHED` e
-não autoriza, por si só, envio ao PyPI.
+gates locais e remotos no primeiro attempt e foram publicados sem rebuild.
 
 ## Fonte congelada
 
@@ -49,11 +48,21 @@ documentação de release mudaram.
 - Metadata: `Name`, `Requires-Python`, dependências e entry points coincidem
   após normalizar exclusivamente o sufixo de versão
 
-A decisão `READY_TO_PUBLISH` vincula-se **exatamente** aos artefatos do commit
+A certificação e a publicação vinculam-se **exatamente** aos artefatos do commit
 `116e886e95c8785920ca1f18e6d88b01a3c1e3ed` arquivados no workflow
 `39056283924`. Este commit documental posterior não é a fonte dos artefatos.
-A tag estável deve apontar ao commit certificado; qualquer build sobre outro
-commit precisará passar novamente pelo gate de artefatos.
+A tag estável aponta ao commit certificado; qualquer build sobre outro commit
+precisará passar novamente pelo gate de artefatos.
+
+## Evidências de publicação
+
+- Tag anotada e GitHub Release:
+  [`v1.1.0`](https://github.com/medidrones/ai-agent-framework/releases/tag/v1.1.0)
+- Lote fundação: [workflow 39162729764](https://github.com/medidrones/ai-agent-framework/actions/runs/39162729764), `PASS`
+- Lote integrações: [workflow 39162933353](https://github.com/medidrones/ai-agent-framework/actions/runs/39162933353), `PASS`
+- Lote final: [workflow 39244325275](https://github.com/medidrones/ai-agent-framework/actions/runs/39244325275), `PASS`
+- Autenticação: Trusted Publishing via OIDC e ambientes protegidos individuais
+- PyPI: sete projetos, sete wheels, sete sdists e 14/14 hashes confirmados
 
 ## Certificação local
 
@@ -103,10 +112,10 @@ CLEAN INSTALL          PASS
 SMOKE TESTS            PASS
 ARTIFACT SECRET SCAN   PASS
 
-FINAL DECISION         READY_TO_PUBLISH
+FINAL DECISION         PUBLISHED
 ```
 
 Os avisos de depreciação do Node.js 20 nas GitHub Actions e de futura migração
-do runner `ubuntu-latest` foram classificados como não bloqueantes. Não foram
-criados tag `v1.1.0`, GitHub Release ou upload no PyPI. Essas ações pertencem
-ao ciclo separado de publicação oficial e exigem autorização explícita.
+do runner `ubuntu-latest` foram classificados como não bloqueantes. A tag,
+a GitHub Release e os uploads no PyPI foram concluídos com autorização formal
+de Jorge Medina.

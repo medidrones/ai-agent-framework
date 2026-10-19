@@ -7,7 +7,7 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
 ## [Não publicado]
 
-## [1.1.0] - 2026-10-17
+## [1.1.0] - 2026-10-18
 
 ### Adicionado
 
@@ -28,12 +28,12 @@ e o projeto segue [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 ### Governança
 
 - O gate estável passou no primeiro attempt da matriz Ubuntu/Windows
-  3.12/3.13. Os artefatos `1.1.0` estão `READY_TO_PUBLISH`, ainda sem tag
-  estável ou envio ao PyPI.
+  3.12/3.13. A tag `v1.1.0`, a GitHub Release e as sete distribuições foram
+  publicadas a partir dos artefatos certificados.
 - O conteúdo funcional permanece derivado da candidata certificada; somente
   versionamento, lockfile e documentação de release integram o delta.
-- A publicação exige certificação dos artefatos estáveis e autorização
-  explícita separada.
+- A publicação no PyPI ocorreu por Trusted Publishing em três lotes
+  sequenciais, com confirmação dos 14 hashes após cada upload.
 
 ## [1.1.0rc2] - 2026-10-16
 
