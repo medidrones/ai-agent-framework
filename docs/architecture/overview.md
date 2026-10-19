@@ -1,90 +1,94 @@
 # Visão geral da arquitetura
 
 O Atlas Agent Framework é um SDK Python modular cujo centro estável é um core
-pequeno e neutro de provedor. Os consumidores podem usar esse core diretamente
-ou adicionar plugins e adapters de transporte opcionais.
+pequeno e neutro de provedor. Aplicações podem usar esse core diretamente ou
+compor providers, plugins, adapters, MCP, configuração e avaliação por
+distribuições opcionais.
 
 ## Propósito e escopo
 
-O framework fornece abstrações reutilizáveis para agentes de IA sem incorporar
-uma aplicação de negócio. Nesta fase, o escopo inclui a fundação do monorepo,
-os gates de qualidade, os contratos fundamentais de agentes e o protocolo de
-lifecycle, além da abstração provider-agnostic de modelos. O runtime coordena
-chamadas completas ou incrementais e executa ciclos multi-turn com ferramentas
-permitidas pelo agente. Integrações concretas continuam em pacotes externos.
+O framework fornece contratos e componentes reutilizáveis para agentes de IA
+sem incorporar uma aplicação ou domínio de negócio. O runtime coordena
+lifecycle, chamadas completas e streaming, ciclos multi-turn, ferramentas,
+aprovação humana, memória, Knowledge/RAG, guardrails e observabilidade.
+
+A versão `1.1.0` adiciona o **Durable State** certificado pelo M01 do Roadmap 2:
+checkpoints PostgreSQL e Redis, concorrência otimista, consumo autorizado
+atômico, leases, fencing, retenção, purge, recovery distribuído e HITL durável.
+Essas integrações permanecem fora do core e preservam os contratos públicos da
+linha 1.x.
 
 ## Direção das dependências
 
 ```text
-Consumidores
-    |
-Adapters e plugins
-    |
-Contratos do core
+Aplicações e serviços
+        ↓
+Configuração · adapters · plugins · providers · MCP
+        ↓
+Contratos públicos do atlas-agent-core
 ```
 
-As dependências do código-fonte apontam para o core. O core não sabe qual
-provedor de modelo, banco de dados, broker, banco vetorial ou transporte
-implementará seus contratos.
+As dependências de código apontam para os contratos do core. O core não depende
+de SDKs de modelos, frameworks web, bancos de dados, brokers, bancos vetoriais
+ou ferramentas concretas de telemetria.
 
-## Organização do repositório
+## Distribuições
 
-- `packages/atlas-agent-core` contém o pacote importável `atlas_agents`.
-- `packages/atlas-agent-providers` contém integrações opcionais com SDKs de
-  provedores, começando pela OpenAI.
-- Pacotes futuros conterão outras implementações de infraestrutura.
-- `docs` registra restrições e decisões arquiteturais.
-- `examples` demonstrará integrações sem introduzir lógica de negócio no
-  framework.
+- `atlas-agent-core`: contratos, lifecycle, runtime e políticas
+  provider-neutral;
+- `atlas-agent-providers`: providers opcionais, incluindo OpenAI;
+- `atlas-agent-adapters`: REST, gRPC, mensageria e stores PostgreSQL/Redis;
+- `atlas-agent-mcp`: cliente e servidor Model Context Protocol;
+- `atlas-agent-config`: configuração declarativa e composition root;
+- `atlas-agent-evaluation`: datasets, evaluators, scoring e relatórios;
+- `atlas-agent-framework`: meta-package para a experiência integrada.
 
-## Responsabilidades iniciais
+As sete distribuições estão publicadas separadamente para manter dependências de
+infraestrutura opcionais.
 
-- manter o pacote core instalável e tipado;
-- definir modelos imutáveis para dados de entrada e saída;
-- oferecer uma abstração assíncrona para agentes concretos;
-- validar transições por uma máquina de estados declarativa;
-- registrar histórico e representar eventos sem acoplamento a um event bus;
-- definir requests, responses e streaming de modelos sem SDK concreto;
-- permitir providers substituíveis por uma interface async-first;
-- registrar providers explicitamente e selecionar modelos deterministicamente;
-- garantir execuções locais e no CI a partir da raiz;
-- documentar limites antes de adicionar integrações;
-- impedir dependências concretas dentro do core;
-- controlar o estado local de uma execução sem executar providers ou
-  ferramentas;
-- executar múltiplos turns por `ModelProvider.generate()` ou exclusivamente
-  por `ModelProvider.stream()` no modo incremental, sem SDK concreto;
-- validar e reconstruir streams estruturados sem expor chunks de SDKs.
-- aplicar limites e budget por execução com checker puro e deadline monotônico.
-- registrar ferramentas em ordem determinística e derivar sua visão do modelo;
-- autorizar, validar e executar ferramentas conhecidas por uma fronteira segura.
+## Responsabilidades do core
 
-## Extensibilidade e evolução
+- definir modelos imutáveis e tipados nas fronteiras públicas;
+- validar lifecycle, estado, eventos e resultados;
+- abstrair modelos e providers sem expor objetos específicos de SDKs;
+- coordenar execução completa, streaming e ciclos multi-turn;
+- aplicar limites, budget, timeout e cancellation;
+- registrar, autorizar, validar e executar ferramentas conhecidas;
+- suspender e retomar execuções HITL por contratos de checkpoint;
+- integrar memória, Knowledge/RAG, guardrails e observabilidade por injeção;
+- preservar compatibilidade retroativa e evitar infraestrutura obrigatória.
 
-A evolução ocorre por contratos no core e implementações em pacotes opcionais.
-Novos providers, stores ou transportes devem poder ser instalados e substituídos
-sem alterar o modelo público do core. Dependências de infraestrutura ficam
-isoladas na distribuição que as utiliza.
+## Durable State
 
-`ExecutionState` permanece responsável somente por mutações controladas,
-snapshots e resultados terminais. `AgentRuntime` possui ownership único da
-orquestração e realiza quantas chamadas async a `ModelProvider.generate()` ou
-`ModelProvider.stream()` forem admitidas pelos limites do loop. O runtime
-integra tools do core sem conhecer suas dependências concretas. Nenhum provider
-concreto, retry, fallback ou reconexão é implementado no core.
+O `CheckpointStore` permanece como contrato público mínimo. Capabilities
+opcionais adicionam garantias mais fortes sem ampliar a responsabilidade do
+`AgentRuntime`. PostgreSQL fornece transações e autoridade temporal; Redis
+fornece operações atômicas por Lua e garantias condicionadas à configuração de
+persistência e topologia.
 
-As políticas são value objects imutáveis fornecidos ao runtime. O checker não
-conhece lifecycle ou provider; ele retorna violações estruturadas. O runtime
-aplica pre-check antes da invocação, pós-check após usage e converte a decisão
-nos estados terminais já definidos, sem alterar o mapa de transições.
+```text
+AgentRuntime
+    ↓ contratos/capabilities
+CheckpointStore
+    ├── PostgreSQL: transações · CAS · leases · fencing · migrations
+    └── Redis: Lua · CAS · leases · fencing · TTL
+            ↓
+RecoveryCoordinator · Durable HITL · retenção/purge
+```
 
-Ferramentas recebem dependências diretamente em seus construtores. O contexto
-restrito não oferece container de serviços. O executor resolve somente nomes
-exatos já registrados, verifica autorização antes do schema e não importa ou
-executa código indicado pelo modelo. Consulte
-[`docs/reference/tools.md`](../reference/tools.md).
+O M01 certificou recovery após crash e restart, concorrência distribuída,
+cenários Kubernetes, segurança e desempenho. A propriedade de autorização
+preservada é `one approval → one resume → one side effect`; ela não representa
+exactly-once para efeitos externos, que continuam exigindo idempotência e
+reconciliação na aplicação.
 
-O agente restringe quais registros podem ser apresentados e executados. O
-estado guarda o histórico de mensagens e um journal imutável de tool calls para
-reutilização segura dentro da execução. Consulte
-[`docs/reference/multi-turn-runtime.md`](../reference/multi-turn-runtime.md).
+## Estado do roadmap
+
+- Roadmap 1 — Foundation: `COMPLETE`;
+- Roadmap 2 / M01 — Durable State: `COMPLETE`, `CERTIFIED` e publicado na
+  versão `1.1.0`;
+- próximo marco planejado: M02 — Enterprise Memory, ainda não iniciado.
+
+Consulte a [arquitetura implementada](implemented-architecture.md), o
+[índice do Roadmap 2](../roadmap-2/README.md) e as
+[regras de dependência](dependency-rules.md).

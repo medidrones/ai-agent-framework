@@ -44,17 +44,21 @@ execução por REST/FastAPI, gRPC/protobuf e mensageria broker-neutral, com
 identidade confiável, autorização e limites explícitos. Consulte a
 [`visão geral dos adapters`](docs/adapters/overview.md).
 
-O extra `atlas-agent-adapters[postgresql]` oferece checkpoints duráveis para
+Os extras `atlas-agent-adapters[postgresql]` e
+`atlas-agent-adapters[redis]` oferecem checkpoints duráveis para
 HITL, com migrations versionadas, persistência transacional e consumo único
-atômico. A capability PostgreSQL também oferece compare-and-swap por revisão
+atômico. A implementação PostgreSQL oferece compare-and-swap por revisão
 para impedir lost updates entre workers e consumo autorizado com rollback antes
 do commit quando a decisão de retomada é inválida. Lease distribuído, expiração
 pelo relógio do PostgreSQL e fencing tokens monotônicos protegem CAS e consumo
 contra workers obsoletos. O recovery coordinator descobre candidatos por lote,
 revalida elegibilidade sob ownership e retoma somente HITL com decisão externa
-autorizada, registrando tentativas duráveis sem expor tokens. Tudo permanece
-aditivo aos contratos 1.x. Consulte o guia de
-[`checkpoint PostgreSQL`](docs/adapters/postgresql-checkpoints.md).
+autorizada, registrando tentativas duráveis sem expor tokens. A implementação
+Redis aplica operações atômicas por Lua, fencing, TTL e proteção contra replay,
+com as garantias de persistência condicionadas à topologia e à configuração do
+servidor. Tudo permanece aditivo aos contratos 1.x. Consulte os guias de
+[`checkpoint PostgreSQL`](docs/adapters/postgresql-checkpoints.md) e
+[`checkpoint Redis`](docs/adapters/redis-checkpoints.md).
 
 Atlas é um framework Python reutilizável e independente de provedor para
 definir, compor, executar e avaliar agentes de IA.
@@ -86,7 +90,7 @@ autenticação, infraestrutura obrigatória nem regras de um domínio de negóci
 
 ## Situação atual
 
-Na versão `1.0.1` publicada, o core reúne contratos públicos para agentes,
+Na versão `1.1.0` publicada, o core reúne contratos públicos para agentes,
 entradas, contexto, identidade, resultados, uso e eventos, além do contrato
 abstrato `Agent` e de um runtime executável. O lifecycle
 formal valida mudanças de estado, registra um histórico imutável e permite gerar
@@ -118,6 +122,14 @@ autoritativo e citações `K1`, `K2`… Ainda não existem retries automáticos,
 fallback ou backends concretos de retrieval. O provider OpenAI é a primeira
 integração concreta com modelos.
 
+O **M01 — Durable State** do Roadmap 2 foi concluído e certificado pelas
+tarefas DS-001–DS-016. A versão `1.1.0` incorpora persistência PostgreSQL e
+Redis, controle de concorrência, consumo atômico, leases e fencing, recuperação
+após falhas, HITL durável, cenários Kubernetes e certificação de desempenho. O
+próximo marco planejado é o **M02 — Enterprise Memory**; seu início exige uma
+autorização própria e não altera retroativamente a baseline certificada do M01.
+Consulte o [índice do Roadmap 2](docs/roadmap-2/README.md).
+
 ## Distribuições
 
 | Pacote | Finalidade | Instalação |
@@ -125,7 +137,7 @@ integração concreta com modelos.
 | `atlas-agent-core` | contratos e runtime mínimo | `pip install atlas-agent-core` |
 | `atlas-agent-providers` | providers oficiais | `pip install atlas-agent-providers[openai]` |
 | `atlas-agent-mcp` | integração MCP | `pip install atlas-agent-mcp` |
-| `atlas-agent-adapters` | transportes e persistência externa | `pip install atlas-agent-adapters[postgresql]` |
+| `atlas-agent-adapters` | transportes e persistência PostgreSQL/Redis | `pip install atlas-agent-adapters[postgresql,redis]` |
 | `atlas-agent-config` | configuração declarativa | `pip install atlas-agent-config` |
 | `atlas-agent-evaluation` | avaliação | `pip install atlas-agent-evaluation` |
 | `atlas-agent-framework` | meta-package opcional | `pip install atlas-agent-framework[full]` |
@@ -258,7 +270,7 @@ nível e
 [docs/architecture/dependency-rules.md](docs/architecture/dependency-rules.md)
 para conferir as restrições de dependência aplicáveis. Uma visão consolidada
 da implementação está no
-[diagrama da arquitetura 1.0.1](docs/architecture/implemented-architecture.md).
+[arquitetura implementada na versão 1.1.0](docs/architecture/implemented-architecture.md).
 
 ## Estrutura do repositório
 
