@@ -9,7 +9,7 @@ conclusão de um marco não autoriza automaticamente o próximo.
 | Marco | Objetivo | Estado |
 | --- | --- | --- |
 | M01 | Durable State | `COMPLETE` · `CERTIFIED` · publicado em `1.1.0` |
-| M02 | Enterprise Memory | próximo marco planejado · não iniciado |
+| M02 | Distributed Agent Orchestration & Execution | em execução · OR-001 implementada |
 | M03 | Enterprise Knowledge / RAG | planejado |
 | M04 | Provider Expansion | planejado |
 | M05 | Enterprise Observability | planejado |
@@ -39,8 +39,11 @@ estão registradas na [documentação da versão 1.1.0](../release/releases/1.1.
 - [Diagrama atualizado do Roadmap 2](../architecture/atlas-roadmap-2-architecture.svg)
 - [Status da promoção estável](../release/STABLE-PROMOTION-STATUS.md)
 
-## Próximo marco
+## Marco atual
 
-O próximo marco planejado é o **M02 — Enterprise Memory**. Ele permanece
-`NOT_STARTED` até que seu escopo e sua autorização formal sejam registrados.
-Não há implementação do M02 implícita no encerramento do M01.
+O **M02 — Distributed Agent Orchestration & Execution** foi formalmente
+aprovado com 16 tarefas, OR-001–OR-016. A OR-001 introduz somente contratos
+provider-neutral; o motor de workflows, validação completa de DAG e execução
+distribuída continuam fora desta entrega.
+
+- [OR-001 — Architecture & Orchestration Contracts](m02-orchestration/or-001/ARCHITECTURE.md)

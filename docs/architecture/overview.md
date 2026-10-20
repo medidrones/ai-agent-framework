@@ -87,7 +87,8 @@ reconciliação na aplicação.
 - Roadmap 1 — Foundation: `COMPLETE`;
 - Roadmap 2 / M01 — Durable State: `COMPLETE`, `CERTIFIED` e publicado na
   versão `1.1.0`;
-- próximo marco planejado: M02 — Enterprise Memory, ainda não iniciado.
+- marco atual: M02 — Distributed Agent Orchestration & Execution;
+- OR-001: contratos de orquestração implementados, sem engine ou scheduler.
 
 Consulte a [arquitetura implementada](implemented-architecture.md), o
 [índice do Roadmap 2](../roadmap-2/README.md) e as

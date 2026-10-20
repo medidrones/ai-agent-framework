@@ -126,7 +126,9 @@ O **M01 — Durable State** do Roadmap 2 foi concluído e certificado pelas
 tarefas DS-001–DS-016. A versão `1.1.0` incorpora persistência PostgreSQL e
 Redis, controle de concorrência, consumo atômico, leases e fencing, recuperação
 após falhas, HITL durável, cenários Kubernetes e certificação de desempenho. O
-próximo marco planejado é o **M02 — Enterprise Memory**; seu início exige uma
+o marco atual é o **M02 — Distributed Agent Orchestration & Execution**; a
+OR-001 estabelece os contratos arquiteturais e públicos de workflows, sem
+implementar ainda o motor de execução. Cada tarefa exige uma
 autorização própria e não altera retroativamente a baseline certificada do M01.
 Consulte o [índice do Roadmap 2](docs/roadmap-2/README.md).
 
