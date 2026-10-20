@@ -9,7 +9,7 @@ conclusão de um marco não autoriza automaticamente o próximo.
 | Marco | Objetivo | Estado |
 | --- | --- | --- |
 | M01 | Durable State | `COMPLETE` · `CERTIFIED` · publicado em `1.1.0` |
-| M02 | Distributed Agent Orchestration & Execution | em execução · OR-001 implementada |
+| M02 | Distributed Agent Orchestration & Execution | em execução · OR-001 `COMPLETE` |
 | M03 | Enterprise Knowledge / RAG | planejado |
 | M04 | Provider Expansion | planejado |
 | M05 | Enterprise Observability | planejado |

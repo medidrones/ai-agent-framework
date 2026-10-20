@@ -69,7 +69,7 @@
   <text x="1324" y="403" text-anchor="end" class="tag">COMPLETE · CERTIFIED · 1.1.0</text>
   <text x="375" y="503" class="node-title">Distributed Agent Orchestration</text>
   <text x="375" y="531" class="node-text">Workflows · contratos · DAG · coordenação · execução distribuída</text>
-  <text x="1324" y="517" text-anchor="end" class="tag">IN_PROGRESS · OR-001</text>
+  <text x="1324" y="517" text-anchor="end" class="tag">IN_PROGRESS · OR-001 COMPLETE</text>
   <text x="375" y="617" class="node-title">Enterprise Knowledge / RAG</text>
   <text x="375" y="645" class="node-text">OpenSearch · pgvector · Qdrant · filtros, escopo, metadata e citações</text>
   <path d="M 800 436 L 800 458" class="flow"/>
@@ -128,5 +128,5 @@
   <text x="1056" y="1036" class="node-title">Roadmap 3 · Atlas 2.x</text>
   <text x="1056" y="1063" class="node-text">Marketplace · hosted control plane · evolução 2.x</text>
 
-  <text x="70" y="1106" class="small">Estado atual: M01 publicado na versão 1.1.0 · M02 Distributed Agent Orchestration em execução · OR-001 contratos.</text>
+  <text x="70" y="1106" class="small">Estado atual: M01 publicado na versão 1.1.0 · M02 em execução · OR-001 COMPLETE · OR-002 não iniciada.</text>
 </svg>
