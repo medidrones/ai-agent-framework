@@ -10,7 +10,7 @@ M01 DECISION            CERTIFIED
 STABLE VERSION          1.1.0
 PUBLICATION              PUBLISHED
 P0/P1 OPEN              0/0
-NEXT MILESTONE          M02 — NOT_STARTED
+NEXT MILESTONE          M02 — IN_PROGRESS
 ```
 
 O M01 introduziu Durable State de forma aditiva, preservando o contrato público
@@ -62,5 +62,6 @@ contexto histórico e são sucedidas pelos registros de promoção e publicaçã
 
 ## Continuidade
 
-O M01 está encerrado. O próximo marco planejado é o M02 — Enterprise Memory,
+O M01 está encerrado. O marco seguinte é o M02 — Distributed Agent
+Orchestration & Execution,
 que exige especificação e autorização independentes antes de qualquer mudança.

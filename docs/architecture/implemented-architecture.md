@@ -104,7 +104,7 @@ estado formal atual é:
 | Marco | Escopo | Estado |
 | --- | --- | --- |
 | M01 | Durable State | `COMPLETE` · `CERTIFIED` · publicado em `1.1.0` |
-| M02 | Enterprise Memory | próximo marco planejado · não iniciado |
+| M02 | Distributed Agent Orchestration & Execution | em execução · OR-001 `COMPLETE` |
 | M03 | Enterprise Knowledge / RAG | planejado |
 | M04 | Provider Expansion | planejado |
 | M05 | Enterprise Observability | planejado |
@@ -121,6 +121,7 @@ Consulte o [índice do Roadmap 2](../roadmap-2/README.md), o
 [fechamento do M01](../roadmap-2/m01-durable-state/README.md) e as
 [notas da versão 1.1.0](../release/releases/1.1.0.md).
 
-Multi-agent runtime, delegation, workflow graphs, marketplace e control plane
-hospedado permanecem fora deste ciclo e são candidatos ao Roadmap 3 —
-**Atlas 2.x: Advanced Orchestration**.
+O M02 inicia a evolução multiagente por contratos aditivos. A OR-001 define
+workflows declarativos, contexto, lifecycle, resultados, eventos, policies e a
+fronteira assíncrona `WorkflowOrchestrator`; não contém engine, scheduler ou
+workers. Marketplace e control plane hospedado permanecem fora deste ciclo.

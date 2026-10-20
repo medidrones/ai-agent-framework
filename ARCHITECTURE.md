@@ -352,7 +352,9 @@ públicos do core. Consulte [`docs/architecture/mcp.md`](docs/architecture/mcp.m
 
 ## Evolução prevista
 
-O próximo marco planejado é o M02 — Enterprise Memory, ainda não iniciado.
+O marco atual é o M02 — Distributed Agent Orchestration & Execution. A OR-001
+define contratos declarativos, lifecycle, eventos, policies e a fronteira do
+orquestrador, preservando o `AgentRuntime` como executor individual.
 Marcos posteriores incluem Knowledge/RAG enterprise, novos providers,
 observabilidade, mensageria, SDKs cross-stack, conformance e hardening. Toda
 evolução permanece sujeita a gate próprio e usa pacotes opcionais ao redor do
